@@ -9,6 +9,12 @@
 			"es2015",
 			"dom"
 		]
+	},
+	"typedocOptions":{
+		"name": "JSW",
+		"json": "document.json",
+		"mode": "modules",
+		"includeDeclarations": false,
+		"hideGenerator": false
 	}
-
 }
