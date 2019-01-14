@@ -1,6 +1,6 @@
 # JSW
 JavaScript用ウインドウフレームワーク
-[ドキュメント](./doc/index.html)
+[ドキュメント](https://javascript-windowframework.github.io/JSW/Samples/Document.html)
 
 
 [サンプル](https://javascript-windowframework.github.io/JSW/)
