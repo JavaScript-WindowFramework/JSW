@@ -92,5 +92,11 @@ addEventListener("DOMContentLoaded", docMain);
 //ページ読み込み後に実行される内容
 function docMain() {
     var typeDocView = new TypeDocView();
+    //メッセージの表示
+    var msgWindow = new JSW.FrameWindow();
+    msgWindow.setTitle('説明');
+    msgWindow.setSize(300, 200);
+    msgWindow.getClient().innerHTML =
+        '<a target="_blank" href="../doc/document.json">JSON</a>から、その内容を表示';
 }
 //# sourceMappingURL=document.js.map
