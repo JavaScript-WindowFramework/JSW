@@ -1,0 +1,510 @@
+@charset "UTF-8";
+[data-type="Window"] {
+  box-sizing: border-box;
+}
+
+[data-type="Window"][data-visible="false"] {
+  display: none;
+}
+
+[data-type="Window"]:not([data-style="frame"]) {
+  overflow: hidden;
+}
+
+[data-type="Window"] > [data-type="frame"] {
+  position: absolute;
+  user-select: none;
+}
+
+[data-type="Window"][data-style="frame"]:not([data-stat="maximize"]) {
+  border-radius: 10px 10px 0px 0px;
+  border: solid 1px;
+  box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.4);
+  animation: JSWfadeIn 0.5s ease 0s 1 normal;
+}
+
+[data-type="Window"][data-stat="maximize"] > [data-type="frame"] {
+  display: none;
+  box-sizing: border-box;
+}
+
+[data-type="Window"][data-active='true'] > [data-type="title"] {
+  background-color: #5577dd;
+  color: white;
+}
+
+[data-type="Window"] > [data-type="title"] {
+  border-radius: 10px 10px 0px 0px;
+  display: flex;
+  position: absolute;
+  cursor: move;
+  background-color: #aabbee;
+  overflow: hidden;
+}
+
+[data-type="Window"] > [data-type="title"] [data-type="text"] {
+  flex: 1;
+  overflow: hidden;
+  font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande", "Lucida Sans", Arial, sans-serif;
+  padding: 0px 0.5em;
+  align-items: center;
+  display: flex;
+  white-space: nowrap;
+}
+
+[data-type="Window"] > [data-type="title"] > [data-type="icon"] {
+  display: inline-block;
+  cursor: default;
+  background-size: 100% 100%;
+}
+
+[data-type="Window"] > [data-type="title"] > [data-type="icon"]:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+[data-type="Window"] > [data-type="title"] > [data-type="icon"][data-kind="min"] {
+  background-image: url("images/min.svg");
+}
+
+[data-type="Window"] > [data-type="title"] > [data-type="icon"][data-kind="restore"] {
+  background-image: url("images/min.svg");
+}
+
+[data-type="Window"] > [data-type="title"] > [data-type="icon"][data-kind="max"] {
+  background-image: url("images/max.svg");
+}
+
+[data-type="Window"] > [data-type="title"] > [data-type="icon"][data-kind="close"] {
+  background-image: url("images/close.svg");
+}
+
+[data-type="Window"] > [data-type="title"] > [data-type="icon"][data-kind="normal"] {
+  background-image: url("images/normal.svg");
+}
+
+[data-type="Window"] > [data-type="client"] {
+  box-sizing: border-box;
+  position: absolute;
+  overflow: hidden;
+  background-color: whitesmoke;
+}
+
+[data-type="Window"] [data-scale="auto"] {
+  white-space: normal;
+}
+
+@keyframes JSWminimize {
+  100% {
+    height: 0px;
+  }
+}
+
+@keyframes JSWrestore {
+  0% {
+    height: 0px;
+  }
+}
+
+@keyframes JSWmaximize {
+  10% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes JSWmaxrestore {
+  0% {
+    transform: scale(2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes JSWclose {
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+@keyframes JSWfadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+[data-form="column"] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5em;
+}
+
+[data-form="column"] > * {
+  width: 100%;
+  margin-bottom: 0.5em;
+  box-sizing: border-box;
+}
+
+[data-form="column"] [data-type="inputbox"] {
+  overflow: hidden;
+  padding: 0px;
+  border: solid 1px;
+  border-radius: 10px;
+}
+
+[data-form="column"] [data-type="inputbox"] [data-type="inner"] {
+  position: absolute;
+  padding: 0.2em;
+}
+
+[data-form="column"] [data-type="text"] {
+  overflow: auto;
+  padding: 0.2em;
+  border: solid 1px;
+  border-radius: 4px;
+  background-color: #eeeeee;
+}
+
+[data-form="column"] [data-type="inputbox"] input {
+  display: block;
+  position: relative;
+  padding: 0.4em;
+  width: 100%;
+  border: none;
+  box-sizing: border-box;
+  background-color: rgba(255, 255, 255, 0.8);
+  outline: 0;
+}
+
+[data-form="column"] [data-type="checkbox"] {
+  user-select: none;
+  cursor: pointer;
+  display: inline;
+  font-size: 60%;
+  padding: 0.2em;
+  border: solid 1px;
+  border-radius: 4px;
+  background-color: #dddddd;
+  border-color: #888888;
+}
+
+[data-form="column"] [data-type="checkbox"]:hover {
+  border-color: black;
+}
+
+[data-form="column"] [data-type="checkbox"][data-value="true"] {
+  background-color: #5588ff;
+}
+
+[data-form="column"] [data-type="button"] {
+  margin: 0.5em;
+  padding: 7px 20px;
+  border-radius: 25px;
+  text-decoration: none;
+  color: #fff;
+  background-image: linear-gradient(45deg, #078fff 0%, #491bdf 100%);
+  transition: 0.4s;
+  border: none;
+  border-bottom: solid 3px #3201d6;
+}
+
+[data-form="column"] [data-type="button"]:hover {
+  background-image: linear-gradient(45deg, #0fb6c2 0%, #491bdf 100%);
+  cursor: pointer;
+  user-select: none;
+}
+
+[data-form="column"] [data-type="line"] {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+/* Splitter用設定 */
+[data-kind="Splitter"] {
+  background-color: #aaaaaa;
+  border: outset 2px #b8b7b7;
+}
+
+[data-splitter-type="ns"] > [data-kind="Splitter"],
+[data-splitter-type="sn"] > [data-kind="Splitter"] {
+  cursor: ns-resize;
+}
+
+[data-splitter-type="we"] > [data-kind="Splitter"],
+[data-splitter-type="ew"] > [data-kind="Splitter"] {
+  cursor: ew-resize;
+}
+
+/* TreeView用設定 */
+@keyframes treeOpen {
+  0% {
+    margin-top: -1.5em;
+    opacity: 0.2;
+  }
+  100% {
+    margin-top: 0%;
+  }
+}
+
+@keyframes treeClose {
+  0% {
+    margin-top: 0;
+    opacity: 0.6;
+  }
+  90% {
+    margin-top: -2em;
+    opacity: 0.6;
+  }
+  100% {
+    margin-top: -100%;
+    transform: scaleY(0);
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+[data-kind="TreeView"] {
+  overflow: auto !important;
+  user-select: none;
+}
+
+[data-kind="TreeItem"] {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+[data-kind="TreeItem"] > [data-kind="TreeRow"]:first-child:hover {
+  border-bottom: black 1px solid;
+}
+
+[data-kind="TreeItem"] > [data-kind="TreeRow"][data-drag='over'] {
+  background-color: rgba(80, 233, 149, 0.2);
+}
+
+[data-kind="TreeItem"] [data-kind="TreeItem"] {
+  padding-left: 1em;
+}
+
+[data-kind="TreeRow"]:first-child {
+  cursor: pointer;
+}
+
+[data-kind="TreeRow"] {
+  display: flex;
+}
+
+[data-kind="TreeChild"] {
+  flex: 1;
+}
+
+[data-kind="TreeBody"] {
+  flex: 1;
+}
+
+[data-kind="TreeItem"] > [data-kind="TreeRow"]:nth-child(2) > [data-kind="TreeChild"] {
+  overflow: hidden;
+}
+
+[data-kind="TreeItem"] > div > [data-kind="TreeIcon"] {
+  background-repeat: no-repeat;
+  width: 16px;
+  height: 16px;
+  margin: 2px;
+  vertical-align: middle;
+  cursor: default;
+  background-image: url("images/tclose.svg");
+}
+
+[data-kind="TreeItem"][data-stat="close"] > [data-kind="TreeRow"] > [data-kind="TreeIcon"] {
+  background-image: url("images/tclose.svg");
+}
+
+[data-kind="TreeItem"][data-stat="open"] > [data-kind="TreeRow"] > [data-kind="TreeIcon"] {
+  background-image: url("images/topen.svg");
+}
+
+[data-kind="TreeItem"][data-stat="alone"] > [data-kind="TreeRow"] > [data-kind="TreeIcon"] {
+  background-image: url("images/talone.svg");
+}
+
+[data-kind="TreeItem"] > [data-kind="TreeRow"]:first-child {
+  cursor: pointer;
+}
+
+[data-kind="TreeItem"][data-select="true"] > [data-kind="TreeRow"]:first-child {
+  background-color: rgba(80, 80, 233, 0.2);
+}
+
+/* JButton用設定 */
+[data-kind="JButton"] {
+  user-select: none;
+  display: flex;
+  overflow: hidden;
+  justify-content: center;
+  align-items: center;
+  border-width: 1px;
+  border-style: outset;
+  border-color: gainsboro dimgrey dimgrey gainsboro;
+  padding: 7px 20px;
+  border-radius: 25px;
+  background-image: linear-gradient(45deg, rgba(113, 160, 201, 0.9) 0%, #5c6bb6 100%);
+}
+
+[data-kind="JButton"]:hover {
+  background-image: linear-gradient(45deg, rgba(108, 155, 194, 0.9) 0%, #6275df 100%);
+}
+
+[data-kind="JButton"]:active {
+  border-style: inset;
+}
+
+/* JPanel用設定 */
+[data-kind="Panel"] {
+  box-sizing: border-box;
+  user-select: none;
+  background-color: darkgrey;
+  border-color: lightgray dimgrey dimgrey lightgray;
+}
+
+/*ListView用スタイル*/
+[data-kind="ListView"] {
+  user-select: none;
+  overflow-x: auto !important;
+}
+
+[data-kind="ListView"] > [data-kind="ListHeaderBack"] {
+  position: absolute;
+  height: 30px;
+  width: 100%;
+  min-width: 100%;
+  background-image: linear-gradient(180deg, rgba(144, 197, 240, 0.9) 0%, rgba(63, 164, 201, 0.9) 50%, rgba(100, 122, 221, 0.9) 100%);
+}
+
+[data-kind="ListView"] > [data-kind="ListHeaderArea"] {
+  position: relative;
+  right: 0px;
+  left: 0px;
+  height: 30px;
+}
+
+[data-kind="ListView"] > [data-kind="ListHeaderArea"] > [data-kind="ListResizers"] {
+  position: absolute;
+  pointer-events: none;
+  height: 100%;
+}
+
+[data-kind="ListView"] > [data-kind="ListHeaderArea"] > [data-kind="ListResizers"] div {
+  position: absolute;
+  width: 10px;
+  margin-left: -5px;
+  height: 100%;
+  cursor: ew-resize;
+  pointer-events: all;
+}
+
+[data-kind="ListView"] > [data-kind="ListHeaderArea"] > [data-kind="ListHeaders"] {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  flex-grow: 0;
+  flex-shrink: 0;
+  overflow-x: visible;
+}
+
+[data-kind="ListView"] > [data-kind="ListHeaderArea"] > [data-kind="ListHeaders"] > div {
+  display: flex;
+  border: #2e629e 1px;
+  border-style: none solid none solid;
+  justify-content: center;
+  align-items: center;
+  width: 80px;
+  flex-grow: 0;
+  flex-shrink: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+[data-kind="ListView"] > [data-kind="ListHeaderArea"] > [data-kind="ListHeaders"] > div:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-kind="ListView"] > [data-kind="ListHeaderArea"] > [data-kind="ListHeaders"] > div[data-sort="asc"] {
+  border-top: 1px rgba(255, 100, 100, 0.8) double;
+}
+
+[data-kind="ListView"] > [data-kind="ListHeaderArea"] > [data-kind="ListHeaders"] > div[data-sort="desc"] {
+  border-bottom: 1px rgba(255, 100, 100, 0.8) double;
+}
+
+[data-kind="ListView"] > [data-kind="ListItemArea"] {
+  white-space: nowrap;
+  position: relative;
+  display: flex;
+  height: calc(100% - 30px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+[data-kind="ListView"] > [data-kind="ListItemArea"] [data-kind="ListColumn"] {
+  flex-grow: 0;
+  flex-shrink: 0;
+  height: 100%;
+}
+
+[data-kind="ListView"] > [data-kind="ListItemArea"] [data-kind="ListColumn"] > [data-kind="ListCell"] {
+  padding: 2px;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  border: transparent solid 1px;
+  border-left: rgba(158, 155, 153, 0.2) solid 1px;
+  border-bottom: rgba(158, 155, 153, 0.5) solid 1px;
+  height: 30px;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: 0.1s;
+}
+
+[data-kind="ListView"] > [data-kind="ListItemArea"] [data-kind="ListColumn"] > [data-kind="ListCell"]:nth-child(odd) {
+  background-color: rgba(63, 164, 201, 0.2);
+}
+
+[data-kind="ListView"] > [data-kind="ListItemArea"] [data-kind="ListColumn"] > [data-kind="ListCell"]:nth-child(even) {
+  background-color: rgba(63, 201, 183, 0.2);
+}
+
+[data-kind="ListView"] > [data-kind="ListItemArea"] [data-kind="ListColumn"] > [data-kind="ListCell"][data-item-hover="true"]:nth-child(odd), [data-kind="ListView"] > [data-kind="ListItemArea"] [data-kind="ListColumn"] > [data-kind="ListCell"][data-drag="over"]:nth-child(odd) {
+  background-color: rgba(63, 164, 201, 0.4);
+}
+
+[data-kind="ListView"] > [data-kind="ListItemArea"] [data-kind="ListColumn"] > [data-kind="ListCell"][data-item-hover="true"]:nth-child(even), [data-kind="ListView"] > [data-kind="ListItemArea"] [data-kind="ListColumn"] > [data-kind="ListCell"][data-drag="over"]:nth-child(even) {
+  background-color: rgba(63, 201, 183, 0.4);
+}
+
+[data-kind="ListView"] > [data-kind="ListItemArea"] [data-kind="ListColumn"] > [data-kind="ListCell"][data-item-select="true"]:nth-child(odd) {
+  background-color: rgba(64, 160, 250, 0.6);
+}
+
+[data-kind="ListView"] > [data-kind="ListItemArea"] [data-kind="ListColumn"] > [data-kind="ListCell"][data-item-select="true"]:nth-child(even) {
+  background-color: rgba(58, 180, 200, 0.6);
+}
+
+[data-kind="ListView"] > [data-kind="ListItemArea"] [data-kind="ListColumn"] > [data-kind="ListCell"][data-item-hover="true"][data-item-select="true"]:nth-child(odd) {
+  background-color: rgba(64, 160, 250, 0.7);
+}
+
+[data-kind="ListView"] > [data-kind="ListItemArea"] [data-kind="ListColumn"] > [data-kind="ListCell"][data-item-hover="true"][data-item-select="true"]:nth-child(even) {
+  background-color: rgba(58, 180, 200, 0.7);
+}
