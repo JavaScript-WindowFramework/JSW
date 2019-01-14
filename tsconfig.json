@@ -1,0 +1,14 @@
+{
+	"compilerOptions": {
+		"sourceMap": true,
+		"target": "es5",
+		"module": "es2015",
+		"outDir": "./js/",
+		"rootDir": "./ts/",
+		"lib": [
+			"es2015",
+			"dom"
+		]
+	}
+
+}
