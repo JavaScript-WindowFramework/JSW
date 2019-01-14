@@ -9,17 +9,22 @@ function MainIndex() {
     listWindow.setTitle('サンプルリスト');
     listWindow.addHeader([['番号', 50], ['名前', 250]]);
     var titles = [
-        'フレームウインドウの表示',
-        '複数ウインドウの表示',
-        'ウインドウの親子関係',
-        'ツリービュー'
+        ['TypeDoc Viewer', 'Document.html'],
+        ['フレームウインドウの表示', 'Sample01.html'],
+        ['複数ウインドウの表示', 'Sample02.html'],
+        ['ウインドウの親子関係', 'Sample03.html'],
+        ['ツリービュー', 'Sample04.html']
     ];
     for (var i = 0, l = titles.length; i < l; i++) {
-        listWindow.addItem([(i + 1).toString(), titles[i]]);
+        listWindow.addItem([(i + 1).toString(), titles[i][0]]);
+        listWindow.setItemValue(i, titles[i][1]);
     }
     listWindow.addEventListener('itemClick', function (e) {
         var p = e.params;
-        window.open('Samples/Sample' + ("0" + (p.itemIndex + 1)).slice(-2) + '.html', '_blank');
+        var value = listWindow.getItemValue(p.itemIndex);
+        window.open('Samples/' + value);
     });
+    listWindow.setOverlap(true);
+    listWindow.setPos();
 }
 //# sourceMappingURL=index.js.map

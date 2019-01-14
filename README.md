@@ -1,13 +1,12 @@
 # JSW
 JavaScript用ウインドウフレームワーク
+[ドキュメント](./doc/index.html)
+
 
 [サンプル](https://javascript-windowframework.github.io/JSW/)
 
-## 作成者 
+## 作成者
 [空雲](https://croud.jp/)
-
-## ライセンス
-[MIT License](https://opensource.org/licenses/mit-license.php)
 
 ## 内容
 JavaScriptによるウインドウフレームワークを作成し、
@@ -16,3 +15,6 @@ JavaScriptによるウインドウフレームワークを作成し、
 ## ターゲット
 TypeScript+ES5(JavaScript)
 IE11で動作するレベルのDOM
+
+## ライセンス
+[MIT License](https://opensource.org/licenses/mit-license.php)

@@ -1566,24 +1566,24 @@ namespace JSW {
 			node.dataset.kind = 'Panel'
 		}
 	}
-	interface TREEVIEW_EVENT_SELECT extends Event {
+	export interface TREEVIEW_EVENT_SELECT extends Event {
 		params: {
 			item: TreeItem
 		}
 	}
-	interface TREEVIEW_EVENT_DROP extends Event {
-		params: {
-			item: TreeItem
-			event: DragEvent
-		}
-	}
-	interface TREEVIEW_EVENT_DRAG_START extends Event {
+	export interface TREEVIEW_EVENT_DROP extends Event {
 		params: {
 			item: TreeItem
 			event: DragEvent
 		}
 	}
-	interface TREEVIEW_EVENT_OPEN extends Event {
+	export interface TREEVIEW_EVENT_DRAG_START extends Event {
+		params: {
+			item: TreeItem
+			event: DragEvent
+		}
+	}
+	export interface TREEVIEW_EVENT_OPEN extends Event {
 		params: {
 			item: TreeItem
 			opened: boolean
