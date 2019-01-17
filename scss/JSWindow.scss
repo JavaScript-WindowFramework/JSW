@@ -339,6 +339,8 @@
 	vertical-align: middle;
 	cursor: default;
 	background-image: url("images/tclose.svg");
+	flex-grow: 0;
+	flex-shrink: 0;
 }
 
 [data-kind="TreeItem"][data-stat="close"]>[data-kind="TreeRow"]>[data-kind="TreeIcon"] {
@@ -359,6 +361,7 @@
 
 [data-kind="TreeItem"][data-select="true"]>[data-kind="TreeRow"]:first-child {
 	background-color: rgba(80, 80, 233, 0.2);
+	flex: 1;
 }
 
 /* JButton用設定 */
@@ -373,6 +376,7 @@
 	border-color: gainsboro dimgrey dimgrey gainsboro;
 	padding: 7px 20px;
 	border-radius: 25px;
+	color:white;
 	background-image: linear-gradient(45deg,
 		rgba(113, 160, 201, 0.9) 0%,
 		#5c6bb6 100%);
@@ -423,15 +427,16 @@
 		height: $HEADER_HEIGHT;
 
 		>[data-kind="ListResizers"] {
+			overflow: hidden;
 			position: absolute;
 			pointer-events: none;
 			height: 100%;
+			width:100%;
 		}
 
 		>[data-kind="ListResizers"] div {
 			position: absolute;
 			width: 10px;
-			margin-left: -5px;
 			height: 100%;
 			cursor: ew-resize;
 			pointer-events: all;
@@ -446,6 +451,7 @@
 			overflow-x: visible;
 
 			>div {
+				box-sizing: border-box;
 				display: flex;
 				border: rgb(46, 98, 158) 1px;
 				border-style: none solid none solid;

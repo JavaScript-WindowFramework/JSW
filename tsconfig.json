@@ -5,6 +5,8 @@
 		"module": "es2015",
 		"outDir": "./js/",
 		"rootDir": "./ts/",
+		"declaration": true,
+		"declarationDir":"./@types",
 		"lib": [
 			"es2015",
 			"dom"
