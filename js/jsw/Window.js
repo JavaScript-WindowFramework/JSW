@@ -202,8 +202,8 @@ var JSW;
             this.JData = {
                 x: 0,
                 y: 0,
-                width: 200,
-                height: 100,
+                width: 400,
+                height: 300,
                 frameSize: 0,
                 titleSize: 0,
                 redraw: true,
@@ -229,18 +229,23 @@ var JSW;
             this.JData.clientArea = hNode;
             this.hNode = hNode;
             hNode.dataset.type = "Window";
+            //位置を絶対位置指定
+            hNode.style.position = 'absolute';
             if (params) {
                 if (params.frame) {
                     this.addFrame(params.title == null ? true : params.title);
                     if (params.layer == null)
                         this.setOrderLayer(10);
+                    if (params.overlap == null)
+                        this.setOverlap(true);
                 }
                 if (params.layer) {
                     this.setOrderLayer(params.layer);
                 }
+                if (params.overlap) {
+                    this.setOverlap(params.overlap);
+                }
             }
-            //位置を絶対位置指定
-            hNode.style.position = 'absolute';
             //移動に備えて、必要な情報を収集
             hNode.addEventListener("touchstart", this.onMouseDown.bind(this), { passive: false });
             hNode.addEventListener("mousedown", this.onMouseDown.bind(this));
@@ -254,9 +259,9 @@ var JSW;
             //ノードを本文へ追加
             document.body.appendChild(hNode);
             //更新要求
-            this.layout();
+            //this.layout()
             //新規ウインドウをフォアグラウンドにする
-            //this.foreground()
+            this.foreground(false);
         }
         Window.prototype.setOverlap = function (flag) {
             this.hNode.style.position = flag ? 'fixed' : 'absolute';
@@ -783,6 +788,7 @@ var JSW;
         /**
          *ウインドウの重ね合わせ順位を上位に持って行く
          *
+         * @param {boolean} [flag] ウインドウをアクティブにするかどうか
          * @memberof Window
          */
         Window.prototype.foreground = function (flag) {
@@ -793,10 +799,10 @@ var JSW;
             while (p = p.parentNode) {
                 activeNodes.add(p);
                 if (p.Jsw)
-                    p.Jsw.foreground(false);
+                    p.Jsw.foreground(flag);
             }
-            this.hNode.dataset.active = 'true';
             if (flag || flag == null) {
+                this.hNode.dataset.active = 'true';
                 var activeWindows = document.querySelectorAll('[data-type="Window"][data-active="true"]');
                 for (var i = 0, l = activeWindows.length; i < l; i++) {
                     var w = activeWindows[i];
@@ -1539,6 +1545,15 @@ var JSW;
             return this.hNode;
         };
         /**
+         *アイテムのラベル部分のノードを返す
+         *
+         * @returns {HTMLElement}
+         * @memberof TreeItem
+         */
+        TreeItem.prototype.getBody = function () {
+            return this.body;
+        };
+        /**
          *アイテムに対してキーを関連付ける
          *
          * @param {string} name
@@ -1667,7 +1682,7 @@ var JSW;
          * @memberof TreeItem
          */
         TreeItem.prototype.getParentItem = function () {
-            var parent = this.hNode.parentNode.parentNode;
+            var parent = this.hNode.parentNode.parentNode.parentNode;
             if (parent.dataset.kind === 'TreeItem')
                 return parent.treeItem;
             return null;
@@ -1736,9 +1751,9 @@ var JSW;
          *
          * @memberof TreeItem
          */
-        TreeItem.prototype.selectItem = function () {
+        TreeItem.prototype.selectItem = function (scroll) {
             var treeView = this.getTreeView();
-            treeView.selectItem(this);
+            treeView.selectItem(this, scroll);
         };
         /**
          *所属先のTreeViewを返す
@@ -1826,16 +1841,19 @@ var JSW;
          * @param {TreeItem} item 選択するアイテム
          * @memberof TreeView
          */
-        TreeView.prototype.selectItem = function (item) {
+        TreeView.prototype.selectItem = function (item, scroll) {
             if (this.mSelectItem !== item) {
                 if (this.mSelectItem)
                     this.mSelectItem.getNode().dataset.select = 'false';
                 item.getNode().dataset.select = 'true';
                 this.mSelectItem = item;
                 item.openItem(true);
-                var parent_2;
-                while (parent_2 = item.getParentItem()) {
+                var parent_2 = item;
+                while (parent_2 = parent_2.getParentItem()) {
                     parent_2.openItem(true);
+                }
+                if (scroll) {
+                    this.getClient().scrollTo(0, item.getNode().offsetTop);
                 }
             }
             this.callEvent('itemSelect', { item: item });
@@ -1897,6 +1915,8 @@ var JSW;
             _this.selectIndexes = [];
             _this.sortIndex = -1;
             _this.sortVector = false;
+            _this.columnWidth = [];
+            _this.columnAutoIndex = -1;
             var that = _this;
             var client = _this.getClient();
             client.dataset.kind = 'ListView';
@@ -1945,6 +1965,7 @@ var JSW;
          * @memberof ListView
          */
         ListView.prototype.setColumnWidth = function (index, size) {
+            this.columnWidth[index] = size;
             this.headers.children[index].style.width = size + 'px';
             this.resize();
         };
@@ -1980,25 +2001,35 @@ var JSW;
          * @param {number} [size] 幅
          * @memberof ListView
          */
-        ListView.prototype.addHeader = function (labels, size) {
+        ListView.prototype.addHeader = function (label, size) {
             var headers = this.headers;
+            var labels = [];
+            if (label instanceof Array)
+                labels = label;
+            else
+                labels = [label];
             var _loop_1 = function (i, l) {
-                var label = labels[i];
+                var label_1 = labels[i];
                 var text = void 0;
                 var width = size;
-                if (label instanceof Array) {
-                    text = label[0];
-                    width = label[1];
+                if (label_1 instanceof Array) {
+                    text = label_1[0];
+                    width = label_1[1];
                 }
                 else {
-                    text = label;
+                    text = label_1;
                 }
                 index = headers.childElementCount;
                 header = document.createElement('div');
-                header.textContent = text;
-                if (width != null)
-                    header.style.width = width + 'px';
                 headers.appendChild(header);
+                header.textContent = text;
+                if (width != null) {
+                    this_1.columnWidth[index] = width;
+                    header.style.width = width + 'px';
+                }
+                else {
+                    this_1.columnWidth[index] = header.offsetWidth;
+                }
                 var that = this_1;
                 //ヘッダが押されたらソート処理
                 header.addEventListener('click', function () {
@@ -2026,7 +2057,9 @@ var JSW;
                     var p = e.params;
                     var x = p.nodePoint.x + p.nowPoint.x - p.basePoint.x;
                     var h = headers.childNodes[this.index];
-                    h.style.width = x - h.offsetLeft + 'px';
+                    var width = x - h.offsetLeft;
+                    h.style.width = width + 'px';
+                    that.columnWidth[this.index] = width;
                     for (var i_1 = this.index, length_1 = resizers.childElementCount; i_1 < length_1; i_1++) {
                         var node = headers.children[i_1];
                         var r = resizers.childNodes[i_1];
@@ -2195,6 +2228,8 @@ var JSW;
         ListView.prototype.getCell = function (row, col) {
             var columns = this.itemArea.childNodes;
             var column = columns[col];
+            if (column == null)
+                return null;
             return column.childNodes[row];
         };
         /**
@@ -2206,7 +2241,8 @@ var JSW;
          */
         ListView.prototype.setItemValue = function (index, value) {
             var cell = this.getCell(index, 0);
-            cell.value = value;
+            if (cell)
+                cell.value = value;
         };
         /**
          *アイテムの値を取得する
@@ -2362,6 +2398,8 @@ var JSW;
                     that.callEvent('itemDblClick', { itemIndex: index, subItemIndex: index2, event: e });
                 });
             }
+            if (columns.length === 0)
+                return -1;
             var index = columns[0].childElementCount - 1;
             if (value instanceof Array) {
                 for (var i = 0, l = value.length; i < l; i++) {
@@ -2443,12 +2481,21 @@ var JSW;
             var headers = this.headers;
             var resizers = this.resizers;
             var itemArea = this.itemArea;
+            var lmitWidth = this.getClientWidth();
             for (var i = 0, length_13 = headers.childElementCount; i < length_13; i++) {
+                lmitWidth -= this.columnWidth[i];
+            }
+            var autoIndex = this.columnAutoIndex;
+            for (var i = 0, length_14 = headers.childElementCount; i < length_14; i++) {
                 var node = headers.childNodes[i];
                 var resize = resizers.childNodes[i];
-                resize.style.left = node.offsetLeft + node.offsetWidth + 'px';
                 var column = itemArea.children[i];
-                column.style.width = node.clientLeft + node.offsetWidth - column.clientLeft + 'px';
+                var width = this.columnWidth[i];
+                if (autoIndex === i || (autoIndex === -1 && i === length_14 - 1))
+                    width += lmitWidth;
+                node.style.width = width + 'px';
+                resize.style.left = node.offsetLeft + width - resize.offsetWidth / 2 + 'px';
+                column.style.width = width + 'px';
             }
         };
         ListView.prototype.onLayout = function (flag) {

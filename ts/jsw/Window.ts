@@ -257,8 +257,8 @@ namespace JSW {
 		private JData: JDATA = {
 			x: 0,
 			y: 0,
-			width: 200,
-			height: 100,
+			width: 400,
+			height: 300,
 			frameSize: 0,
 			titleSize: 0,
 			redraw: true,
@@ -287,27 +287,32 @@ namespace JSW {
 		 * }
 		 * @memberof Window
 		 */
-		constructor(params?: { frame?: boolean, title?: boolean, layer?: number }) {
+		constructor(params?: { frame?: boolean, title?: boolean, layer?: number ,overlap?:boolean}) {
 			//ウインドウ用ノードの作成
 			let hNode = document.createElement('DIV') as JNode
 			hNode.Jsw = this
 			this.JData.clientArea = hNode
 			this.hNode = hNode
 			hNode.dataset.type = "Window"
-
+			//位置を絶対位置指定
+			hNode.style.position = 'absolute'
 			if (params) {
 				if (params.frame) {
 					this.addFrame(params.title == null ? true : params.title)
 					if (params.layer == null)
 						this.setOrderLayer(10)
+					if(params.overlap == null)
+						this.setOverlap(true)
 				}
 				if (params.layer) {
 					this.setOrderLayer(params.layer)
 				}
+				if (params.overlap) {
+					this.setOverlap(params.overlap)
+				}
 			}
 
-			//位置を絶対位置指定
-			hNode.style.position = 'absolute'
+
 			//移動に備えて、必要な情報を収集
 			hNode.addEventListener("touchstart", this.onMouseDown.bind(this), { passive: false })
 			hNode.addEventListener("mousedown", this.onMouseDown.bind(this))
@@ -321,9 +326,9 @@ namespace JSW {
 			//ノードを本文へ追加
 			document.body.appendChild(hNode)
 			//更新要求
-			this.layout()
+			//this.layout()
 			//新規ウインドウをフォアグラウンドにする
-			//this.foreground()
+			this.foreground(false)
 		}
 		setOverlap(flag: boolean) {
 			this.hNode.style.position = flag ? 'fixed' : 'absolute'
@@ -865,6 +870,7 @@ namespace JSW {
 		/**
 		 *ウインドウの重ね合わせ順位を上位に持って行く
 		 *
+		 * @param {boolean} [flag] ウインドウをアクティブにするかどうか
 		 * @memberof Window
 		 */
 		foreground(flag?: boolean): void {
@@ -875,11 +881,12 @@ namespace JSW {
 			while (p = p.parentNode as JNode) {
 				activeNodes.add(p)
 				if (p.Jsw)
-					p.Jsw.foreground(false)
+					p.Jsw.foreground(flag)
 			}
-			this.hNode.dataset.active = 'true'
+
 
 			if (flag || flag == null) {
+				this.hNode.dataset.active = 'true'
 				var activeWindows = document.querySelectorAll('[data-type="Window"][data-active="true"]')
 				for (let i = 0, l = activeWindows.length; i < l; i++) {
 					let w = activeWindows[i] as HTMLElement
@@ -1004,7 +1011,7 @@ namespace JSW {
 		 * @returns
 		 * @memberof Window
 		 */
-		getClientX() {
+		getClientX() : number {
 			return this.JData.padding.x1;
 		}
 
@@ -1014,7 +1021,7 @@ namespace JSW {
 		 * @returns
 		 * @memberof Window
 		 */
-		getClientY() {
+		getClientY() : number  {
 			return this.JData.padding.y1;
 		}
 
@@ -1676,6 +1683,15 @@ namespace JSW {
 			return this.hNode
 		}
 		/**
+		 *アイテムのラベル部分のノードを返す
+		 *
+		 * @returns {HTMLElement}
+		 * @memberof TreeItem
+		 */
+		getBody():HTMLElement{
+			return this.body
+		}
+		/**
 		 *アイテムに対してキーを関連付ける
 		 *
 		 * @param {string} name
@@ -1803,7 +1819,7 @@ namespace JSW {
 		 * @memberof TreeItem
 		 */
 		getParentItem(): TreeItem {
-			let parent = this.hNode.parentNode.parentNode as any
+			let parent = this.hNode.parentNode.parentNode.parentNode as any
 			if (parent.dataset.kind === 'TreeItem')
 				return parent.treeItem
 			return null
@@ -1871,9 +1887,9 @@ namespace JSW {
 		 *
 		 * @memberof TreeItem
 		 */
-		selectItem() {
+		selectItem(scroll?:boolean) {
 			let treeView = this.getTreeView()
-			treeView.selectItem(this)
+			treeView.selectItem(this,scroll)
 		}
 		/**
 		 *所属先のTreeViewを返す
@@ -1964,7 +1980,7 @@ namespace JSW {
 		 * @param {TreeItem} item 選択するアイテム
 		 * @memberof TreeView
 		 */
-		selectItem(item: TreeItem) {
+		selectItem(item: TreeItem,scroll?:boolean) {
 			if (this.mSelectItem !== item) {
 				if (this.mSelectItem)
 					this.mSelectItem.getNode().dataset.select = 'false'
@@ -1972,9 +1988,12 @@ namespace JSW {
 				this.mSelectItem = item;
 
 				item.openItem(true)
-				let parent: TreeItem
-				while (parent = item.getParentItem()) {
+				let parent: TreeItem = item
+				while (parent = parent.getParentItem()) {
 					parent.openItem(true)
+				}
+				if(scroll){
+					this.getClient().scrollTo(0,item.getNode().offsetTop)
 				}
 			}
 			this.callEvent('itemSelect', { item: item })
@@ -2076,6 +2095,8 @@ namespace JSW {
 		selectIndexes: number[] = []
 		sortIndex: number = -1
 		sortVector: boolean = false
+		columnWidth: number[] = []
+		columnAutoIndex : number = -1
 
 		/**
 		 *Creates an instance of ListView.
@@ -2140,6 +2161,7 @@ namespace JSW {
 		 * @memberof ListView
 		 */
 		setColumnWidth(index: number, size: number) {
+			this.columnWidth[index] = size;
 			(this.headers.children[index] as HTMLElement).style.width = size + 'px'
 			this.resize()
 		}
@@ -2175,8 +2197,15 @@ namespace JSW {
 		 * @param {number} [size] 幅
 		 * @memberof ListView
 		 */
-		addHeader(labels: string | (string | [string, number])[], size?: number) {
+		addHeader(label: string | (string | [string, number])[], size?: number) {
 			var headers = this.headers
+
+			let labels:(string | [string, number])[] = []
+			if(label instanceof Array)
+				labels=label
+			else
+				labels = [label]
+
 
 			for (let i = 0, l = labels.length; i < l; i++) {
 				let label = labels[i]
@@ -2191,10 +2220,16 @@ namespace JSW {
 
 				var index = headers.childElementCount
 				var header = document.createElement('div')
-				header.textContent = text
-				if (width != null)
-					header.style.width = width + 'px'
 				headers.appendChild(header)
+				header.textContent = text
+				if (width != null){
+					this.columnWidth[index] = width
+					header.style.width = width + 'px'
+				}else{
+					this.columnWidth[index] = header.offsetWidth
+				}
+
+
 				let that = this
 				//ヘッダが押されたらソート処理
 				header.addEventListener('click', function () {
@@ -2224,7 +2259,9 @@ namespace JSW {
 					let p = e.params as MovePoint
 					let x = p.nodePoint.x + p.nowPoint.x - p.basePoint.x
 					let h = headers.childNodes[this.index] as HTMLElement
-					h.style.width = x - h.offsetLeft + 'px'
+					let width = x - h.offsetLeft
+					h.style.width = width + 'px'
+					that.columnWidth[this.index] = width
 
 					for (let i = this.index, length = resizers.childElementCount; i < length; i++) {
 						let node = headers.children[i] as HTMLElement
@@ -2400,6 +2437,8 @@ namespace JSW {
 		getCell(row: number, col: number) {
 			let columns = this.itemArea.childNodes as any
 			let column = columns[col]
+			if (column == null)
+				return null
 			return column.childNodes[row]
 		}
 		/**
@@ -2411,7 +2450,8 @@ namespace JSW {
 		 */
 		setItemValue(index: number, value) {
 			let cell = this.getCell(index, 0)
-			cell.value = value
+			if (cell)
+				cell.value = value
 		}
 		/**
 		 *アイテムの値を取得する
@@ -2563,6 +2603,8 @@ namespace JSW {
 					that.callEvent('itemDblClick', { itemIndex: index, subItemIndex: index2, event: e })
 				})
 			}
+			if (columns.length === 0)
+				return -1
 			let index = columns[0].childElementCount - 1
 			if (value instanceof Array) {
 				for (let i = 0, l = value.length; i < l; i++) {
@@ -2643,13 +2685,21 @@ namespace JSW {
 			var headers = this.headers
 			var resizers = this.resizers
 			var itemArea = this.itemArea
+			var lmitWidth = this.getClientWidth()
+			for (let i = 0, length = headers.childElementCount; i < length; i++) {
+				lmitWidth -= this.columnWidth[i]
+			}
+			const autoIndex = this.columnAutoIndex
 			for (let i = 0, length = headers.childElementCount; i < length; i++) {
 				let node = headers.childNodes[i] as HTMLElement
 				let resize = resizers.childNodes[i] as HTMLElement
-				resize.style.left = node.offsetLeft + node.offsetWidth + 'px'
-
 				let column = itemArea.children[i] as HTMLElement
-				column.style.width = node.clientLeft + node.offsetWidth - column.clientLeft + 'px'
+				let width = this.columnWidth[i]
+				if (autoIndex === i || (autoIndex===-1 && i===length-1))
+					width += lmitWidth
+				node.style.width = width + 'px'
+				resize.style.left = node.offsetLeft + width - resize.offsetWidth/2+'px'
+				column.style.width = width + 'px'
 			}
 		}
 		onLayout(flag: boolean) {
