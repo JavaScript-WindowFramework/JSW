@@ -11,7 +11,7 @@ function MainIndex() {
 	listWindow.addHeader([['番号',50],['名前',250]])
 
 	const titles = [
-		['TypeDoc Viewer', 'Document.html'],
+		['TypeDoc Viewer', 'https://javascript-windowframework.github.io/TypeDocViewer/'],
 		['フレームウインドウの表示','Sample01.html'],
 		['複数ウインドウの表示', 'Sample02.html'],
 		['ウインドウの親子関係', 'Sample03.html'],

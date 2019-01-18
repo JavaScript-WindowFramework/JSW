@@ -15,6 +15,8 @@ var SearchWindow = /** @class */ (function (_super) {
     __extends(SearchWindow, _super);
     function SearchWindow(treeView, docData, keywords) {
         var _this = _super.call(this, { frame: true }) || this;
+        _this.setSize(600, 500);
+        _this.setTitle('Search');
         _this.addHeader('検索結果');
         if (docData == null)
             return _this;
@@ -44,7 +46,12 @@ var SearchWindow = /** @class */ (function (_super) {
             }
         }
         if (SearchWindow.findKeys(word.toLowerCase(), keys)) {
-            var index = this.addItem(doc.name);
+            var i = item;
+            var label = i.getItemText();
+            while (i = i.getParentItem()) {
+                label += ' - ' + i.getItemText();
+            }
+            var index = this.addItem(label);
             this.setItemValue(index, item);
         }
         for (var i = 0, l = item.getChildCount(); i < l; i++) {
@@ -70,7 +77,13 @@ var SearchWindow = /** @class */ (function (_super) {
 var TypeDocView = /** @class */ (function (_super) {
     __extends(TypeDocView, _super);
     function TypeDocView() {
-        var _this = _super.call(this) || this;
+        var _this = this;
+        function onSearch() {
+            var search = new SearchWindow(that.mTreeView, that.mDocData, textBox.getText());
+            that.addChild(search);
+            search.setPos();
+        }
+        _this = _super.call(this) || this;
         var that = _this;
         _this.setTitle('TypeDoc Viewer');
         _this.setSize(800, 600);
@@ -79,13 +92,15 @@ var TypeDocView = /** @class */ (function (_super) {
         var searchButton = new JSW.Button('Search');
         panel.addChild(searchButton, 'left');
         searchButton.addEventListener('click', function (e) {
-            var search = new SearchWindow(that.mTreeView, that.mDocData, textBox.getText());
-            that.addChild(search);
+            onSearch();
         });
         var textBox = new JSW.TextBox();
         textBox.setMargin(1, 1, 1, 1);
         textBox.getTextNode().style.backgroundColor = '#dddddd';
         panel.addChild(textBox, 'client');
+        textBox.addEventListener('enter', function (e) {
+            onSearch();
+        });
         var splitter = new JSW.Splitter();
         _this.addChild(splitter, 'client');
         splitter.setSplitterPos(200);
@@ -186,11 +201,5 @@ addEventListener("DOMContentLoaded", docMain);
 function docMain() {
     var typeDocView = new TypeDocView();
     typeDocView.loadUrl('../doc/document.json');
-    //メッセージの表示
-    var msgWindow = new JSW.FrameWindow();
-    msgWindow.setTitle('説明');
-    msgWindow.setSize(300, 200);
-    msgWindow.getClient().innerHTML =
-        '<a target="_blank" href="../doc/document.json">JSON</a>から、その内容を表示';
 }
 //# sourceMappingURL=document.js.map

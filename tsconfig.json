@@ -14,8 +14,8 @@
 	},
 	"typedocOptions":{
 		"name": "JSW",
-		"json": "document.json",
-		"mode": "modules",
+		"json": "doc/document.json",
+		"mode": "file",
 		"includeDeclarations": false,
 		"hideGenerator": false
 	}
