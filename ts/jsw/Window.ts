@@ -287,7 +287,7 @@ namespace JSW {
 		 * }
 		 * @memberof Window
 		 */
-		constructor(params?: { frame?: boolean, title?: boolean, layer?: number ,overlap?:boolean}) {
+		constructor(params?: { frame?: boolean, title?: boolean, layer?: number, overlap?: boolean }) {
 			//ウインドウ用ノードの作成
 			let hNode = document.createElement('DIV') as JNode
 			hNode.Jsw = this
@@ -301,7 +301,7 @@ namespace JSW {
 					this.addFrame(params.title == null ? true : params.title)
 					if (params.layer == null)
 						this.setOrderLayer(10)
-					if(params.overlap == null)
+					if (params.overlap == null)
 						this.setOverlap(true)
 				}
 				if (params.layer) {
@@ -758,7 +758,7 @@ namespace JSW {
 		 * @returns
 		 * @memberof Window
 		 */
-		getParentWidth(){
+		getParentWidth() {
 			const node = this.hNode
 			if (node.style.position === 'fixed')
 				return window.innerWidth
@@ -771,7 +771,7 @@ namespace JSW {
 		 * @returns
 		 * @memberof Window
 		 */
-		getParentHeight(){
+		getParentHeight() {
 			const node = this.hNode
 			if (node.style.position === 'fixed')
 				return window.innerHeight
@@ -789,7 +789,7 @@ namespace JSW {
 				if (this.hNode.dataset.stat == 'maximize') {
 					let parent = this.hNode.parentNode as HTMLElement
 					this.setPos(0, 0)
-					this.setSize(this.getParentWidth(),this.getParentHeight())
+					this.setSize(this.getParentWidth(), this.getParentHeight())
 				}
 
 				this.JData.redraw = false
@@ -1011,7 +1011,7 @@ namespace JSW {
 		 * @returns
 		 * @memberof Window
 		 */
-		getClientX() : number {
+		getClientX(): number {
 			return this.JData.padding.x1;
 		}
 
@@ -1021,7 +1021,7 @@ namespace JSW {
 		 * @returns
 		 * @memberof Window
 		 */
-		getClientY() : number  {
+		getClientY(): number {
 			return this.JData.padding.y1;
 		}
 
@@ -1209,10 +1209,12 @@ namespace JSW {
 			}
 			if (flag) {
 				let icon = this.hNode.querySelector("*>[data-type=title]>[data-type=icon][data-kind=max]") as HTMLElement
-				icon.dataset.kind = "normal"
+				if (icon)
+					icon.dataset.kind = "normal"
 			} else {
 				let icon = this.hNode.querySelector("*>[data-type=title]>[data-type=icon][data-kind=normal]") as HTMLElement
-				icon.dataset.kind = "max"
+				if (icon)
+					icon.dataset.kind = "max"
 			}
 
 			this.layout()
@@ -1258,8 +1260,11 @@ namespace JSW {
 	 * @extends {Window}
 	 */
 	export class FrameWindow extends Window {
-		constructor() {
-			super({ frame: true, title: true, layer: 10 })
+		constructor(param?) {
+			let p = { frame: true, title: true, layer: 10 }
+			if (param)
+				Object.assign(p, param)
+			super(p)
 			this.setOverlap(true)
 		}
 	}
@@ -1688,7 +1693,7 @@ namespace JSW {
 		 * @returns {HTMLElement}
 		 * @memberof TreeItem
 		 */
-		getBody():HTMLElement{
+		getBody(): HTMLElement {
 			return this.body
 		}
 		/**
@@ -1887,9 +1892,9 @@ namespace JSW {
 		 *
 		 * @memberof TreeItem
 		 */
-		selectItem(scroll?:boolean) {
+		selectItem(scroll?: boolean) {
 			let treeView = this.getTreeView()
-			treeView.selectItem(this,scroll)
+			treeView.selectItem(this, scroll)
 		}
 		/**
 		 *所属先のTreeViewを返す
@@ -1980,7 +1985,13 @@ namespace JSW {
 		 * @param {TreeItem} item 選択するアイテム
 		 * @memberof TreeView
 		 */
-		selectItem(item: TreeItem,scroll?:boolean) {
+		selectItem(item: TreeItem, scroll?: boolean) {
+			const that = this
+			function animationEnd(e) {
+				this.removeEventListener('animationend', animationEnd)
+				that.getClient().scrollTo(0, item.getNode().offsetTop - that.getClientHeight() / 2)
+			}
+
 			if (this.mSelectItem !== item) {
 				if (this.mSelectItem)
 					this.mSelectItem.getNode().dataset.select = 'false'
@@ -1992,9 +2003,12 @@ namespace JSW {
 				while (parent = parent.getParentItem()) {
 					parent.openItem(true)
 				}
-				if(scroll){
-					this.getClient().scrollTo(0,item.getNode().offsetTop)
+				if (scroll) {
+					this.getClient().scrollTo(0, item.getNode().offsetTop - this.getClientHeight() / 2)
+					item.getNode().addEventListener('animationend', animationEnd)
 				}
+
+
 			}
 			this.callEvent('itemSelect', { item: item })
 		}
@@ -2096,7 +2110,7 @@ namespace JSW {
 		sortIndex: number = -1
 		sortVector: boolean = false
 		columnWidth: number[] = []
-		columnAutoIndex : number = -1
+		columnAutoIndex: number = -1
 
 		/**
 		 *Creates an instance of ListView.
@@ -2200,9 +2214,9 @@ namespace JSW {
 		addHeader(label: string | (string | [string, number])[], size?: number) {
 			var headers = this.headers
 
-			let labels:(string | [string, number])[] = []
-			if(label instanceof Array)
-				labels=label
+			let labels: (string | [string, number])[] = []
+			if (label instanceof Array)
+				labels = label
 			else
 				labels = [label]
 
@@ -2222,10 +2236,10 @@ namespace JSW {
 				var header = document.createElement('div')
 				headers.appendChild(header)
 				header.textContent = text
-				if (width != null){
+				if (width != null) {
 					this.columnWidth[index] = width
 					header.style.width = width + 'px'
-				}else{
+				} else {
 					this.columnWidth[index] = header.offsetWidth
 				}
 
@@ -2695,10 +2709,10 @@ namespace JSW {
 				let resize = resizers.childNodes[i] as HTMLElement
 				let column = itemArea.children[i] as HTMLElement
 				let width = this.columnWidth[i]
-				if (autoIndex === i || (autoIndex===-1 && i===length-1))
+				if (autoIndex === i || (autoIndex === -1 && i === length - 1))
 					width += lmitWidth
 				node.style.width = width + 'px'
-				resize.style.left = node.offsetLeft + width - resize.offsetWidth/2+'px'
+				resize.style.left = node.offsetLeft + width - resize.offsetWidth / 2 + 'px'
 				column.style.width = width + 'px'
 			}
 		}

@@ -1842,6 +1842,11 @@ var JSW;
          * @memberof TreeView
          */
         TreeView.prototype.selectItem = function (item, scroll) {
+            var that = this;
+            function animationEnd(e) {
+                this.removeEventListener('animationend', animationEnd);
+                that.getClient().scrollTo(0, item.getNode().offsetTop - that.getClientHeight() / 2);
+            }
             if (this.mSelectItem !== item) {
                 if (this.mSelectItem)
                     this.mSelectItem.getNode().dataset.select = 'false';
@@ -1853,7 +1858,8 @@ var JSW;
                     parent_2.openItem(true);
                 }
                 if (scroll) {
-                    this.getClient().scrollTo(0, item.getNode().offsetTop);
+                    this.getClient().scrollTo(0, item.getNode().offsetTop - this.getClientHeight() / 2);
+                    item.getNode().addEventListener('animationend', animationEnd);
                 }
             }
             this.callEvent('itemSelect', { item: item });

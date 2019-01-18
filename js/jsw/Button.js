@@ -41,12 +41,17 @@ var JSW;
         __extends(TextBox, _super);
         function TextBox(text) {
             var _this = _super.call(this) || this;
+            var that = _this;
             var node = _this.getClient();
             var nodeText = document.createElement('input');
             nodeText.style.width = '100%';
             nodeText.style.height = '100%';
             node.appendChild(nodeText);
             _this.nodeText = nodeText;
+            nodeText.addEventListener('keydown', function (e) {
+                if (e.keyCode == 13)
+                    that.callEvent('enter', e);
+            });
             //デフォルトの高さをinputタグに合わせる
             var size = nodeText.getBoundingClientRect();
             _this.setSize(300, size.top + size.bottom + 1);
