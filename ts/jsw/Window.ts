@@ -54,7 +54,7 @@ namespace JSW {
 		/**
 		 * マウスとタッチイベントの座標取得処理
 		 * @param  {MouseEvent|TouchEvent} e
-		 * @returns Point
+		 * @returns {Point} マウスの座標
 		 */
 		static getPos(e: MouseEvent | TouchEvent): Point {
 			let p: Point
@@ -326,7 +326,7 @@ namespace JSW {
 			//ノードを本文へ追加
 			document.body.appendChild(hNode)
 			//更新要求
-			//this.layout()
+			this.layout()
 			//新規ウインドウをフォアグラウンドにする
 			this.foreground(false)
 		}
@@ -2111,6 +2111,7 @@ namespace JSW {
 		sortVector: boolean = false
 		columnWidth: number[] = []
 		columnAutoIndex: number = -1
+		areaWidth: number = 0
 
 		/**
 		 *Creates an instance of ListView.
@@ -2627,6 +2628,11 @@ namespace JSW {
 			}
 			else
 				this.setItem(index, 0, value)
+
+			if(this.areaWidth !== this.itemArea.clientWidth){
+				this.areaWidth = this.itemArea.clientWidth
+				this.resize()
+			}
 			return index
 		}
 		/**
@@ -2699,7 +2705,7 @@ namespace JSW {
 			var headers = this.headers
 			var resizers = this.resizers
 			var itemArea = this.itemArea
-			var lmitWidth = this.getClientWidth()
+			var lmitWidth = itemArea.clientWidth
 			for (let i = 0, length = headers.childElementCount; i < length; i++) {
 				lmitWidth -= this.columnWidth[i]
 			}
