@@ -28,7 +28,7 @@ var JSW;
         /**
          * マウスとタッチイベントの座標取得処理
          * @param  {MouseEvent|TouchEvent} e
-         * @returns Point
+         * @returns {Point} マウスの座標
          */
         Jsw.getPos = function (e) {
             var p;
@@ -259,7 +259,7 @@ var JSW;
             //ノードを本文へ追加
             document.body.appendChild(hNode);
             //更新要求
-            //this.layout()
+            this.layout();
             //新規ウインドウをフォアグラウンドにする
             this.foreground(false);
         }
@@ -1110,11 +1110,13 @@ var JSW;
             }
             if (flag) {
                 var icon = this.hNode.querySelector("*>[data-type=title]>[data-type=icon][data-kind=max]");
-                icon.dataset.kind = "normal";
+                if (icon)
+                    icon.dataset.kind = "normal";
             }
             else {
                 var icon = this.hNode.querySelector("*>[data-type=title]>[data-type=icon][data-kind=normal]");
-                icon.dataset.kind = "max";
+                if (icon)
+                    icon.dataset.kind = "max";
             }
             this.layout();
         };
@@ -1160,8 +1162,12 @@ var JSW;
      */
     var FrameWindow = /** @class */ (function (_super) {
         __extends(FrameWindow, _super);
-        function FrameWindow() {
-            var _this = _super.call(this, { frame: true, title: true, layer: 10 }) || this;
+        function FrameWindow(param) {
+            var _this = this;
+            var p = { frame: true, title: true, layer: 10 };
+            if (param)
+                Object.assign(p, param);
+            _this = _super.call(this, p) || this;
             _this.setOverlap(true);
             return _this;
         }
@@ -1923,6 +1929,7 @@ var JSW;
             _this.sortVector = false;
             _this.columnWidth = [];
             _this.columnAutoIndex = -1;
+            _this.areaWidth = 0;
             var that = _this;
             var client = _this.getClient();
             client.dataset.kind = 'ListView';
@@ -2414,6 +2421,10 @@ var JSW;
             }
             else
                 this.setItem(index, 0, value);
+            if (this.areaWidth !== this.itemArea.clientWidth) {
+                this.areaWidth = this.itemArea.clientWidth;
+                this.resize();
+            }
             return index;
         };
         /**
@@ -2487,7 +2498,7 @@ var JSW;
             var headers = this.headers;
             var resizers = this.resizers;
             var itemArea = this.itemArea;
-            var lmitWidth = this.getClientWidth();
+            var lmitWidth = itemArea.clientWidth;
             for (var i = 0, length_13 = headers.childElementCount; i < length_13; i++) {
                 lmitWidth -= this.columnWidth[i];
             }

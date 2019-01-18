@@ -12,10 +12,10 @@ function MainIndex() {
 
 	const titles = [
 		['TypeDoc Viewer', 'https://javascript-windowframework.github.io/TypeDocViewer/'],
-		['フレームウインドウの表示','Sample01.html'],
-		['複数ウインドウの表示', 'Sample02.html'],
-		['ウインドウの親子関係', 'Sample03.html'],
-		['ツリービュー', 'Sample04.html']
+		['フレームウインドウの表示','Samples/Sample01.html'],
+		['複数ウインドウの表示', 'Samples/Sample02.html'],
+		['ウインドウの親子関係', 'Samples/Sample03.html'],
+		['ツリービュー', 'Samples/Sample04.html']
 	]
 
 	for(let i=0,l=titles.length;i<l;i++){
@@ -26,7 +26,7 @@ function MainIndex() {
 	listWindow.addEventListener('itemClick',e=>{
 		const p = e.params
 		const value = listWindow.getItemValue(p.itemIndex)
-		window.open('Samples/' + value)
+		window.open(value)
 	})
 	listWindow.setOverlap(true)
 	listWindow.setPos()
