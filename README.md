@@ -1,6 +1,6 @@
 # JSW
 JavaScript用ウインドウフレームワーク<br>
-[ドキュメント](https://javascript-windowframework.github.io/JSW/Samples/Document.html)<br>
+[ドキュメント](https://javascript-windowframework.github.io/TypeDocViewer/)<br>
 <br>
 [基本サンプル](https://javascript-windowframework.github.io/JSW/dist/) [ソース](https://github.com/JavaScript-WindowFramework/JSW)<br>
 <br>
