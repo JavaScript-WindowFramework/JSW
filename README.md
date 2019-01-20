@@ -1,5 +1,5 @@
 # JSW
-JavaScript用ウインドウフレームワーク
+JavaScript用ウインドウフレームワーク<br>
 [ドキュメント](https://javascript-windowframework.github.io/JSW/Samples/Document.html)<br>
 <br>
 [基本サンプル](https://javascript-windowframework.github.io/JSW/dist/) [ソース](https://github.com/JavaScript-WindowFramework/JSW)<br>
@@ -18,10 +18,13 @@ JavaScriptでウインドウシステムを扱うためのフレームワーク<
 ## 使い方
 ・JavaScriptとして使う場合<br>
 　distに入っている「css」と[js」をターゲット環境にコピーし、HTMLファイルから以下のような形で呼び出す<br>
-　```HTML
-	<link rel="stylesheet" href="css/jsw.css"/>
-	<script type="text/javascript" src="js/jsw.js"></script>
+ 
 　```
+
+    <link rel="stylesheet" href="css/jsw.css"/>
+    <script type="text/javascript" src="js/jsw.js"></script>
+　```
+ 
 
 ・TypeScriptとして使う場合<br>
 　基本的にはJavaScriptと同じだが、型宣言は以下のように利用する<br>
@@ -31,8 +34,8 @@ JavaScriptでウインドウシステムを扱うためのフレームワーク<
 		"src/jsw.ts"<br>
 
 ・webpackのようなパッケージバンドラとimportを前提とする場合<br>
-  "src/jsw.ts"の以下の行にexportを入れるとモジュール化される<br>
-  export namespace JSW {<br>
+　"src/jsw.ts"の以下の行にexportを入れるとモジュール化される<br>
+　export namespace JSW {<br>
 
 ## ターゲット
 TypeScript+ES5(JavaScript)<br>
