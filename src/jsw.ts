@@ -1,6 +1,8 @@
 /**
  * JavaScriptWindowフレームワーク用名前空間
+ * namespaceの前に「export」を入れると、モジュールとして利用可能
 */
+
 namespace JSW {
 	/**
 	 * 位置設定用
@@ -186,7 +188,7 @@ namespace JSW {
 	addEventListener("touchmove", mouseMove, { passive: false })
 
 	//マウスが離された場合に選択をリセット
-	function mouseUp(e) {
+	function mouseUp() {
 		Jsw.moveNode = null
 		Jsw.frame = null
 	}
@@ -466,8 +468,8 @@ namespace JSW {
 			this.setPos(x, y)
 			this.setSize(width, height)
 			//移動フレーム処理時はイベントを止める
-			//if (frameIndex < 9)
-			//	if (e.preventDefault) e.preventDefault(); else e.returnValue = false
+			if (frameIndex < 9)
+				if (e.preventDefault) e.preventDefault(); else e.returnValue = false
 		}
 		/**
 		 *イベントの受け取り
@@ -787,7 +789,6 @@ namespace JSW {
 		onLayout(flag: boolean): void {
 			if (flag || this.JData.redraw) {
 				if (this.hNode.dataset.stat == 'maximize') {
-					let parent = this.hNode.parentNode as HTMLElement
 					this.setPos(0, 0)
 					this.setSize(this.getParentWidth(), this.getParentHeight())
 				}
@@ -1630,20 +1631,20 @@ namespace JSW {
 			let row1 = document.createElement('div')
 			row1.dataset.kind = 'TreeRow'
 			hNode.appendChild(row1)
-			row1.addEventListener("click", function (e) {
+			row1.addEventListener("click", function () {
 				that.selectItem();
 			});
 			row1.addEventListener('dragstart', function (e) {
 				that.getTreeView().callEvent('itemDragStart', { item: that, event: e })
 			})
-			row1.addEventListener('dragleave', function (e) {
+			row1.addEventListener('dragleave', function () {
 				row1.dataset.drag = ''
 			})
-			row1.addEventListener('dragenter', function (e) {
+			row1.addEventListener('dragenter', function () {
 				row1.dataset.drag = 'over'
 				event.preventDefault()
 			})
-			row1.addEventListener('dragover', function (e) {
+			row1.addEventListener('dragover', function () {
 				//row1.dataset.drag = 'over'
 				event.preventDefault()
 			})
@@ -1987,7 +1988,7 @@ namespace JSW {
 		 */
 		selectItem(item: TreeItem, scroll?: boolean) {
 			const that = this
-			function animationEnd(e) {
+			function animationEnd() {
 				this.removeEventListener('animationend', animationEnd)
 				that.getClient().scrollTo(0, item.getNode().offsetTop - that.getClientHeight() / 2)
 			}
@@ -2159,7 +2160,7 @@ namespace JSW {
 				}
 			})
 
-			client.addEventListener('dragover', function (e) {
+			client.addEventListener('dragover', function () {
 				event.preventDefault()
 			})
 			client.addEventListener('drop', function (e) {
@@ -2541,7 +2542,7 @@ namespace JSW {
 				if (column.vector)
 					cell.style.justifyContent = vector[column.vector]
 				column.appendChild(cell)
-				cell.addEventListener('mouseover', function (e) {
+				cell.addEventListener('mouseover', function () {
 					let index = ListView.getIndexOfNode(this)
 					for (let i = 0, length = columns.length; i < length; i++) {
 						let column = columns[i]
@@ -2557,14 +2558,14 @@ namespace JSW {
 					let index2 = ListView.getIndexOfNode(this.parentNode as HTMLElement)
 					that.callEvent('itemDragStart', { itemIndex: index, subItemIndex: index2, event: e })
 				})
-				cell.addEventListener('dragleave', function (e) {
+				cell.addEventListener('dragleave', function () {
 					let index = ListView.getIndexOfNode(this)
 					let cells = that.getLineCells(index)
 					for (let cell of cells) {
 						cell.dataset.drag = ''
 					}
 				})
-				cell.addEventListener('dragenter', function (e) {
+				cell.addEventListener('dragenter', function () {
 					let index = ListView.getIndexOfNode(this)
 					let cells = that.getLineCells(index)
 					for (let cell of cells) {
@@ -2572,7 +2573,7 @@ namespace JSW {
 					}
 					event.preventDefault()
 				})
-				cell.addEventListener('dragover', function (e) {
+				cell.addEventListener('dragover', function () {
 					event.preventDefault()
 				})
 				cell.addEventListener('drop', function (e) {

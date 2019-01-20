@@ -22,7 +22,7 @@ function Sample04() {
 	item.addItem('アイテム2-2')
 
 	//アイテムが選択された場合のイベント
-	treeView.addEventListener('itemSelect',e=>{
+	treeView.addEventListener('itemSelect',function(e){
 		//ウインドウにメッセージを出す
 		const p = e.params
 		let win = new JSW.FrameWindow()

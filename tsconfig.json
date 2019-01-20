@@ -2,11 +2,12 @@
 	"compilerOptions": {
 		"sourceMap": true,
 		"target": "es5",
-		"module": "es2015",
-		"outDir": "./js/",
-		"rootDir": "./ts/",
+		"module": "commonjs",
+		"outDir": "./dist/js",
+		"rootDir": "./src/",
 		"declaration": true,
-		"declarationDir":"./@types",
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
 		"lib": [
 			"es2015",
 			"dom"

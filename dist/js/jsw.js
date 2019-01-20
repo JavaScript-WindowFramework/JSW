@@ -1,3 +1,6 @@
+/**
+ * JavaScriptWindowフレームワーク用名前空間
+*/
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -11,9 +14,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-/**
- * JavaScriptWindowフレームワーク用名前空間
-*/
 var JSW;
 (function (JSW) {
     /**
@@ -162,7 +162,7 @@ var JSW;
     addEventListener("mousemove", mouseMove, false);
     addEventListener("touchmove", mouseMove, { passive: false });
     //マウスが離された場合に選択をリセット
-    function mouseUp(e) {
+    function mouseUp() {
         Jsw.moveNode = null;
         Jsw.frame = null;
     }
@@ -395,8 +395,11 @@ var JSW;
             this.setPos(x, y);
             this.setSize(width, height);
             //移動フレーム処理時はイベントを止める
-            //if (frameIndex < 9)
-            //	if (e.preventDefault) e.preventDefault(); else e.returnValue = false
+            if (frameIndex < 9)
+                if (e.preventDefault)
+                    e.preventDefault();
+                else
+                    e.returnValue = false;
         };
         /**
          *イベントの受け取り
@@ -712,7 +715,6 @@ var JSW;
         Window.prototype.onLayout = function (flag) {
             if (flag || this.JData.redraw) {
                 if (this.hNode.dataset.stat == 'maximize') {
-                    var parent_1 = this.hNode.parentNode;
                     this.setPos(0, 0);
                     this.setSize(this.getParentWidth(), this.getParentHeight());
                 }
@@ -1497,20 +1499,20 @@ var JSW;
             var row1 = document.createElement('div');
             row1.dataset.kind = 'TreeRow';
             hNode.appendChild(row1);
-            row1.addEventListener("click", function (e) {
+            row1.addEventListener("click", function () {
                 that.selectItem();
             });
             row1.addEventListener('dragstart', function (e) {
                 that.getTreeView().callEvent('itemDragStart', { item: that, event: e });
             });
-            row1.addEventListener('dragleave', function (e) {
+            row1.addEventListener('dragleave', function () {
                 row1.dataset.drag = '';
             });
-            row1.addEventListener('dragenter', function (e) {
+            row1.addEventListener('dragenter', function () {
                 row1.dataset.drag = 'over';
                 event.preventDefault();
             });
-            row1.addEventListener('dragover', function (e) {
+            row1.addEventListener('dragover', function () {
                 //row1.dataset.drag = 'over'
                 event.preventDefault();
             });
@@ -1849,7 +1851,7 @@ var JSW;
          */
         TreeView.prototype.selectItem = function (item, scroll) {
             var that = this;
-            function animationEnd(e) {
+            function animationEnd() {
                 this.removeEventListener('animationend', animationEnd);
                 that.getClient().scrollTo(0, item.getNode().offsetTop - that.getClientHeight() / 2);
             }
@@ -1859,9 +1861,9 @@ var JSW;
                 item.getNode().dataset.select = 'true';
                 this.mSelectItem = item;
                 item.openItem(true);
-                var parent_2 = item;
-                while (parent_2 = parent_2.getParentItem()) {
-                    parent_2.openItem(true);
+                var parent_1 = item;
+                while (parent_1 = parent_1.getParentItem()) {
+                    parent_1.openItem(true);
                 }
                 if (scroll) {
                     this.getClient().scrollTo(0, item.getNode().offsetTop - this.getClientHeight() / 2);
@@ -1961,7 +1963,7 @@ var JSW;
                     headerBack.style.marginLeft = this.scrollLeft + 'px';
                 }
             });
-            client.addEventListener('dragover', function (e) {
+            client.addEventListener('dragover', function () {
                 event.preventDefault();
             });
             client.addEventListener('drop', function (e) {
@@ -2331,7 +2333,7 @@ var JSW;
                 if (column.vector)
                     cell.style.justifyContent = vector[column.vector];
                 column.appendChild(cell);
-                cell.addEventListener('mouseover', function (e) {
+                cell.addEventListener('mouseover', function () {
                     var index = ListView.getIndexOfNode(this);
                     for (var i_2 = 0, length_12 = columns.length; i_2 < length_12; i_2++) {
                         var column_3 = columns[i_2];
@@ -2347,7 +2349,7 @@ var JSW;
                     var index2 = ListView.getIndexOfNode(this.parentNode);
                     that.callEvent('itemDragStart', { itemIndex: index, subItemIndex: index2, event: e });
                 });
-                cell.addEventListener('dragleave', function (e) {
+                cell.addEventListener('dragleave', function () {
                     var index = ListView.getIndexOfNode(this);
                     var cells = that.getLineCells(index);
                     for (var _i = 0, cells_1 = cells; _i < cells_1.length; _i++) {
@@ -2355,7 +2357,7 @@ var JSW;
                         cell_1.dataset.drag = '';
                     }
                 });
-                cell.addEventListener('dragenter', function (e) {
+                cell.addEventListener('dragenter', function () {
                     var index = ListView.getIndexOfNode(this);
                     var cells = that.getLineCells(index);
                     for (var _i = 0, cells_2 = cells; _i < cells_2.length; _i++) {
@@ -2364,7 +2366,7 @@ var JSW;
                     }
                     event.preventDefault();
                 });
-                cell.addEventListener('dragover', function (e) {
+                cell.addEventListener('dragover', function () {
                     event.preventDefault();
                 });
                 cell.addEventListener('drop', function (e) {
@@ -2526,4 +2528,4 @@ var JSW;
     }(Window));
     JSW.ListView = ListView;
 })(JSW || (JSW = {}));
-//# sourceMappingURL=Window.js.map
+//# sourceMappingURL=jsw.js.map
