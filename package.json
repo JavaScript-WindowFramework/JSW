@@ -1,10 +1,12 @@
 {
-  "name": "jsw",
+  "name": "js-wf",
   "version": "1.0.0",
-  "description": "JavaScriptWindowフレームワーク",
-  "main": "index.html",
+  "description": "JavaScript WindowFramework",
+  "main": "./dist/js/jsw.js",
+  "type": "./dist/js/jsw.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+	"compile-sass": "node-sass ./scss/jsw.scss ./dist/css/jsw.css"
   },
   "repository": {
     "type": "git",
@@ -19,5 +21,4 @@
     "url": "https://github.com/JavaScript-WindowFramework/JSW/issues"
   },
   "homepage": "https://github.com/JavaScript-WindowFramework/JSW#readme"
-
 }
