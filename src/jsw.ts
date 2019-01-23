@@ -2475,15 +2475,28 @@ namespace JSW {
 		 * @param {number} index レコード番号
 		 * @returns 値
 		 * @memberof ListView
+		 * @returns {string} アイテムに設定されている値
 		 */
-		getItemValue(index: number) {
+		getItemValue(index: number) : any{
 			let cell = this.getCell(index, 0)
 			return cell.value
 		}
 		/**
+		 *アイテムのテキスト内容を取得
+		 *
+		 * @param {number} row 行
+		 * @param {number} col 列
+		 * @returns {string} アイテムに設定されているテキスト
+		 * @memberof ListView
+		 */
+		getItemText(row: number,col: number) :string {
+			let cell = this.getCell(row, col)
+			return cell.textContent
+		}
+		/**
 		 *最初に選択されているアイテムを返す
 		 *
-		 * @returns {number}
+		 * @returns {number} 選択されているアイテム番号(見つからなかったら-1)
 		 * @memberof ListView
 		 */
 		getSelectItem(): number {
@@ -2495,7 +2508,7 @@ namespace JSW {
 		/**
 		 *選択されている値を全て取得する
 		 *
-		 * @returns {any[]}
+		 * @returns {any[]} 選択されているアイテムの値
 		 * @memberof ListView
 		 */
 		getSelectValues(): any[] {
@@ -2547,9 +2560,13 @@ namespace JSW {
 					for (let i = 0, length = columns.length; i < length; i++) {
 						let column = columns[i]
 						if (that.overIndex != null && that.overIndex < column.childElementCount) {
-							column.childNodes[that.overIndex].dataset.itemHover = 'false'
+							let node = column.childNodes[that.overIndex]
+							node.dataset.itemHover = 'false'
+							node.className = node.className //IE対策
 						}
-						column.childNodes[index].dataset.itemHover = 'true'
+						let node2 = column.childNodes[index]
+						node2.dataset.itemHover = 'true'
+						node2.className = node2.className //IE対策
 					}
 					that.overIndex = index
 				})
@@ -2563,6 +2580,7 @@ namespace JSW {
 					let cells = that.getLineCells(index)
 					for (let cell of cells) {
 						cell.dataset.drag = ''
+						cell.className = cell.className //IE対策
 					}
 				})
 				cell.addEventListener('dragenter', function () {
@@ -2570,6 +2588,7 @@ namespace JSW {
 					let cells = that.getLineCells(index)
 					for (let cell of cells) {
 						cell.dataset.drag = 'over'
+						cell.className = cell.className //IE対策
 					}
 					event.preventDefault()
 				})
@@ -2582,6 +2601,7 @@ namespace JSW {
 					let cells = that.getLineCells(index)
 					for (let cell of cells) {
 						cell.dataset.drag = 'over'
+						cell.className = cell.className //IE対策
 					}
 					that.callEvent('itemDrop', { itemIndex: index, subItemIndex: index2, event: e })
 					event.preventDefault()

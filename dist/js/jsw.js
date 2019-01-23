@@ -1,5 +1,6 @@
 /**
  * JavaScriptWindowフレームワーク用名前空間
+ * namespaceの前に「export」を入れると、モジュールとして利用可能
 */
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -2265,15 +2266,28 @@ var JSW;
          * @param {number} index レコード番号
          * @returns 値
          * @memberof ListView
+         * @returns {string} アイテムに設定されている値
          */
         ListView.prototype.getItemValue = function (index) {
             var cell = this.getCell(index, 0);
             return cell.value;
         };
         /**
+         *アイテムのテキスト内容を取得
+         *
+         * @param {number} row 行
+         * @param {number} col 列
+         * @returns {string} アイテムに設定されているテキスト
+         * @memberof ListView
+         */
+        ListView.prototype.getItemText = function (row, col) {
+            var cell = this.getCell(row, col);
+            return cell.textContent;
+        };
+        /**
          *最初に選択されているアイテムを返す
          *
-         * @returns {number}
+         * @returns {number} 選択されているアイテム番号(見つからなかったら-1)
          * @memberof ListView
          */
         ListView.prototype.getSelectItem = function () {
@@ -2286,7 +2300,7 @@ var JSW;
         /**
          *選択されている値を全て取得する
          *
-         * @returns {any[]}
+         * @returns {any[]} 選択されているアイテムの値
          * @memberof ListView
          */
         ListView.prototype.getSelectValues = function () {
@@ -2338,9 +2352,13 @@ var JSW;
                     for (var i_2 = 0, length_12 = columns.length; i_2 < length_12; i_2++) {
                         var column_3 = columns[i_2];
                         if (that.overIndex != null && that.overIndex < column_3.childElementCount) {
-                            column_3.childNodes[that.overIndex].dataset.itemHover = 'false';
+                            var node = column_3.childNodes[that.overIndex];
+                            node.dataset.itemHover = 'false';
+                            node.className = node.className; //IE対策
                         }
-                        column_3.childNodes[index].dataset.itemHover = 'true';
+                        var node2 = column_3.childNodes[index];
+                        node2.dataset.itemHover = 'true';
+                        node2.className = node2.className; //IE対策
                     }
                     that.overIndex = index;
                 });
@@ -2355,6 +2373,7 @@ var JSW;
                     for (var _i = 0, cells_1 = cells; _i < cells_1.length; _i++) {
                         var cell_1 = cells_1[_i];
                         cell_1.dataset.drag = '';
+                        cell_1.className = cell_1.className; //IE対策
                     }
                 });
                 cell.addEventListener('dragenter', function () {
@@ -2363,6 +2382,7 @@ var JSW;
                     for (var _i = 0, cells_2 = cells; _i < cells_2.length; _i++) {
                         var cell_2 = cells_2[_i];
                         cell_2.dataset.drag = 'over';
+                        cell_2.className = cell_2.className; //IE対策
                     }
                     event.preventDefault();
                 });
@@ -2376,6 +2396,7 @@ var JSW;
                     for (var _i = 0, cells_3 = cells; _i < cells_3.length; _i++) {
                         var cell_3 = cells_3[_i];
                         cell_3.dataset.drag = 'over';
+                        cell_3.className = cell_3.className; //IE対策
                     }
                     that.callEvent('itemDrop', { itemIndex: index, subItemIndex: index2, event: e });
                     event.preventDefault();

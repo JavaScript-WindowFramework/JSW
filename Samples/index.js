@@ -15,11 +15,13 @@ function MainIndex() {
 		['名前', 250]
 	]);
 	var titles = [
-		['TypeDoc Viewer', 'https://javascript-windowframework.github.io/TypeDocViewer/'],
 		['フレームウインドウの表示', 'Sample01.html'],
 		['複数ウインドウの表示', 'Sample02.html'],
 		['ウインドウの親子関係', 'Sample03.html'],
-		['ツリービュー', 'Sample04.html']
+		['ツリービュー', 'Sample04.html'],
+		['ツリービュー(フレームウインドウ化)', 'Sample04_1.html'],
+		['リストビュー', 'Sample05.html'],
+		['TypeDoc Viewer', 'https://javascript-windowframework.github.io/TypeDocViewer/'],
 	];
 	for (var i = 0, l = titles.length; i < l; i++) {
 		listWindow.addItem([(i + 1).toString(), titles[i][0]]);
