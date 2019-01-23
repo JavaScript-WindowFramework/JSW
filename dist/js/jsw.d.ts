@@ -1,5 +1,6 @@
 /**
  * JavaScriptWindowフレームワーク用名前空間
+ * namespaceの前に「export」を入れると、モジュールとして利用可能
 */
 declare namespace JSW {
     /**
@@ -1020,19 +1021,29 @@ declare namespace JSW {
          * @param {number} index レコード番号
          * @returns 値
          * @memberof ListView
+         * @returns {string} アイテムに設定されている値
          */
         getItemValue(index: number): any;
         /**
+         *アイテムのテキスト内容を取得
+         *
+         * @param {number} row 行
+         * @param {number} col 列
+         * @returns {string} アイテムに設定されているテキスト
+         * @memberof ListView
+         */
+        getItemText(row: number, col: number): string;
+        /**
          *最初に選択されているアイテムを返す
          *
-         * @returns {number}
+         * @returns {number} 選択されているアイテム番号(見つからなかったら-1)
          * @memberof ListView
          */
         getSelectItem(): number;
         /**
          *選択されている値を全て取得する
          *
-         * @returns {any[]}
+         * @returns {any[]} 選択されているアイテムの値
          * @memberof ListView
          */
         getSelectValues(): any[];
