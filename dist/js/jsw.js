@@ -1,7 +1,3 @@
-/**
- * JavaScriptWindowフレームワーク用名前空間
- * namespaceの前に「export」を入れると、モジュールとして利用可能
-*/
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -15,6 +11,10 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+/**
+ * JavaScriptWindowフレームワーク用名前空間
+ * namespaceの前に「export」を入れると、モジュールとして利用可能
+*/
 var JSW;
 (function (JSW) {
     /**
