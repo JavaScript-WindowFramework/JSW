@@ -16,7 +16,6 @@ function Sample04() {
 	item = treeView.addItem('アイテム1')
 	item.addItem('アイテム1-1')
 	item.addItem('アイテム1-2')
-
 	item = treeView.addItem('アイテム2')
 	item.addItem('アイテム2-1')
 	item.addItem('アイテム2-2')
