@@ -984,6 +984,13 @@ declare namespace JSW {
          */
         delSelectItem(index: number | number[]): void;
         /**
+         *アイテムの数を返す
+         *
+         * @returns {number} アイテム数
+         * @memberof ListView
+         */
+        getItemCount(): number;
+        /**
          *アイテムが選択されているか返す
          *
          * @param {number} index レコード番号

@@ -2307,10 +2307,12 @@ namespace JSW {
 				this.sortVector = order
 				var headers = this.headers;
 				for (let i = 0, length = headers.childElementCount; i < length; i++) {
+					let node = headers.childNodes[i] as HTMLElement
 					if (index === i)
-						(headers.childNodes[i] as HTMLElement).dataset.sort = order ? 'asc' : 'desc'
+						node.dataset.sort = order ? 'asc' : 'desc'
 					else
-						(headers.childNodes[i] as HTMLElement).dataset.sort = ''
+						node.dataset.sort = ''
+					node.className = node.className //IE11対策
 				}
 			}
 
@@ -2366,7 +2368,9 @@ namespace JSW {
 			for (let i = 0, length = columns.length; i < length; i++) {
 				let column = columns[i]
 				for (let j = 0, l = this.selectIndexes.length; j < l; j++) {
-					column.childNodes[this.selectIndexes[j]].dataset.itemSelect = 'false'
+					let node = column.childNodes[this.selectIndexes[j]]
+					node.dataset.itemSelect = 'false'
+					node.className = node.className //IE11対策
 				}
 			}
 			this.selectIndexes = []
@@ -2386,7 +2390,9 @@ namespace JSW {
 				let column = columns[i]
 
 				for (let j = 0, l = this.selectIndexes.length; j < l; j++) {
-					column.childNodes[this.selectIndexes[j]].dataset.itemSelect = 'true'
+					let node = column.childNodes[this.selectIndexes[j]]
+					node.dataset.itemSelect = 'true'
+					node.className = node.className //IE11対策
 				}
 			}
 		}
@@ -2403,7 +2409,9 @@ namespace JSW {
 				let column = columns[i]
 
 				for (let j = 0, l = indexes.length; j < l; j++) {
-					column.childNodes[indexes[j]].dataset.itemSelect = 'false'
+					let node = column.childNodes[indexes[j]]
+					node.dataset.itemSelect = 'false'
+					node.className = node.className //IE11対策
 				}
 			}
 			let newIndexes = []
@@ -2413,6 +2421,18 @@ namespace JSW {
 					newIndexes.push(index)
 			}
 			this.selectIndexes = newIndexes
+		}
+		/**
+		 *アイテムの数を返す
+		 *
+		 * @returns {number} アイテム数
+		 * @memberof ListView
+		 */
+		getItemCount():number{
+			let columns = this.itemArea
+			if (this.itemArea.childElementCount === 0)
+				return 0
+			return (this.itemArea.childNodes[0] as HTMLElement).childElementCount;
 		}
 		/**
 		 *アイテムが選択されているか返す
