@@ -21,6 +21,7 @@ function MainIndex() {
 		['ツリービュー', 'Sample04.html'],
 		['ツリービュー(フレームウインドウ化)', 'Sample04_1.html'],
 		['リストビュー', 'Sample05.html'],
+		['分割ウインドウ', 'Sample06.html'],
 		['TypeDoc Viewer', 'https://javascript-windowframework.github.io/TypeDocViewer/'],
 	];
 	for (var i = 0, l = titles.length; i < l; i++) {

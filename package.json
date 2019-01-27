@@ -1,24 +1,25 @@
 {
-  "name": "js-wf",
-  "version": "1.0.0",
-  "description": "JavaScript WindowFramework",
-  "main": "./dist/js/jsw.js",
-  "type": "./dist/js/jsw.d.ts",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-	"compile-sass": "node-sass ./scss/jsw.scss ./dist/css/jsw.css"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/JavaScript-WindowFramework/JSW.git"
-  },
-  "keywords": [
-    "JSW"
-  ],
-  "author": "空雲",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/JavaScript-WindowFramework/JSW/issues"
-  },
-  "homepage": "https://github.com/JavaScript-WindowFramework/JSW#readme"
+	"name": "js-wf",
+	"version": "1.0.0",
+	"description": "JavaScript WindowFramework",
+	"main": "./dist/js/jsw.js",
+	"type": "./dist/js/jsw.d.ts",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"compile-sass": "node-sass ./scss/jsw.scss ./dist/css/jsw.css"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/JavaScript-WindowFramework/JSW.git"
+	},
+	"keywords": [
+		"JSW"
+	],
+	"author": "空雲",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/JavaScript-WindowFramework/JSW/issues"
+	},
+	"homepage": "https://github.com/JavaScript-WindowFramework/JSW#readme"
+
 }

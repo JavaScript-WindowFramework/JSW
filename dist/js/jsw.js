@@ -2105,10 +2105,12 @@ var JSW;
                 this.sortVector = order;
                 var headers = this.headers;
                 for (var i = 0, length_2 = headers.childElementCount; i < length_2; i++) {
+                    var node = headers.childNodes[i];
                     if (index === i)
-                        headers.childNodes[i].dataset.sort = order ? 'asc' : 'desc';
+                        node.dataset.sort = order ? 'asc' : 'desc';
                     else
-                        headers.childNodes[i].dataset.sort = '';
+                        node.dataset.sort = '';
+                    node.className = node.className; //IE11対策
                 }
             }
             index = this.sortIndex;
@@ -2161,7 +2163,9 @@ var JSW;
             for (var i = 0, length_6 = columns.length; i < length_6; i++) {
                 var column = columns[i];
                 for (var j = 0, l = this.selectIndexes.length; j < l; j++) {
-                    column.childNodes[this.selectIndexes[j]].dataset.itemSelect = 'false';
+                    var node = column.childNodes[this.selectIndexes[j]];
+                    node.dataset.itemSelect = 'false';
+                    node.className = node.className; //IE11対策
                 }
             }
             this.selectIndexes = [];
@@ -2179,7 +2183,9 @@ var JSW;
             for (var i = 0, length_7 = columns.length; i < length_7; i++) {
                 var column = columns[i];
                 for (var j = 0, l = this.selectIndexes.length; j < l; j++) {
-                    column.childNodes[this.selectIndexes[j]].dataset.itemSelect = 'true';
+                    var node = column.childNodes[this.selectIndexes[j]];
+                    node.dataset.itemSelect = 'true';
+                    node.className = node.className; //IE11対策
                 }
             }
         };
@@ -2195,7 +2201,9 @@ var JSW;
             for (var i = 0, length_8 = columns.length; i < length_8; i++) {
                 var column = columns[i];
                 for (var j = 0, l = indexes.length; j < l; j++) {
-                    column.childNodes[indexes[j]].dataset.itemSelect = 'false';
+                    var node = column.childNodes[indexes[j]];
+                    node.dataset.itemSelect = 'false';
+                    node.className = node.className; //IE11対策
                 }
             }
             var newIndexes = [];
@@ -2205,6 +2213,18 @@ var JSW;
                     newIndexes.push(index_1);
             }
             this.selectIndexes = newIndexes;
+        };
+        /**
+         *アイテムの数を返す
+         *
+         * @returns {number} アイテム数
+         * @memberof ListView
+         */
+        ListView.prototype.getItemCount = function () {
+            var columns = this.itemArea;
+            if (this.itemArea.childElementCount === 0)
+                return 0;
+            return this.itemArea.childNodes[0].childElementCount;
         };
         /**
          *アイテムが選択されているか返す
