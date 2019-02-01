@@ -29,8 +29,7 @@ function MainIndex() {
 		listWindow.setItemValue(i, titles[i][1]);
 	}
 	listWindow.addEventListener('itemClick', function (e) {
-		var p = e.params;
-		var value = listWindow.getItemValue(p.itemIndex);
+		var value = listWindow.getItemValue(e.itemIndex);
 		window.open(value);
 	});
 	listWindow.setOverlap(true);

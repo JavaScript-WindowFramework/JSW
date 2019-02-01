@@ -1,8 +1,18 @@
+/// <reference path="../dist/js/jsw.d.ts" />
+
 //ページ読み込み時に実行する処理を設定
-addEventListener("DOMContentLoaded", Sample06)
+addEventListener("DOMContentLoaded", Main)
 //ページ読み込み後に実行される内容
-function Sample06() {
-	//各ウインドウのインスタンスを作成
+function Main() {
+	const drawer = new JSW.DrawerView()
+	drawer.addItem('閉じる',0,'dist/css/images/close.svg')
+	drawer.addItem('開く',1)
+	drawer.addEventListener('selectItem',e=>{
+		console.log(e.value)
+	})
+
+
+		//各ウインドウのインスタンスを作成
 	const frame = new JSW.FrameWindow()
 	const splitter = new JSW.Splitter()
 	const tree = new JSW.TreeView()
@@ -21,6 +31,7 @@ function Sample06() {
 	//weは左が領域0、右が領域1
 	//nsにすると上下分割も可能
 	splitter.setSplitterPos(200,'we')
+	splitter.setOverlay(true)
 
 	//treeにアイテムを追加
 	tree.getRootItem().setItemText('最上位アイテム')

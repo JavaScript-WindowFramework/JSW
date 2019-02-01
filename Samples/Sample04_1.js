@@ -24,9 +24,8 @@ function Sample04() {
 	//アイテムが選択された場合のイベント
 	treeView.addEventListener('itemSelect',function(e){
 		//ウインドウにメッセージを出す
-		const p = e.params
 		let win = new JSW.FrameWindow()
-		win.getClient().textContent = p.item.getItemText()+'が選択された'
+		win.getClient().textContent = e.item.getItemText()+'が選択された'
 		win.setPos()
 		win.foreground()
 	})

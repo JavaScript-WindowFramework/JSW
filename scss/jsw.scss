@@ -21,7 +21,6 @@
 		border-radius: 10px 10px 0px 0px;
 		border: solid 1px;
 		box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.4);
-		animation: JSWfadeIn 0.5s ease 0s 1 normal;
 	}
 
 	&[data-stat="maximize"]>[data-type="frame"] {
@@ -135,7 +134,7 @@
 	}
 }
 
-@keyframes JSWfadeIn {
+@keyframes JSWFrameShow {
 	0% {
 		opacity: 0;
 		transform: scale(0);
@@ -547,5 +546,52 @@
 
 			}
 		}
+	}
+}
+$DRAWER_ITEM_SIZE: 2em;
+@keyframes DrawerShow {
+	0% {
+		transform: translateX(-100%);
+	}
+	100% {
+		transform: translateX(0);
+	}
+}
+@keyframes DrawerClose {
+	0% {
+		opacity: 1;/* 不透明 */
+		transform: translateX(0);
+	}
+	100% {
+		opacity: 0;
+		transform: translateX(-100%);
+	}
+
+}
+[data-kind="Drawer"]{
+	background-color: rgba(240,240,240,0.6);
+}
+[data-kind="DrawerItem"]{
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	margin: 0.2em;
+	margin-bottom: 0.5em;
+	padding: 0.5em;
+	height: $DRAWER_ITEM_SIZE;
+
+	>[data-kind="DrawerIcon"]{
+		background-size: 100% 100%;
+		height:100%;
+		width: 1.3em;
+		margin-right: 0.4em;
+	}
+	>[data-kind="DrawerText"]{
+		flex:1;
+		font-size: $DRAWER_ITEM_SIZE;
+	}
+	&:hover{
+		background-color: #eeeeee;
+		color: #5c6bb6;
 	}
 }

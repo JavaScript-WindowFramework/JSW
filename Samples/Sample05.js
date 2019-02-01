@@ -19,8 +19,7 @@ function Sample05() {
 	//アイテムが選択された場合のイベント
 	listView.addEventListener('itemClick',function(e){
 		//ウインドウにメッセージを出す
-		const p = e.params
-		const index = p.itemIndex
+		const index = e.itemIndex
 		let win = new JSW.FrameWindow()
 		win.getClient().textContent = listView.getItemText(index,1)+'が選択された'
 		win.setPos()
