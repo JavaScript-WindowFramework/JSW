@@ -34,12 +34,21 @@ declare namespace JSW {
         nodeSize: Size;
     }
     /**
+     *ウインドウノードにWindowの参照を持たせる
+    *
+    * @interface JNode
+    * @extends {HTMLElement}
+    */
+    interface JNode extends HTMLElement {
+        Jsw: Window;
+    }
+    /**
      * ウインドウ等総合管理クラス
      *
      * @export
      * @class Jsw
      */
-    class Jsw {
+    class WindowManager {
         static nodeX: number;
         static nodeY: number;
         static baseX: number;
@@ -104,6 +113,57 @@ declare namespace JSW {
          */
         static layout(flag: boolean): void;
     }
+}
+declare namespace JSW {
+    /**
+     *ウインドウ管理用基本データ
+     *
+     * @interface JDATA
+     */
+    interface JDATA {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        frameSize: number;
+        titleSize: number;
+        redraw: boolean;
+        parent: Window;
+        orderTop: boolean;
+        orderLayer: number;
+        layoutFlag: boolean;
+        clientArea: HTMLElement;
+        style: string;
+        visible: boolean;
+        minimize: boolean;
+        normalX: number;
+        normalY: number;
+        normalWidth: number;
+        normalHeight: number;
+        margin: {
+            x1: number;
+            y1: number;
+            x2: number;
+            y2: number;
+        };
+        padding: {
+            x1: number;
+            y1: number;
+            x2: number;
+            y2: number;
+        };
+        moveable: boolean;
+        reshow: boolean;
+        animation: {};
+    }
+    interface WINDOW_EVENT_MAP {
+        any: any;
+        active: {
+            active: boolean;
+        };
+        closed: {};
+        layout: {};
+    }
     /**
      *ウインドウ基本クラス
      *
@@ -111,6 +171,7 @@ declare namespace JSW {
      * @class Window
      */
     class Window {
+        private Events;
         private hNode;
         private JData;
         /**
@@ -140,7 +201,7 @@ declare namespace JSW {
          * @param {*} [options] オプション
          * @memberof Window
          */
-        addEventListener(type: string, listener: any, options?: any): void;
+        addEventListener<K extends keyof WINDOW_EVENT_MAP>(type: K | string, listener: (this: Window, ev: WINDOW_EVENT_MAP[K]) => any): void;
         /**
          *イベントの要求
          *
@@ -333,6 +394,7 @@ declare namespace JSW {
          * @memberof Window
          */
         onLayout(flag: boolean): void;
+        show(flag: boolean): void;
         /**
          *ウインドウの重ね合わせ順位を上位に持って行く
          *
@@ -360,6 +422,14 @@ declare namespace JSW {
          * @memberof Window
          */
         close(): void;
+        /**
+         *アニメーションの設定
+         *
+         * @param {string} name アニメーション名
+         * @param {string} value アニメーションパラメータ
+         * @memberof Window
+         */
+        setAnimation(name: string, value: string): void;
         /**
          *絶対位置の取得
          *
@@ -514,16 +584,278 @@ declare namespace JSW {
     class FrameWindow extends Window {
         constructor(param?: any);
     }
+}
+declare module JSW {
+    interface ListViewEventMap extends WINDOW_EVENT_MAP {
+        "selectItem": {
+            text: string;
+            value: any;
+            icon: string;
+        };
+    }
+    class DrawerView extends Window {
+        constructor();
+        addEventListener<K extends keyof ListViewEventMap>(type: K | string, listener: (this: Window, ev: ListViewEventMap[K]) => any): void;
+        addItem(text: string, value?: any, icon?: string): void;
+        onLayout(flag: boolean): void;
+    }
+}
+declare namespace JSW {
+    interface LISTVIEW_EVENT_ITEM_CLICK extends Event {
+        params: {
+            itemIndex: number;
+            subItemIndex: number;
+            event: MouseEvent;
+        };
+    }
+    interface LISTVIEW_EVENT_DRAG_START {
+        params: {
+            itemIndex: number;
+            subItemIndex: number;
+            event: DragEvent;
+        };
+    }
+    interface ListViewEventMap extends WINDOW_EVENT_MAP {
+        "itemClick": LISTVIEW_EVENT_ITEM_CLICK;
+        "itemDblClick": LISTVIEW_EVENT_ITEM_CLICK;
+        "itemDragStart": LISTVIEW_EVENT_DRAG_START;
+    }
+    /**
+     *ListView用クラス
+    *
+    * @export
+    * @class ListView
+    * @extends {Window}
+    */
+    class ListView extends Window {
+        headerArea: HTMLElement;
+        headerBack: HTMLElement;
+        headers: HTMLElement;
+        resizers: HTMLElement;
+        itemArea: HTMLElement;
+        itemColumn: HTMLElement;
+        overIndex: number;
+        lastIndex: number;
+        selectIndexes: number[];
+        sortIndex: number;
+        sortVector: boolean;
+        columnWidth: number[];
+        columnAutoIndex: number;
+        areaWidth: number;
+        /**
+         *Creates an instance of ListView.
+         * @param {*} [params] ウインドウ作成パラメータ
+         * @memberof ListView
+         */
+        constructor(params?: any);
+        /**
+         *カラムのサイズを設定
+         *
+         * @param {number} index
+         * @param {number} size
+         * @memberof ListView
+         */
+        setColumnWidth(index: number, size: number): void;
+        /**
+         *カラムのスタイルを設定
+         *
+         * @param {number} col カラム番号
+         * @param {('left'|'right'|'center')} style スタイル
+         * @memberof ListView
+         */
+        setColumnStyle(col: number, style: 'left' | 'right' | 'center'): void;
+        /**
+         *カラムのスタイルを複数設定
+         *
+         * @param {(('left' | 'right' | 'center')[])} styles スタイル
+         * @memberof ListView
+         */
+        setColumnStyles(styles: ('left' | 'right' | 'center')[]): void;
+        /**
+         *ヘッダを追加
+         *配列にすると複数追加でき、さらに配列を含めるとサイズが指定できる
+         * @param {(string|(string|[string,number])[])} labels ラベル | [ラベル,ラベル,・・・] | [[ラベル,幅],[ラベル,幅],・・・]
+         * @param {number} [size] 幅
+         * @memberof ListView
+         */
+        addHeader(label: string | (string | [string, number])[], size?: number): void;
+        /**
+         *アイテムのソートを行う
+         *
+         * @param {number} [index] カラム番号
+         * @param {boolean} [order] 方向 true:昇順 false:降順
+         * @memberof ListView
+         */
+        sortItem(index?: number, order?: boolean): void;
+        /**
+         *アイテムを選択する
+         *すでにある選択は解除される
+         * @param {(number | number[])} index レコード番号
+         * @memberof ListView
+         */
+        selectItem(index: number | number[]): void;
+        /**
+         *アイテムの選択を全て解除する
+         *
+         * @memberof ListView
+         */
+        clearSelectItem(): void;
+        /**
+         *アイテムの選択を追加する
+         *
+         * @param {(number | number[])} index レコード番号
+         * @memberof ListView
+         */
+        addSelectItem(index: number | number[]): void;
+        /**
+         *アイテムの選択を解除する
+         *
+         * @param {(number | number[])} index レコード番号
+         * @memberof ListView
+         */
+        delSelectItem(index: number | number[]): void;
+        /**
+         *アイテムの数を返す
+         *
+         * @returns {number} アイテム数
+         * @memberof ListView
+         */
+        getItemCount(): number;
+        /**
+         *アイテムが選択されているか返す
+         *
+         * @param {number} index レコード番号
+         * @returns {boolean}
+         * @memberof ListView
+         */
+        isSelectItem(index: number): boolean;
+        private static getIndexOfNode;
+        /**
+         *アイテムを全て削除する
+         *
+         * @memberof ListView
+         */
+        clearItem(): void;
+        /**
+         *対象セルのノードを取得
+         *
+         * @param {number} row
+         * @param {number} col
+         * @returns
+         * @memberof ListView
+         */
+        getCell(row: number, col: number): any;
+        /**
+         *アイテムに値を設定する
+         *
+         * @param {number} index レコード番号
+         * @param {*} value 値
+         * @memberof ListView
+         */
+        setItemValue(index: number, value: any): void;
+        /**
+         *アイテムの値を取得する
+         *
+         * @param {number} index レコード番号
+         * @returns 値
+         * @memberof ListView
+         * @returns {string} アイテムに設定されている値
+         */
+        getItemValue(index: number): any;
+        /**
+         *アイテムのテキスト内容を取得
+         *
+         * @param {number} row 行
+         * @param {number} col 列
+         * @returns {string} アイテムに設定されているテキスト
+         * @memberof ListView
+         */
+        getItemText(row: number, col: number): string;
+        /**
+         *最初に選択されているアイテムを返す
+         *
+         * @returns {number} 選択されているアイテム番号(見つからなかったら-1)
+         * @memberof ListView
+         */
+        getSelectItem(): number;
+        /**
+         *選択されている値を全て取得する
+         *
+         * @returns {any[]} 選択されているアイテムの値
+         * @memberof ListView
+         */
+        getSelectValues(): any[];
+        /**
+         *指定行のセルノードを返す
+         *
+         * @param {number} row
+         * @returns
+         * @memberof ListView
+         */
+        getLineCells(row: number): any[];
+        /**
+         *アイテムを追加する
+         *アイテムはテキストかノードが指定できる
+         *配列を渡した場合は、複数追加となる
+         * @param {(string|(string|HTMLElement)[])} value テキストもしくはノード
+         * @returns
+         * @memberof ListView
+         */
+        addItem(value: string | HTMLElement | (string | HTMLElement)[]): number;
+        /**
+         *ソート用のキーを設定する
+         *
+         * @param {number} row レコード番号
+         * @param {number} column カラム番号
+         * @param {*} value キー
+         * @returns
+         * @memberof ListView
+         */
+        setSortKey(row: number, column: number, value: any): boolean;
+        /**
+         *ソート用のキーをまとめて設定する
+         *
+         * @param {number} row レコード番号
+         * @param {any[]} values キー配列
+         * @memberof ListView
+         */
+        setSortKeys(row: number, values: any[]): void;
+        /**
+         *アイテムを書き換える
+         *
+         * @param {number} row レコード番号
+         * @param {number} column カラム番号
+         * @param {(string|HTMLElement)} value テキストもしくはノード
+         * @returns
+         * @memberof ListView
+         */
+        setItem(row: number, column: number, value: string | HTMLElement): boolean;
+        /**
+         *ヘッダに合わせてカラムサイズを調整する
+         *基本的には直接呼び出さない
+         * @memberof ListView
+         */
+        resize(): void;
+        onLayout(flag: boolean): void;
+        addEventListener<K extends keyof ListViewEventMap>(type: K, listener: (ev: ListViewEventMap[K]) => any): void;
+    }
+}
+declare namespace JSW {
+    class Panel extends Window {
+        constructor();
+    }
+}
+declare namespace JSW {
     interface JSWSPLITDATA {
-        overlay: any;
-        overlayOpen: any;
-        overlayMove: any;
-        splitterThick: any;
-        splitterPos: any;
-        splitterType: any;
-        pos: any;
-        type: any;
+        overlay: boolean;
+        overlayOpen: boolean;
+        overlayMove: number;
+        splitterThick: number;
+        splitterPos: number;
+        splitterType: string;
         childList: Window[];
+        pos?: number;
+        type?: string;
     }
     /**
      *分割ウインドウ用クラス
@@ -599,31 +931,28 @@ declare namespace JSW {
         slideTimeoutHandle: any;
         private slideTimeout;
     }
-    class Panel extends Window {
-        constructor();
+}
+declare namespace JSW {
+    interface TREEVIEW_EVENT_SELECT {
+        item: TreeItem;
     }
-    interface TREEVIEW_EVENT_SELECT extends Event {
-        params: {
-            item: TreeItem;
-        };
+    interface TREEVIEW_EVENT_DROP {
+        item: TreeItem;
+        event: DragEvent;
     }
-    interface TREEVIEW_EVENT_DROP extends Event {
-        params: {
-            item: TreeItem;
-            event: DragEvent;
-        };
+    interface TREEVIEW_EVENT_DRAG_START {
+        item: TreeItem;
+        event: DragEvent;
     }
-    interface TREEVIEW_EVENT_DRAG_START extends Event {
-        params: {
-            item: TreeItem;
-            event: DragEvent;
-        };
+    interface TREEVIEW_EVENT_OPEN {
+        item: TreeItem;
+        opened: boolean;
     }
-    interface TREEVIEW_EVENT_OPEN extends Event {
-        params: {
-            item: TreeItem;
-            opened: boolean;
-        };
+    interface TreeViewEventMap extends WINDOW_EVENT_MAP {
+        "itemOpen": TREEVIEW_EVENT_OPEN;
+        "itemSelect": TREEVIEW_EVENT_SELECT;
+        "itemDrop": TREEVIEW_EVENT_DROP;
+        "itemDragStart": TREEVIEW_EVENT_DRAG_START;
     }
     /**
      *
@@ -856,7 +1185,6 @@ declare namespace JSW {
          * @param {(event:TREEVIEW_EVENT_OPEN)=>void} callback
          * @memberof TreeView
          */
-        addEventListener(type: 'itemOpen', callback: (event: TREEVIEW_EVENT_OPEN) => void): void;
         /**
          *アイテムが選択されたら発生
          *
@@ -864,7 +1192,6 @@ declare namespace JSW {
          * @param {(event:TREEVIEW_EVENT_SELECT)=>void} callback
          * @memberof TreeView
          */
-        addEventListener(type: 'itemSelect', callback: (event: TREEVIEW_EVENT_SELECT) => void): void;
         /**
          *アイテムにドラッグドロップされたら発生
          *
@@ -872,242 +1199,6 @@ declare namespace JSW {
          * @param {(event: TREEVIEW_EVENT_DROP) => void} callback
          * @memberof TreeView
          */
-        addEventListener(type: 'itemDrop', callback: (event: TREEVIEW_EVENT_DROP) => void): void;
-        addEventListener(type: 'itemDragStart', callback: (event: TREEVIEW_EVENT_DRAG_START) => void): void;
-    }
-    interface LISTVIEW_EVENT_ITEM_CLICK extends Event {
-        params: {
-            itemIndex: number;
-            subItemIndex: number;
-            event: MouseEvent;
-        };
-    }
-    interface LISTVIEW_EVENT_DRAG_START extends Event {
-        params: {
-            itemIndex: number;
-            subItemIndex: number;
-            event: DragEvent;
-        };
-    }
-    /**
-     *ListView用クラス
-    *
-    * @export
-    * @class ListView
-    * @extends {Window}
-    */
-    class ListView extends Window {
-        headerArea: HTMLElement;
-        headerBack: HTMLElement;
-        headers: HTMLElement;
-        resizers: HTMLElement;
-        itemArea: HTMLElement;
-        itemColumn: HTMLElement;
-        overIndex: number;
-        lastIndex: number;
-        selectIndexes: number[];
-        sortIndex: number;
-        sortVector: boolean;
-        columnWidth: number[];
-        columnAutoIndex: number;
-        areaWidth: number;
-        /**
-         *Creates an instance of ListView.
-         * @param {*} [params] ウインドウ作成パラメータ
-         * @memberof ListView
-         */
-        constructor(params?: any);
-        /**
-         *カラムのサイズを設定
-         *
-         * @param {number} index
-         * @param {number} size
-         * @memberof ListView
-         */
-        setColumnWidth(index: number, size: number): void;
-        /**
-         *カラムのスタイルを設定
-         *
-         * @param {number} col カラム番号
-         * @param {('left'|'right'|'center')} style スタイル
-         * @memberof ListView
-         */
-        setColumnStyle(col: number, style: 'left' | 'right' | 'center'): void;
-        /**
-         *カラムのスタイルを複数設定
-         *
-         * @param {(('left' | 'right' | 'center')[])} styles スタイル
-         * @memberof ListView
-         */
-        setColumnStyles(styles: ('left' | 'right' | 'center')[]): void;
-        /**
-         *ヘッダを追加
-         *配列にすると複数追加でき、さらに配列を含めるとサイズが指定できる
-         * @param {(string|(string|[string,number])[])} labels ラベル | [ラベル,ラベル,・・・] | [[ラベル,幅],[ラベル,幅],・・・]
-         * @param {number} [size] 幅
-         * @memberof ListView
-         */
-        addHeader(label: string | (string | [string, number])[], size?: number): void;
-        /**
-         *アイテムのソートを行う
-         *
-         * @param {number} [index] カラム番号
-         * @param {boolean} [order] 方向 true:昇順 false:降順
-         * @memberof ListView
-         */
-        sortItem(index?: number, order?: boolean): void;
-        /**
-         *アイテムを選択する
-         *すでにある選択は解除される
-         * @param {(number | number[])} index レコード番号
-         * @memberof ListView
-         */
-        selectItem(index: number | number[]): void;
-        /**
-         *アイテムの選択を全て解除する
-         *
-         * @memberof ListView
-         */
-        clearSelectItem(): void;
-        /**
-         *アイテムの選択を追加する
-         *
-         * @param {(number | number[])} index レコード番号
-         * @memberof ListView
-         */
-        addSelectItem(index: number | number[]): void;
-        /**
-         *アイテムの選択を解除する
-         *
-         * @param {(number | number[])} index レコード番号
-         * @memberof ListView
-         */
-        delSelectItem(index: number | number[]): void;
-        /**
-         *アイテムの数を返す
-         *
-         * @returns {number} アイテム数
-         * @memberof ListView
-         */
-        getItemCount(): number;
-        /**
-         *アイテムが選択されているか返す
-         *
-         * @param {number} index レコード番号
-         * @returns {boolean}
-         * @memberof ListView
-         */
-        isSelectItem(index: number): boolean;
-        private static getIndexOfNode;
-        /**
-         *アイテムを全て削除する
-         *
-         * @memberof ListView
-         */
-        clearItem(): void;
-        /**
-         *対象セルのノードを取得
-         *
-         * @param {number} row
-         * @param {number} col
-         * @returns
-         * @memberof ListView
-         */
-        getCell(row: number, col: number): any;
-        /**
-         *アイテムに値を設定する
-         *
-         * @param {number} index レコード番号
-         * @param {*} value 値
-         * @memberof ListView
-         */
-        setItemValue(index: number, value: any): void;
-        /**
-         *アイテムの値を取得する
-         *
-         * @param {number} index レコード番号
-         * @returns 値
-         * @memberof ListView
-         * @returns {string} アイテムに設定されている値
-         */
-        getItemValue(index: number): any;
-        /**
-         *アイテムのテキスト内容を取得
-         *
-         * @param {number} row 行
-         * @param {number} col 列
-         * @returns {string} アイテムに設定されているテキスト
-         * @memberof ListView
-         */
-        getItemText(row: number, col: number): string;
-        /**
-         *最初に選択されているアイテムを返す
-         *
-         * @returns {number} 選択されているアイテム番号(見つからなかったら-1)
-         * @memberof ListView
-         */
-        getSelectItem(): number;
-        /**
-         *選択されている値を全て取得する
-         *
-         * @returns {any[]} 選択されているアイテムの値
-         * @memberof ListView
-         */
-        getSelectValues(): any[];
-        /**
-         *指定行のセルノードを返す
-         *
-         * @param {number} row
-         * @returns
-         * @memberof ListView
-         */
-        getLineCells(row: number): any[];
-        /**
-         *アイテムを追加する
-         *アイテムはテキストかノードが指定できる
-         *配列を渡した場合は、複数追加となる
-         * @param {(string|(string|HTMLElement)[])} value テキストもしくはノード
-         * @returns
-         * @memberof ListView
-         */
-        addItem(value: string | HTMLElement | (string | HTMLElement)[]): number;
-        /**
-         *ソート用のキーを設定する
-         *
-         * @param {number} row レコード番号
-         * @param {number} column カラム番号
-         * @param {*} value キー
-         * @returns
-         * @memberof ListView
-         */
-        setSortKey(row: number, column: number, value: any): boolean;
-        /**
-         *ソート用のキーをまとめて設定する
-         *
-         * @param {number} row レコード番号
-         * @param {any[]} values キー配列
-         * @memberof ListView
-         */
-        setSortKeys(row: number, values: any[]): void;
-        /**
-         *アイテムを書き換える
-         *
-         * @param {number} row レコード番号
-         * @param {number} column カラム番号
-         * @param {(string|HTMLElement)} value テキストもしくはノード
-         * @returns
-         * @memberof ListView
-         */
-        setItem(row: number, column: number, value: string | HTMLElement): boolean;
-        /**
-         *ヘッダに合わせてカラムサイズを調整する
-         *基本的には直接呼び出さない
-         * @memberof ListView
-         */
-        resize(): void;
-        onLayout(flag: boolean): void;
-        addEventListener(type: 'itemClick', callback: (event: LISTVIEW_EVENT_ITEM_CLICK) => void): void;
-        addEventListener(type: 'itemDblClick', callback: (event: LISTVIEW_EVENT_ITEM_CLICK) => void): void;
-        addEventListener(type: 'itemDragStart', callback: (event: LISTVIEW_EVENT_DRAG_START) => void): void;
+        addEventListener<K extends keyof TreeViewEventMap>(type: K, listener: (ev: TreeViewEventMap[K]) => any): void;
     }
 }

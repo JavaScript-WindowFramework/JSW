@@ -2,8 +2,8 @@
 	"compilerOptions": {
 		"sourceMap": true,
 		"target": "es5",
-		"module": "commonjs",
-		"outDir": "./dist/js",
+		"module": "amd",
+		"outFile":"../dist/js/jsw.js",
 		"declaration": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
@@ -14,7 +14,7 @@
 	},
 	"typedocOptions":{
 		"name": "JSW",
-		"json": "doc/document.json",
+		"json": "../doc/document.json",
 		"mode": "file",
 		"includeDeclarations": false,
 		"hideGenerator": false

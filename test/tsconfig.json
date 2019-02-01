@@ -3,7 +3,8 @@
 		"sourceMap": true,
 		"target": "es5",
 		"module": "commonjs",
-		"outDir": "./dist/js",
+		"outDir":"../dist/js",
+		"rootDir":"./",
 		"declaration": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
@@ -14,7 +15,7 @@
 	},
 	"typedocOptions":{
 		"name": "JSW",
-		"json": "doc/document.json",
+		"json": "../doc/document.json",
 		"mode": "file",
 		"includeDeclarations": false,
 		"hideGenerator": false
