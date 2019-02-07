@@ -249,6 +249,7 @@ var JSW;
                 padding: { x1: 0, y1: 0, x2: 0, y2: 0 },
                 moveable: false,
                 reshow: true,
+                noActive: false,
                 animation: {}
             };
             //ウインドウ用ノードの作成
@@ -259,6 +260,7 @@ var JSW;
             hNode.dataset.type = "Window";
             //位置を絶対位置指定
             hNode.style.position = 'absolute';
+            hNode.style.visibility = 'hidden';
             if (params) {
                 if (params.frame) {
                     this.addFrame(params.title == null ? true : params.title);
@@ -322,11 +324,8 @@ var JSW;
                 if (JSW.WindowManager.frame == null)
                     JSW.WindowManager.frame = this.dataset.index;
                 //EDGEはここでイベントを止めないとテキスト選択が入る
-                if (JSW.WindowManager.frame < 9)
-                    if (e.preventDefault)
-                        e.preventDefault();
-                    else
-                        e.returnValue = false;
+                //if (WindowManager.frame < 9)
+                //	if (e.preventDefault) e.preventDefault(); else e.returnValue = false
             }
             //フレームとタイトル、クライアント領域の作成
             for (var i = 0; i < frameStyles.length; i++) {
@@ -368,8 +367,11 @@ var JSW;
                 JSW.WindowManager.nodeY = this.getPosY();
                 JSW.WindowManager.nodeWidth = this.getWidth();
                 JSW.WindowManager.nodeHeight = this.getHeight();
-                e.preventDefault();
+                e.stopPropagation();
                 return false;
+            }
+            else {
+                e.preventDefault();
             }
         };
         Window.prototype.onMouseMove = function (e) {
@@ -428,17 +430,13 @@ var JSW;
             this.setSize(width, height);
             //移動フレーム処理時はイベントを止める
             if (frameIndex < 9)
-                if (e.preventDefault)
-                    e.preventDefault();
-                else
-                    e.returnValue = false;
+                e.preventDefault();
         };
         /**
          *イベントの受け取り
          *
          * @param {string} type イベントタイプ
          * @param {*} listener コールバックリスナー
-         * @param {*} [options] オプション
          * @memberof Window
          */
         Window.prototype.addEventListener = function (type, listener) {
@@ -447,8 +445,35 @@ var JSW;
                 eventData = [];
                 this.Events.set(type, eventData);
             }
-            if (!eventData.find(listener)) {
-                eventData.push(listener);
+            for (var _i = 0, eventData_1 = eventData; _i < eventData_1.length; _i++) {
+                var ev = eventData_1[_i];
+                if (String(ev) === String(listener))
+                    return;
+            }
+            eventData.push(listener);
+        };
+        /**
+         *イベントの削除
+         *
+         * @template K
+         * @param {(K | string)} type イベントタイプ
+         * @param {(this: Window, ev: WINDOW_EVENT_MAP[K]) => any} listener コールバックリスナー
+         * @memberof Window
+         */
+        Window.prototype.removeEventListener = function (type, listener) {
+            if (listener == null) {
+                this.Events.delete(type);
+                return;
+            }
+            var eventData = this.Events.get(type);
+            if (!eventData) {
+                eventData = [];
+                this.Events.set(type, eventData);
+            }
+            for (var index in eventData) {
+                if (String(eventData[index]) === String(listener)) {
+                    eventData.splice(parseInt(index), 1);
+                }
             }
         };
         /**
@@ -461,8 +486,8 @@ var JSW;
         Window.prototype.callEvent = function (type, params) {
             var eventData = this.Events.get(type);
             if (eventData) {
-                for (var _i = 0, eventData_1 = eventData; _i < eventData_1.length; _i++) {
-                    var ev = eventData_1[_i];
+                for (var _i = 0, eventData_2 = eventData; _i < eventData_2.length; _i++) {
+                    var ev = eventData_2[_i];
                     ev(params);
                 }
             }
@@ -487,6 +512,9 @@ var JSW;
             this.JData.x = this.JData.x + parseInt(x);
             this.JData.y = this.JData.y + parseInt(y);
             this.layout();
+        };
+        Window.prototype.setNoActive = function (flag) {
+            this.JData.noActive = flag;
         };
         /**
          *ウインドウの位置設定
@@ -664,8 +692,50 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setVisible = function (flag) {
+            var _this = this;
+            var node = this.getNode();
             this.JData.visible = flag;
-            this.getNode().style.display = flag ? 'block' : 'none';
+            if (flag) {
+                node.style.display = '';
+                var animation = this.JData.animation['show'];
+                var animationEnd_1 = function () {
+                    _this.callEvent('visibled', { visible: true });
+                    node.removeEventListener("animationend", animationEnd_1);
+                    node.style.animation = '';
+                    node.style.display = '';
+                    console.log(0);
+                };
+                if (animation) {
+                    node.addEventListener("animationend", animationEnd_1);
+                    node.style.animation = animation;
+                }
+                else {
+                    node.style.animation = '';
+                    animationEnd_1.bind(node)();
+                }
+            }
+            else {
+                var animationEnd_2 = function () {
+                    var nodes = node.querySelectorAll('[data-type="Window"]');
+                    var count = nodes.length;
+                    for (var i = 0; i < count; i++) {
+                        nodes[i].Jsw.layout();
+                    }
+                    console.log(1);
+                    node.style.display = 'none';
+                    node.removeEventListener("animationend", animationEnd_2);
+                    node.style.animation = '';
+                    _this.callEvent('visibled', { visible: false });
+                };
+                var animation = this.JData.animation['close'];
+                if (animation) {
+                    node.addEventListener("animationend", animationEnd_2);
+                    node.style.animation = animation;
+                }
+                else {
+                    animationEnd_2.bind(node)();
+                }
+            }
             if (this.getParent())
                 this.getParent().layout();
         };
@@ -701,6 +771,10 @@ var JSW;
             this.JData.redraw = true;
             JSW.WindowManager.layout(false);
             this.JData.layoutFlag = false;
+        };
+        Window.prototype.active = function (flag) {
+            if (!this.JData.noActive)
+                this.getNode().dataset.active = (flag || flag == null) ? 'true' : 'false';
         };
         /**
          *子ウインドウのサイズを再計算
@@ -784,16 +858,18 @@ var JSW;
             //直下の子リスト
             var client = this.getClient();
             var nodes = [];
-            for (var i = 0; i < client.childNodes.length; i++) {
+            for (var i = 0; i < client.childElementCount; i++) {
                 var node = client.childNodes[i];
                 if (node.dataset && node.dataset.type === "Window")
                     nodes.push(node);
             }
             var count = nodes.length;
             //配置順序リスト
-            nodes.sort(function (a, b) {
+            nodes.sort(function (anode, bnode) {
                 var priority = { top: 10, bottom: 10, left: 8, right: 8, client: 5 };
-                return priority[b.Jsw.JData.style] - priority[a.Jsw.JData.style];
+                var a = anode.Jsw.JData;
+                var b = bnode.Jsw.JData;
+                return priority[a.style] - priority[b.style];
             });
             var padding = this.JData.padding;
             var width = this.getClientWidth();
@@ -841,12 +917,31 @@ var JSW;
                 win.onLayout(flag);
             }
             this.JData.redraw = false;
+            //重ね合わせソート
+            nodes.sort(function (anode, bnode) {
+                var a = anode.Jsw.JData;
+                var b = bnode.Jsw.JData;
+                if (a.orderTop)
+                    return 1;
+                if (b.orderTop)
+                    return -1;
+                var layer = a.orderLayer - b.orderLayer;
+                if (layer)
+                    return layer;
+                return parseInt(anode.style.zIndex) - parseInt(bnode.style.zIndex);
+            });
+            //Zオーダーの再附番
+            for (var i = 0; i < nodes.length; i++) {
+                nodes[i].style.zIndex = i;
+            }
         };
         Window.prototype.show = function (flag) {
             if (flag == null || flag) {
                 this.JData.reshow = true;
             }
-            this.hNode.style.visibility = 'hidden';
+            else {
+                //this.hNode.style.visibility = 'hidden'
+            }
         };
         /**
          *ウインドウの重ね合わせ順位を上位に持って行く
@@ -855,19 +950,21 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.foreground = function (flag) {
+            if (this.JData.noActive)
+                return;
             //親をフォアグラウンドに設定
             var activeNodes = new Set();
             var p = this.hNode;
-            activeNodes.add(p);
-            while (p = p.parentNode) {
+            do {
                 activeNodes.add(p);
-                if (p.Jsw) {
-                    p.Jsw.foreground(flag);
+                if ((flag || flag == null) && p.dataset) {
+                    p.dataset.active = 'true';
+                    p.style.zIndex = '1000';
+                    if (p.Jsw)
+                        p.Jsw.callEvent('active', { active: true });
                 }
-            }
+            } while (p = p.parentNode);
             if (flag || flag == null) {
-                this.hNode.dataset.active = 'true';
-                this.callEvent('active', { active: true });
                 var activeWindows = document.querySelectorAll('[data-type="Window"][data-active="true"]');
                 for (var i = 0, l = activeWindows.length; i < l; i++) {
                     var w = activeWindows[i];
@@ -877,33 +974,9 @@ var JSW;
                     }
                 }
             }
-            //兄弟ウインドウの列挙しソート
-            var childs = this.hNode.parentNode.childNodes;
-            var nodes = [];
-            for (var i = 0; i < childs.length; i++) {
-                var node_1 = childs[i];
-                if (node_1.dataset && node_1.dataset.type === "Window")
-                    nodes.push(node_1);
-            }
-            var node = this.hNode;
-            nodes.sort(function (a, b) {
-                if (a.Jsw.JData.orderTop)
-                    return 1;
-                if (b.Jsw.JData.orderTop)
-                    return -1;
-                var layer = a.Jsw.JData.orderLayer - b.Jsw.JData.orderLayer;
-                if (layer)
-                    return layer;
-                if (a === node)
-                    return 1;
-                if (b === node)
-                    return -1;
-                return parseInt(a.style.zIndex) - parseInt(b.style.zIndex);
-            });
-            //Zオーダーの再附番
-            for (var i = 0; i < nodes.length; i++) {
-                nodes[i].style.zIndex = i;
-            }
+            var parent = this.getParent();
+            if (parent)
+                parent.layout();
         };
         /**
          *クライアント領域のスクロールの可否
@@ -1083,9 +1156,9 @@ var JSW;
          */
         Window.prototype.setChildStyle = function (style) {
             this.JData.style = style;
-            var parent = this.hNode.parentNode;
-            if (parent && parent.Jsw)
-                parent.Jsw.layout();
+            var parent = this.getParent();
+            if (parent)
+                parent.layout();
         };
         /**
          *子ウインドウを全て切り離す
@@ -2009,40 +2082,50 @@ var JSW;
         function Splitter(splitPos, splitType) {
             var _this = _super.call(this) || this;
             _this.JDataSplit = {
-                overlay: false,
-                overlayOpen: true,
-                overlayMove: 0,
+                drawerMode: false,
+                drawerModeNow: false,
                 splitterThick: 10,
                 splitterPos: 100,
                 splitterType: 'we',
-                childList: null
+                splitter: null,
+                childList: null,
+                drawerWidth: 0
             };
-            _this.slideHandle = null;
-            _this.slideTimeoutHandle = null;
             _this.setSize(640, 480);
             if (splitPos != null)
                 _this.JDataSplit.splitterPos = splitPos;
             if (splitType != null) {
                 _this.JDataSplit.splitterType = splitType;
             }
+            _this.getClient().dataset.kind = 'SplitterView';
             _this.getNode().dataset.splitterType = _this.JDataSplit.splitterType;
             _this.JDataSplit.childList = [new JSW.Window(), new JSW.Window()];
             _super.prototype.addChild.call(_this, _this.JDataSplit.childList[0]);
             _super.prototype.addChild.call(_this, _this.JDataSplit.childList[1]);
+            var icon = document.createElement('div');
+            _this.JDataSplit.menuIcon = icon;
+            icon.dataset.kind = 'SplitterMenu';
+            icon.style.display = 'none';
+            _this.getNode().appendChild(icon);
+            icon.addEventListener('click', function () {
+                var child0 = _this.JDataSplit.childList[0];
+                _this.JDataSplit.childList[0].addEventListener('visibled', function (e) {
+                    if (e.visible) {
+                        _this.JDataSplit.splitter.setVisible(true);
+                    }
+                });
+                child0.setVisible(true);
+                child0.active(true);
+                icon.style.display = 'none';
+            });
             var splitter = new JSW.Window();
+            _this.JDataSplit.splitter = splitter;
             splitter.getNode().dataset.kind = 'Splitter';
             splitter.setOrderTop(true);
+            splitter.setNoActive(true);
             _super.prototype.addChild.call(_this, splitter);
             var that = _this;
-            _this.JDataSplit.childList[0].getNode().addEventListener("mousedown", function () { that.slideTimeout(); });
-            _this.JDataSplit.childList[0].getNode().addEventListener("touchstart", function () { that.slideTimeout(); });
-            _this.JDataSplit.childList[1].getNode().addEventListener("mousedown", function () { that.slideClose(); });
-            _this.JDataSplit.childList[1].getNode().addEventListener("touchstart", function () { that.slideClose(); });
-            splitter.getNode().addEventListener("mousedown", function () { that.slide(); });
-            splitter.getNode().addEventListener("touchstart", function () { that.slide(); });
             splitter.getNode().addEventListener("move", function (e) {
-                if (that.JDataSplit.overlay)
-                    return;
                 var p = e.params;
                 var width = that.getClientWidth();
                 var height = that.getClientHeight();
@@ -2065,13 +2148,48 @@ var JSW;
                 }
                 that.layout();
             });
-            that.addEventListener("layout", function () {
+            _this.addEventListener("layout", function () {
+                var JDataSplit = that.JDataSplit;
+                var child0 = _this.JDataSplit.childList[0];
+                var child1 = _this.JDataSplit.childList[1];
+                function active(e) {
+                    if (!e.active) {
+                        JDataSplit.splitter.setVisible(false);
+                        child0.setVisible(false);
+                        JDataSplit.menuIcon.style.display = 'block';
+                    }
+                }
+                if (JDataSplit.drawerMode && !JDataSplit.drawerModeNow) {
+                    var dwidth = JDataSplit.drawerWidth;
+                    if (dwidth > 0 && _this.getWidth() < dwidth) {
+                        JDataSplit.drawerModeNow = true;
+                        child1.setChildStyle('client');
+                        child0.setOrderTop(true);
+                        _this.JDataSplit.splitter.setVisible(false);
+                        child0.getNode().style.backgroundColor = 'rgba(255,255,255,0.8)';
+                        child0.addEventListener('active', active);
+                        child0.setAnimation('show', 'DrawerShow 0.5s ease 0s normal');
+                        child0.setAnimation('close', 'DrawerClose 0.5s ease 0s normal');
+                        child0.active();
+                        child0.setVisible(false);
+                        _this.JDataSplit.menuIcon.style.display = 'block';
+                    }
+                }
+                if (JDataSplit.drawerMode && JDataSplit.drawerModeNow) {
+                    var dwidth = JDataSplit.drawerWidth;
+                    if (dwidth > 0 && _this.getWidth() >= dwidth) {
+                        JDataSplit.drawerModeNow = false;
+                        child0.removeEventListener('active', active);
+                        child1.setChildStyle(null);
+                        child0.setOrderTop(false);
+                        child0.setVisible(true);
+                        _this.JDataSplit.splitter.setVisible(true);
+                        _this.JDataSplit.menuIcon.style.display = 'none';
+                    }
+                }
                 var width = that.getClientWidth();
                 var height = that.getClientHeight();
-                var JDataSplit = that.JDataSplit;
                 var splitterThick = JDataSplit.splitterThick;
-                var child0 = JDataSplit.childList[0];
-                var child1 = JDataSplit.childList[1];
                 if (JDataSplit.splitterPos < 0)
                     JDataSplit.splitterPos = 0;
                 switch (that.getNode().dataset.splitterType) {
@@ -2081,71 +2199,37 @@ var JSW;
                         splitter.setSize(splitterThick, height);
                         splitter.setPos(JDataSplit.splitterPos, 0);
                         child0.setSize(splitter.getPosX(), height);
-                        if (JDataSplit.overlay) {
-                            that.movePos(-Math.floor(JDataSplit.splitterPos * JDataSplit.overlayMove), 0);
-                            child0.setPosX(-JDataSplit.splitterPos * JDataSplit.overlayMove);
-                            child1.setPosX(0);
-                            child1.setSize(width, height);
-                        }
-                        else {
-                            child1.setPosX(JDataSplit.splitterPos + splitterThick);
-                            child1.setSize(width - (JDataSplit.splitterPos + splitterThick), height);
-                        }
+                        child1.setPosX(JDataSplit.splitterPos + splitterThick);
+                        child1.setSize(width - (JDataSplit.splitterPos + splitterThick), height);
                         break;
                     case "ew":
                         if (JDataSplit.splitterPos >= width - splitterThick)
                             JDataSplit.splitterPos = width - splitterThick - 1;
                         var p = width - JDataSplit.splitterPos - splitterThick;
                         splitter.setSize(splitterThick, height);
-                        if (JDataSplit.overlay) {
-                            that.setPos(p + (width - splitterThick - p) * JDataSplit.overlayMove, 0);
-                            child1.setSize(width, height);
-                            child0.setPosX(p + splitterThick + (width - splitterThick - p) * JDataSplit.overlayMove);
-                            child0.setSize(p + splitterThick, height);
-                        }
-                        else {
-                            splitter.setPos(p, 0);
-                            child1.setSize(p, height);
-                            child0.setPosX(p + splitterThick);
-                            child0.setSize(p + splitterThick, height);
-                        }
+                        splitter.setPos(p, 0);
+                        child1.setSize(p, height);
+                        child0.setPosX(p + splitterThick);
+                        child0.setSize(p + splitterThick, height);
                         break;
                     case "ns":
                         if (JDataSplit.splitterPos >= height - splitterThick)
                             JDataSplit.splitterPos = height - splitterThick - 1;
                         splitter.setSize(width, splitterThick);
-                        if (JDataSplit.overlay) {
-                            splitter.setPos(0, JDataSplit.splitterPos - Math.floor(JDataSplit.splitterPos * JDataSplit.overlayMove));
-                            child0.movePos(0, -Math.floor(JDataSplit.splitterPos * JDataSplit.overlayMove));
-                            child0.setSize(width, JDataSplit.splitterPos);
-                            child0.setPosY(0);
-                            child1.setSize(width, height);
-                        }
-                        else {
-                            splitter.setPos(0, JDataSplit.splitterPos);
-                            child0.setSize(width, JDataSplit.splitterPos);
-                            child1.setPosY(JDataSplit.splitterPos + splitterThick);
-                            child1.setSize(width, height - (JDataSplit.splitterPos + splitterThick));
-                        }
+                        splitter.setPos(0, JDataSplit.splitterPos);
+                        child0.setSize(width, JDataSplit.splitterPos);
+                        child1.setPosY(JDataSplit.splitterPos + splitterThick);
+                        child1.setSize(width, height - (JDataSplit.splitterPos + splitterThick));
                         break;
                     case "sn":
                         if (JDataSplit.splitterPos >= height - splitterThick)
                             JDataSplit.splitterPos = height - splitterThick - 1;
                         splitter.setSize(width, splitterThick);
                         p = height - JDataSplit.splitterPos - splitterThick;
-                        if (JDataSplit.overlay) {
-                            splitter.setSize(width, splitterThick);
-                            splitter.setPos(0, height - JDataSplit.splitterPos + (JDataSplit.splitterPos - splitterThick) * JDataSplit.overlayMove);
-                            child1.setSize(width, height);
-                            child0.setPosY(height - JDataSplit.splitterPos + splitterThick + (JDataSplit.splitterPos - splitterThick) * JDataSplit.overlayMove);
-                            child0.setSize(width, JDataSplit.splitterPos - splitterThick);
-                        }
-                        else {
-                            splitter.setPos(0, p);
-                            child1.setSize(width, p);
-                            child0.setPosY(p + splitterThick);
-                            child0.setSize(width, p + splitterThick);
-                        }
+                        splitter.setPos(0, p);
+                        child1.setSize(width, p);
+                        child0.setPosY(p + splitterThick);
+                        child0.setSize(width, p + splitterThick);
                         break;
                 }
             });
@@ -2209,19 +2293,10 @@ var JSW;
          * @param {boolean} flag true:有効 false:無効
          * @memberof Splitter
          */
-        Splitter.prototype.setOverlay = function (flag) {
+        Splitter.prototype.setOverlay = function (flag, size) {
             if (flag) {
-                this.JDataSplit.overlay = true;
-                this.JDataSplit.overlayOpen = true;
-                this.JDataSplit.overlayMove = 0;
-                this.JDataSplit.childList[0].setOrderTop(true);
-                this.JDataSplit.childList[0].getNode().style.backgroundColor = 'rgba(255,255,255,0.8)';
-                //this.slideTimeout()
-            }
-            else {
-                this.JDataSplit.overlay = false;
-                this.JDataSplit.overlayOpen = true;
-                this.JDataSplit.overlayMove = 0;
+                this.JDataSplit.drawerMode = true;
+                this.JDataSplit.drawerWidth = size != null ? size : 0;
             }
             this.layout();
         };
@@ -2234,57 +2309,6 @@ var JSW;
          */
         Splitter.prototype.getChild = function (index) {
             return this.JDataSplit.childList[index];
-        };
-        /**
-         *動的バーを閉じる
-         *
-         * @memberof Splitter
-         */
-        Splitter.prototype.slideClose = function () {
-            if (this.JDataSplit.overlayOpen) {
-                this.slide();
-            }
-        };
-        Splitter.prototype.slide = function () {
-            if (!this.JDataSplit.overlay || this.slideHandle)
-                return;
-            this.slideHandle = setInterval(function () {
-                if (this.JDataSplit.overlayOpen) {
-                    this.JDataSplit.overlayMove += 0.1;
-                    if (this.JDataSplit.overlayMove >= 1) {
-                        this.JDataSplit.overlayMove = 1;
-                        this.JDataSplit.overlayOpen = false;
-                        clearInterval(this.slideHandle);
-                        this.slideHandle = null;
-                    }
-                }
-                else {
-                    this.JDataSplit.overlayMove -= 0.1;
-                    if (this.JDataSplit.overlayMove < 0) {
-                        this.JDataSplit.overlayMove = 0;
-                        this.JDataSplit.overlayOpen = true;
-                        clearInterval(this.slideHandle);
-                        this.slideHandle = null;
-                        this.slideTimeout();
-                    }
-                }
-                this.layout();
-            }, 10);
-        };
-        Splitter.prototype.slideTimeout = function (e) {
-            if (e === void 0) { e = null; }
-            if (this.slideTimeoutHandle)
-                clearTimeout(this.slideTimeoutHandle);
-            if (this.JDataSplit.overlay) {
-                this.slideTimeoutHandle = setTimeout(function () {
-                    if (this.JDataSplit.overlayOpen) {
-                        this.slide();
-                        this.slideTimeoutHandle = null;
-                    }
-                }, 3000);
-            }
-            if (e)
-                e.preventDefault();
         };
         return Splitter;
     }(JSW.Window));

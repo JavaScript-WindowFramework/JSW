@@ -34,6 +34,7 @@ namespace JSW {
 		moveable: boolean
 		reshow:boolean
 		animation:{}
+		noActive:boolean
 	}
 
 
@@ -76,6 +77,7 @@ namespace JSW {
 			padding: { x1: 0, y1: 0, x2: 0, y2: 0 },
 			moveable: false,
 			reshow:true,
+			noActive:false,
 			animation: {}
 		}
 		/**
@@ -96,6 +98,7 @@ namespace JSW {
 			hNode.dataset.type = "Window"
 			//位置を絶対位置指定
 			hNode.style.position = 'absolute'
+			hNode.style.visibility = 'hidden'
 			if (params) {
 				if (params.frame) {
 					this.addFrame(params.title == null ? true : params.title)
@@ -163,8 +166,8 @@ namespace JSW {
 				if (WindowManager.frame == null)
 					WindowManager.frame = this.dataset.index
 				//EDGEはここでイベントを止めないとテキスト選択が入る
-				if (WindowManager.frame < 9)
-					if (e.preventDefault) e.preventDefault(); else e.returnValue = false
+				//if (WindowManager.frame < 9)
+				//	if (e.preventDefault) e.preventDefault(); else e.returnValue = false
 			}
 			//フレームとタイトル、クライアント領域の作成
 			for (let i = 0; i < frameStyles.length; i++) {
@@ -209,8 +212,10 @@ namespace JSW {
 				WindowManager.nodeY = this.getPosY()
 				WindowManager.nodeWidth = this.getWidth()
 				WindowManager.nodeHeight = this.getHeight()
-				e.preventDefault()
+				e.stopPropagation()
 				return false
+			}else{
+				e.preventDefault()
 			}
 		}
 		private onMouseMove(e) {
@@ -271,14 +276,13 @@ namespace JSW {
 			this.setSize(width, height)
 			//移動フレーム処理時はイベントを止める
 			if (frameIndex < 9)
-				if (e.preventDefault) e.preventDefault(); else e.returnValue = false
+				e.preventDefault()
 		}
 		/**
 		 *イベントの受け取り
 		 *
 		 * @param {string} type イベントタイプ
 		 * @param {*} listener コールバックリスナー
-		 * @param {*} [options] オプション
 		 * @memberof Window
 		 */
 	    addEventListener<K extends keyof WINDOW_EVENT_MAP>(type: K|string, listener: (this: Window,ev: WINDOW_EVENT_MAP[K]) => any): void{
@@ -287,10 +291,36 @@ namespace JSW {
 				eventData = []
 				this.Events.set(type,eventData)
 			}
-			if(!eventData.find(listener as any)){
-				eventData.push(listener)
+			for(let ev of eventData){
+				if (String(ev) === String(listener))
+					return
+			}
+			eventData.push(listener)
+		}
+		/**
+		 *イベントの削除
+		 *
+		 * @template K
+		 * @param {(K | string)} type イベントタイプ
+		 * @param {(this: Window, ev: WINDOW_EVENT_MAP[K]) => any} listener コールバックリスナー
+		 * @memberof Window
+		 */
+		removeEventListener<K extends keyof WINDOW_EVENT_MAP>(type: K | string, listener?: (this: Window, ev: WINDOW_EVENT_MAP[K]) => any): void {
+			if (listener == null){
+				this.Events.delete(type)
+				return
 			}
 
+			let eventData = this.Events.get(type)
+			if (!eventData) {
+				eventData = []
+				this.Events.set(type, eventData)
+			}
+			for (let index in eventData) {
+				if (String(eventData[index]) === String(listener)){
+					eventData.splice(parseInt(index), 1)
+				}
+			}
 		}
 		/**
 		 *イベントの要求
@@ -327,6 +357,9 @@ namespace JSW {
 			this.JData.x = this.JData.x + parseInt(x as any)
 			this.JData.y = this.JData.y + parseInt(y as any)
 			this.layout()
+		}
+		setNoActive(flag:boolean) : void{
+			this.JData.noActive = flag
 		}
 		/**
 		 *ウインドウの位置設定
@@ -508,10 +541,52 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setVisible(flag: boolean) {
+			const node = this.getNode()
 			this.JData.visible = flag;
-			this.getNode().style.display = flag ? 'block' : 'none';
+
+
+			if (flag){
+				node.style.display = '';
+				const animation = this.JData.animation['show']
+				const animationEnd = () => {
+					this.callEvent('visibled', { visible: true })
+					node.removeEventListener("animationend", animationEnd)
+					node.style.animation = ''
+					node.style.display = '';
+					console.log(0)
+				}
+				if (animation) {
+					node.addEventListener("animationend", animationEnd)
+					node.style.animation = animation
+				}else{
+					node.style.animation = ''
+					animationEnd.bind(node)()
+				}
+			}
+			else{
+				const animationEnd = () => {
+					let nodes = node.querySelectorAll('[data-type="Window"]') as any as JNode[]
+					let count = nodes.length
+					for (let i = 0; i < count; i++) {
+						nodes[i].Jsw.layout()
+					}
+					console.log(1)
+					node.style.display = 'none';
+					node.removeEventListener("animationend", animationEnd)
+					node.style.animation = ''
+					this.callEvent('visibled', { visible: false })
+				}
+				const animation = this.JData.animation['close']
+				if (animation) {
+					node.addEventListener("animationend", animationEnd)
+					node.style.animation = animation
+				} else {
+					animationEnd.bind(node)()
+				}
+			}
 			if (this.getParent())
 				this.getParent().layout();
+
 		}
 		/**
 		 *ウインドウの重ね合わせを最上位に設定
@@ -545,6 +620,10 @@ namespace JSW {
 			this.JData.redraw = true
 			WindowManager.layout(false)
 			this.JData.layoutFlag = false
+		}
+		active(flag?:boolean){
+			if (!this.JData.noActive)
+				this.getNode().dataset.active = (flag||flag==null)?'true':'false'
 		}
 		/**
 		 *子ウインドウのサイズを再計算
@@ -631,7 +710,7 @@ namespace JSW {
 			//直下の子リスト
 			let client = this.getClient()
 			let nodes = []
-			for (let i = 0; i < client.childNodes.length; i++) {
+			for (let i = 0; i < client.childElementCount; i++) {
 				let node = client.childNodes[i] as HTMLElement
 				if (node.dataset && node.dataset.type === "Window")
 					nodes.push(node)
@@ -639,9 +718,11 @@ namespace JSW {
 			let count = nodes.length
 
 			//配置順序リスト
-			nodes.sort(function (a: JNode, b: JNode) {
-				let priority = { top: 10, bottom: 10, left: 8, right: 8, client: 5 }
-				return priority[b.Jsw.JData.style] - priority[a.Jsw.JData.style]
+			nodes.sort(function (anode: JNode, bnode: JNode) {
+				const priority = { top: 10, bottom: 10, left: 8, right: 8, client: 5 }
+				const a = anode.Jsw.JData
+				const b = bnode.Jsw.JData
+				return priority[a.style] - priority[b.style]
 			})
 
 			const padding = this.JData.padding
@@ -690,15 +771,34 @@ namespace JSW {
 				}
 				win.onLayout(flag)
 			}
-
-
 			this.JData.redraw = false
+
+			//重ね合わせソート
+			nodes.sort(function (anode: JNode, bnode: JNode) {
+				const a = anode.Jsw.JData
+				const b = bnode.Jsw.JData
+				if (a.orderTop)
+					return 1
+				if (b.orderTop)
+					return -1
+				let layer = a.orderLayer - b.orderLayer
+				if (layer)
+					return layer
+				return parseInt(anode.style.zIndex) - parseInt(bnode.style.zIndex)
+			})
+
+			//Zオーダーの再附番
+			for (let i = 0; i < nodes.length; i++) {
+				nodes[i].style.zIndex = i
+			}
+
 		}
 		show(flag:boolean):void{
 			if(flag==null || flag){
 				this.JData.reshow = true
+			}else{
+				//this.hNode.style.visibility = 'hidden'
 			}
-			this.hNode.style.visibility = 'hidden'
 		}
 		/**
 		 *ウインドウの重ね合わせ順位を上位に持って行く
@@ -707,21 +807,23 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		foreground(flag?: boolean): void {
+			if (this.JData.noActive)
+				return
 			//親をフォアグラウンドに設定
 			let activeNodes = new Set<HTMLElement>()
 			let p = this.hNode
-			activeNodes.add(p)
-			while (p = p.parentNode as JNode) {
+			do {
 				activeNodes.add(p)
-				if (p.Jsw){
-					p.Jsw.foreground(flag)
+				if ((flag || flag == null) && p.dataset) {
+					p.dataset.active = 'true';
+					p.style.zIndex = '1000';
+					if (p.Jsw)
+						p.Jsw.callEvent('active', { active: true });
 				}
 			}
-
+			while (p = p.parentNode as JNode)
 
 			if (flag || flag == null) {
-				this.hNode.dataset.active = 'true'
-				this.callEvent('active',{active:true})
 				var activeWindows = document.querySelectorAll('[data-type="Window"][data-active="true"]')
 				for (let i = 0, l = activeWindows.length; i < l; i++) {
 					let w = activeWindows[i] as JNode
@@ -731,35 +833,9 @@ namespace JSW {
 					}
 				}
 			}
-
-			//兄弟ウインドウの列挙しソート
-			let childs = this.hNode.parentNode.childNodes
-			let nodes = []
-			for (let i = 0; i < childs.length; i++) {
-				let node = childs[i] as HTMLElement
-				if (node.dataset && node.dataset.type === "Window")
-					nodes.push(node)
-			}
-			let node = this.hNode
-			nodes.sort(function (a: JNode, b: JNode) {
-				if (a.Jsw.JData.orderTop)
-					return 1
-				if (b.Jsw.JData.orderTop)
-					return -1
-				let layer = a.Jsw.JData.orderLayer - b.Jsw.JData.orderLayer
-				if (layer)
-					return layer
-
-				if (a === node)
-					return 1
-				if (b === node)
-					return -1
-				return parseInt(a.style.zIndex) - parseInt(b.style.zIndex)
-			})
-			//Zオーダーの再附番
-			for (let i = 0; i < nodes.length; i++) {
-				nodes[i].style.zIndex = i
-			}
+			const parent = this.getParent();
+			if(parent)
+				parent.layout()
 		}
 
 		/**
@@ -950,9 +1026,9 @@ namespace JSW {
 		 */
 		setChildStyle(style: 'left' | 'right' | 'top' | 'bottom' | 'client' | null): void {
 			this.JData.style = style
-			let parent = this.hNode.parentNode as JNode
-			if (parent && parent.Jsw)
-				parent.Jsw.layout()
+			let parent = this.getParent()
+			if (parent)
+				parent.layout()
 		}
 		/**
 		 *子ウインドウを全て切り離す
