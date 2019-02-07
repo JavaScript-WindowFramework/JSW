@@ -26,7 +26,7 @@ function Main() {
     //weは左が領域0、右が領域1
     //nsにすると上下分割も可能
     splitter.setSplitterPos(200, 'we');
-    splitter.setOverlay(true);
+    splitter.setOverlay(true, 500);
     //treeにアイテムを追加
     tree.getRootItem().setItemText('最上位アイテム');
     for (var j = 0; j < 5; j++) {

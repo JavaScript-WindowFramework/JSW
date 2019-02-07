@@ -155,6 +155,7 @@ declare namespace JSW {
         moveable: boolean;
         reshow: boolean;
         animation: {};
+        noActive: boolean;
     }
     interface WINDOW_EVENT_MAP {
         any: any;
@@ -198,10 +199,18 @@ declare namespace JSW {
          *
          * @param {string} type イベントタイプ
          * @param {*} listener コールバックリスナー
-         * @param {*} [options] オプション
          * @memberof Window
          */
         addEventListener<K extends keyof WINDOW_EVENT_MAP>(type: K | string, listener: (this: Window, ev: WINDOW_EVENT_MAP[K]) => any): void;
+        /**
+         *イベントの削除
+         *
+         * @template K
+         * @param {(K | string)} type イベントタイプ
+         * @param {(this: Window, ev: WINDOW_EVENT_MAP[K]) => any} listener コールバックリスナー
+         * @memberof Window
+         */
+        removeEventListener<K extends keyof WINDOW_EVENT_MAP>(type: K | string, listener?: (this: Window, ev: WINDOW_EVENT_MAP[K]) => any): void;
         /**
          *イベントの要求
          *
@@ -225,6 +234,7 @@ declare namespace JSW {
          * @memberof Window
          */
         movePos(x: number, y: number): void;
+        setNoActive(flag: boolean): void;
         /**
          *ウインドウの位置設定
          *引数を省略した場合は親のサイズを考慮して中央へ
@@ -365,6 +375,7 @@ declare namespace JSW {
          * @memberof Window
          */
         layout(): void;
+        active(flag?: boolean): void;
         /**
          *子ウインドウのサイズを再計算
          *
@@ -847,15 +858,17 @@ declare namespace JSW {
 }
 declare namespace JSW {
     interface JSWSPLITDATA {
-        overlay: boolean;
-        overlayOpen: boolean;
-        overlayMove: number;
         splitterThick: number;
         splitterPos: number;
         splitterType: string;
+        splitter: Window;
         childList: Window[];
         pos?: number;
         type?: string;
+        drawerMode: boolean;
+        drawerModeNow: boolean;
+        menuIcon?: HTMLElement;
+        drawerWidth: number;
     }
     /**
      *分割ウインドウ用クラス
@@ -911,7 +924,7 @@ declare namespace JSW {
          * @param {boolean} flag true:有効 false:無効
          * @memberof Splitter
          */
-        setOverlay(flag: boolean): void;
+        setOverlay(flag: boolean, size?: number): void;
         /**
          *子ウインドウの取得
          *
@@ -920,16 +933,6 @@ declare namespace JSW {
          * @memberof Splitter
          */
         getChild(index: number): Window;
-        /**
-         *動的バーを閉じる
-         *
-         * @memberof Splitter
-         */
-        slideClose(): void;
-        slideHandle: any;
-        private slide;
-        slideTimeoutHandle: any;
-        private slideTimeout;
     }
 }
 declare namespace JSW {

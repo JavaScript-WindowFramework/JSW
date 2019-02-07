@@ -228,10 +228,34 @@
   justify-content: center;
 }
 
-/* Splitter用設定 */
+/* Splitter用設定  */
+[data-kind="SplitterView"] {
+  display: flex;
+  align-items: center;
+}
+
 [data-kind="Splitter"] {
   background-color: #aaaaaa;
   border: outset 2px #b8b7b7;
+}
+
+[data-kind="SplitterMenu"] {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.7);
+  opacity: 0.7;
+  background-repeat: no-repeat;
+  width: 32px;
+  height: 32px;
+  margin: 2px;
+  cursor: pointer;
+  background-image: url("images/menu.svg");
+  flex-grow: 0;
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+[data-kind="Splitter"] {
+  user-select: none;
 }
 
 [data-splitter-type="ns"] > [data-kind="Splitter"],
@@ -525,12 +549,9 @@
 
 @keyframes DrawerClose {
   0% {
-    opacity: 1;
-    /* 不透明 */
     transform: translateX(0);
   }
   100% {
-    opacity: 0;
     transform: translateX(-100%);
   }
 }
