@@ -135,7 +135,7 @@ var JSW;
             if (!WindowManager.layoutHandler) {
                 //タイマーによる遅延実行
                 WindowManager.layoutHandler = setTimeout(function () {
-                    var nodes = document.querySelectorAll("[data-type=Window]");
+                    var nodes = document.querySelectorAll("[data-jsw=Window]");
                     var count = nodes.length;
                     for (var i = 0; i < count; i++) {
                         var node = nodes[i];
@@ -164,17 +164,17 @@ var JSW;
     function mouseDown(e) {
         var node = e.target;
         do {
-            if (node.dataset && node.dataset.type === "Window") {
+            if (node.dataset && node.dataset.jsw === "Window") {
                 return;
             }
         } while (node = node.parentNode);
         deactive();
     }
     function deactive() {
-        var activeWindows = document.querySelectorAll('[data-type="Window"][data-active="true"]');
+        var activeWindows = document.querySelectorAll('[data-jsw="Window"][data-jsw-active="true"]');
         for (var i = 0, l = activeWindows.length; i < l; i++) {
             var w = activeWindows[i];
-            w.dataset.active = 'false';
+            w.dataset.jswActive = 'false';
             w.Jsw.callEvent('active', { active: false });
             console.log('deactive');
         }
@@ -257,7 +257,7 @@ var JSW;
             hNode.Jsw = this;
             this.JData.clientArea = hNode;
             this.hNode = hNode;
-            hNode.dataset.type = "Window";
+            hNode.dataset.jsw = "Window";
             //位置を絶対位置指定
             hNode.style.position = 'absolute';
             hNode.style.visibility = 'hidden';
@@ -302,25 +302,25 @@ var JSW;
         };
         //フレーム追加処理
         Window.prototype.addFrame = function (titleFlag) {
-            this.hNode.dataset.style = 'frame';
+            this.hNode.dataset.jswType = 'Frame';
             //タイトルの設定
             this.JData.titleSize = titleFlag ? TITLE_SIZE : 0;
             this.hNode.style.minHeight = this.JData.titleSize + "px";
             //各パーツのスタイル設定
             var frameStyles = [
-                ["frame", "cursor:n-resize; left:0px;top:-{0}px;right:0px;height:{0}px;"],
-                ["frame", "cursor:e-resize; top:0px;right:-{0}px;bottom:0px;width:{0}px;"],
-                ["frame", "cursor:s-resize; left:0px;right:0px;height:{0}px;bottom:-{0}px;"],
-                ["frame", "cursor:w-resize; top:0px;left:-{0}px;bottom:0px;width:{0}px;"],
-                ["frame", "cursor:nw-resize;left:-{0}px;top:-{0}px;width:{0}px;height:{0}px;"],
-                ["frame", "cursor:ne-resize;right:-{0}px;top:-{0}px;width:{0}px;height:{0}px;"],
-                ["frame", "cursor:sw-resize;left:-{0}px;bottom:-{0}px;width:{0}px;height:{0}px;"],
-                ["frame", "cursor:se-resize;right:-{0}px;bottom:-{0}px;width:{0}px;height:{0}px;"],
+                ["border", "cursor:n-resize; left:0px;top:-{0}px;right:0px;height:{0}px;"],
+                ["border", "cursor:e-resize; top:0px;right:-{0}px;bottom:0px;width:{0}px;"],
+                ["border", "cursor:s-resize; left:0px;right:0px;height:{0}px;bottom:-{0}px;"],
+                ["border", "cursor:w-resize; top:0px;left:-{0}px;bottom:0px;width:{0}px;"],
+                ["border", "cursor:nw-resize;left:-{0}px;top:-{0}px;width:{0}px;height:{0}px;"],
+                ["border", "cursor:ne-resize;right:-{0}px;top:-{0}px;width:{0}px;height:{0}px;"],
+                ["border", "cursor:sw-resize;left:-{0}px;bottom:-{0}px;width:{0}px;height:{0}px;"],
+                ["border", "cursor:se-resize;right:-{0}px;bottom:-{0}px;width:{0}px;height:{0}px;"],
                 ["title", "left:0px;top:0px;right:0px;height:{1}px"],
                 ["client", "left:0px;top:{1}px;right:0px;bottom:0px"],
             ];
             //フレームクリックイベントの処理
-            function onFrame(e) {
+            function onFrame() {
                 if (JSW.WindowManager.frame == null)
                     JSW.WindowManager.frame = this.dataset.index;
                 //EDGEはここでイベントを止めないとテキスト選択が入る
@@ -332,7 +332,7 @@ var JSW;
                 var frame = document.createElement('div');
                 frame.style.cssText = frameStyles[i][1].replace(/\{0\}/g, FRAME_SIZE.toString()).replace(/\{1\}/g, this.JData.titleSize.toString());
                 frame.dataset.index = i.toString();
-                frame.dataset.type = frameStyles[i][0];
+                frame.dataset.jswStyle = frameStyles[i][0];
                 this.hNode.appendChild(frame);
                 frame.addEventListener("touchstart", onFrame, { passive: false });
                 frame.addEventListener("touchend", function () { JSW.WindowManager.frame = null; }, { passive: false });
@@ -342,15 +342,15 @@ var JSW;
             var node = this.hNode;
             //タイトルバーの作成
             var title = node.childNodes[8];
-            var titleText = JSW.WindowManager.createElement("div", { "dataset": { type: "text" } });
+            var titleText = JSW.WindowManager.createElement("div", { "dataset": { jswStyle: "text" } });
             title.appendChild(titleText);
             //アイコンの作成
             var icons = ["min", "max", "close"];
             for (var index in icons) {
-                var icon = JSW.WindowManager.createElement("div", { style: { "width": this.JData.titleSize + "px", "height": this.JData.titleSize + "px" }, "dataset": { type: "icon", kind: icons[index] } });
+                var icon = JSW.WindowManager.createElement("div", { style: { "width": this.JData.titleSize + "px", "height": this.JData.titleSize + "px" }, "dataset": { jswStyle: "icon", jswKind: icons[index] } });
                 title.appendChild(icon);
                 icon.addEventListener("click", function () {
-                    JSW.WindowManager.callEvent(node, "JSW" + this.dataset.kind);
+                    JSW.WindowManager.callEvent(node, "JSW" + this.dataset.jswKind);
                 });
             }
             //クライアント領域の取得を書き換える
@@ -716,7 +716,7 @@ var JSW;
             }
             else {
                 var animationEnd_2 = function () {
-                    var nodes = node.querySelectorAll('[data-type="Window"]');
+                    var nodes = node.querySelectorAll('[data-jsw="Window"]');
                     var count = nodes.length;
                     for (var i = 0; i < count; i++) {
                         nodes[i].Jsw.layout();
@@ -774,7 +774,7 @@ var JSW;
         };
         Window.prototype.active = function (flag) {
             if (!this.JData.noActive)
-                this.getNode().dataset.active = (flag || flag == null) ? 'true' : 'false';
+                this.getNode().dataset.jswActive = (flag || flag == null) ? 'true' : 'false';
         };
         /**
          *子ウインドウのサイズを再計算
@@ -795,7 +795,7 @@ var JSW;
             var client = this.getClient();
             for (var i = 0; i < client.childNodes.length; i++) {
                 var node = client.childNodes[i];
-                if (node.dataset && node.dataset.type === "Window")
+                if (node.dataset && node.dataset.jsw === "Window")
                     flag |= node.Jsw.onMeasure(false);
             }
             if (!this.isAutoSize())
@@ -843,7 +843,7 @@ var JSW;
          */
         Window.prototype.onLayout = function (flag) {
             if (flag || this.JData.redraw) {
-                if (this.hNode.dataset.stat == 'maximize') {
+                if (this.hNode.dataset.jswStat == 'maximize') {
                     this.setPos(0, 0);
                     this.setSize(this.getParentWidth(), this.getParentHeight());
                 }
@@ -860,7 +860,7 @@ var JSW;
             var nodes = [];
             for (var i = 0; i < client.childElementCount; i++) {
                 var node = client.childNodes[i];
-                if (node.dataset && node.dataset.type === "Window")
+                if (node.dataset && node.dataset.jsw === "Window")
                     nodes.push(node);
             }
             var count = nodes.length;
@@ -917,6 +917,15 @@ var JSW;
                 win.onLayout(flag);
             }
             this.JData.redraw = false;
+            this.orderSort(client);
+        };
+        Window.prototype.orderSort = function (client) {
+            var nodes = [];
+            for (var i = 0; i < client.childElementCount; i++) {
+                var node = client.childNodes[i];
+                if (node.dataset && node.dataset.jsw === "Window")
+                    nodes.push(node);
+            }
             //重ね合わせソート
             nodes.sort(function (anode, bnode) {
                 var a = anode.Jsw.JData;
@@ -958,18 +967,19 @@ var JSW;
             do {
                 activeNodes.add(p);
                 if ((flag || flag == null) && p.dataset) {
-                    p.dataset.active = 'true';
+                    p.dataset.jswActive = 'true';
                     p.style.zIndex = '1000';
                     if (p.Jsw)
                         p.Jsw.callEvent('active', { active: true });
                 }
+                this.orderSort(p);
             } while (p = p.parentNode);
             if (flag || flag == null) {
-                var activeWindows = document.querySelectorAll('[data-type="Window"][data-active="true"]');
+                var activeWindows = document.querySelectorAll('[data-jsw="Window"][data-jsw-active="true"]');
                 for (var i = 0, l = activeWindows.length; i < l; i++) {
                     var w = activeWindows[i];
                     if (!activeNodes.has(w)) {
-                        w.dataset.active = 'false';
+                        w.dataset.jswActive = 'false';
                         w.Jsw.callEvent('active', { active: false });
                     }
                 }
@@ -1004,7 +1014,7 @@ var JSW;
         Window.prototype.close = function () {
             var that = this;
             function animationEnd() {
-                var nodes = this.querySelectorAll('[data-type="Window"]');
+                var nodes = this.querySelectorAll('[data-jsw="Window"]');
                 var count = nodes.length;
                 for (var i = 0; i < count; i++) {
                     nodes[i].Jsw.layout();
@@ -1170,7 +1180,7 @@ var JSW;
             var childList = client.childNodes;
             for (var i = childList.length - 1; i >= 0; i--) {
                 var child = childList[i];
-                if (child.dataset.type === "Window") {
+                if (child.dataset.jsw === "Window") {
                     child.Jsw.JData.parent = null;
                     client.removeChild(child);
                 }
@@ -1245,12 +1255,12 @@ var JSW;
                 this.style.minHeight = that.JData.titleSize + "px";
                 this.removeEventListener("animationend", animationEnd);
             }
-            if (this.hNode.dataset.stat != 'maximize') {
+            if (this.hNode.dataset.jswStat != 'maximize') {
                 this.JData.normalX = this.JData.x;
                 this.JData.normalY = this.JData.y;
                 this.JData.normalWidth = this.JData.width;
                 this.JData.normalHeight = this.JData.height;
-                this.hNode.dataset.stat = 'maximize';
+                this.hNode.dataset.jswStat = 'maximize';
                 this.hNode.style.minWidth = this.JData.width + "px";
                 this.hNode.style.minHeight = this.JData.height + "px";
                 this.hNode.style.animation = "JSWmaximize 0.2s ease 0s 1 forwards";
@@ -1261,18 +1271,18 @@ var JSW;
                 this.JData.y = this.JData.normalY;
                 this.JData.width = this.JData.normalWidth;
                 this.JData.height = this.JData.normalHeight;
-                this.hNode.dataset.stat = 'normal';
+                this.hNode.dataset.jswStat = 'normal';
                 this.hNode.style.animation = "JSWmaxrestore 0.2s ease 0s 1 forwards";
             }
             if (flag) {
-                var icon = this.hNode.querySelector("*>[data-type=title]>[data-type=icon][data-kind=max]");
+                var icon = this.hNode.querySelector("*>[data-jsw-style=title]>[data-jsw-style=icon][data-jsw-kind=max]");
                 if (icon)
-                    icon.dataset.kind = "normal";
+                    icon.dataset.jswKind = "normal";
             }
             else {
-                var icon = this.hNode.querySelector("*>[data-type=title]>[data-type=icon][data-kind=normal]");
+                var icon = this.hNode.querySelector("*>[data-jsw-style=title]>[data-jsw-style=icon][data-jsw-kind=normal]");
                 if (icon)
-                    icon.dataset.kind = "max";
+                    icon.dataset.jswKind = "max";
             }
             this.layout();
         };
@@ -1285,23 +1295,23 @@ var JSW;
         Window.prototype.setMinimize = function (flag) {
             var that = this;
             this.hNode.addEventListener("animationend", function () { that.layout(); });
-            if (this.hNode.dataset.stat != 'minimize') {
+            if (this.hNode.dataset.jswStat != 'minimize') {
                 //client.style.animation="Jswminimize 0.2s ease 0s 1 forwards"
                 this.hNode.style.animation = "JSWminimize 0.2s ease 0s 1 forwards";
-                this.hNode.dataset.stat = 'minimize';
+                this.hNode.dataset.jswStat = 'minimize';
             }
             else {
                 //client.style.animation="Jswrestore 0.2s ease 0s 1 backwards"
                 this.hNode.style.animation = "JSWrestore 0.2s ease 0s 1 forwards";
-                this.hNode.dataset.stat = 'normal';
+                this.hNode.dataset.jswStat = 'normal';
             }
             if (flag) {
-                var icon = this.hNode.querySelector("*>[data-type=title]>[data-type=icon][data-kind=min]");
-                icon.dataset.kind = "restore";
+                var icon = this.hNode.querySelector("*>[data-jsw-style=title]>[data-jsw-style=icon][data-jsw-kind=min]");
+                icon.dataset.jswKind = "restore";
             }
             else {
-                var icon = this.hNode.querySelector("*>[data-type=title]>[data-type=icon][data-kind=restore]");
-                icon.dataset.kind = "min";
+                var icon = this.hNode.querySelector("*>[data-jsw-style=title]>[data-jsw-style=icon][data-jsw-kind=restore]");
+                icon.dataset.jswKind = "min";
             }
             this.JData.minimize = flag;
             this.layout();
@@ -1346,8 +1356,8 @@ var JSW;
                 if (!e.active)
                     _this.close();
             });
-            _this.setAnimation('show', 'DrawerShow 0.5s ease 0s normal');
-            _this.setAnimation('close', 'DrawerClose 0.5s ease 0s normal');
+            _this.setAnimation('show', 'weDrawerShow 0.5s ease 0s normal');
+            _this.setAnimation('close', 'weDrawerClose 0.5s ease 0s normal');
             _this.foreground(true);
             return _this;
         }
@@ -2084,6 +2094,7 @@ var JSW;
             _this.JDataSplit = {
                 drawerMode: false,
                 drawerModeNow: false,
+                splitterMoving: false,
                 splitterThick: 10,
                 splitterPos: 100,
                 splitterType: 'we',
@@ -2098,7 +2109,7 @@ var JSW;
                 _this.JDataSplit.splitterType = splitType;
             }
             _this.getClient().dataset.kind = 'SplitterView';
-            _this.getNode().dataset.splitterType = _this.JDataSplit.splitterType;
+            _this.getClient().dataset.splitterType = _this.JDataSplit.splitterType;
             _this.JDataSplit.childList = [new JSW.Window(), new JSW.Window()];
             _super.prototype.addChild.call(_this, _this.JDataSplit.childList[0]);
             _super.prototype.addChild.call(_this, _this.JDataSplit.childList[1]);
@@ -2106,7 +2117,7 @@ var JSW;
             _this.JDataSplit.menuIcon = icon;
             icon.dataset.kind = 'SplitterMenu';
             icon.style.display = 'none';
-            _this.getNode().appendChild(icon);
+            _this.getClient().appendChild(icon);
             icon.addEventListener('click', function () {
                 var child0 = _this.JDataSplit.childList[0];
                 _this.JDataSplit.childList[0].addEventListener('visibled', function (e) {
@@ -2125,27 +2136,33 @@ var JSW;
             splitter.setNoActive(true);
             _super.prototype.addChild.call(_this, splitter);
             var that = _this;
+            var handle = null;
             splitter.getNode().addEventListener("move", function (e) {
                 var p = e.params;
                 var width = that.getClientWidth();
                 var height = that.getClientHeight();
-                var splitterThick = that.JDataSplit.splitterThick;
+                var JDataSplit = that.JDataSplit;
+                var splitterThick = JDataSplit.splitterThick;
                 var x = p.nodePoint.x + p.nowPoint.x - p.basePoint.x;
                 var y = p.nodePoint.y + p.nowPoint.y - p.basePoint.y;
                 switch (that.getNode().dataset.splitterType) {
                     case "ns":
-                        that.JDataSplit.splitterPos = y;
+                        JDataSplit.splitterPos = y;
                         break;
                     case "sn":
-                        that.JDataSplit.splitterPos = height - (y + splitterThick);
+                        JDataSplit.splitterPos = height - (y + splitterThick);
                         break;
                     case "we":
-                        that.JDataSplit.splitterPos = x;
+                        JDataSplit.splitterPos = x;
                         break;
                     case "ew":
-                        that.JDataSplit.splitterPos = width - (x + splitterThick);
+                        JDataSplit.splitterPos = width - (x + splitterThick);
                         break;
                 }
+                JDataSplit.splitterMoving = true;
+                if (handle)
+                    clearTimeout(handle);
+                handle = setTimeout(function () { handle = null; JDataSplit.splitterMoving = false; that.layout(); }, 2000);
                 that.layout();
             });
             _this.addEventListener("layout", function () {
@@ -2159,32 +2176,36 @@ var JSW;
                         JDataSplit.menuIcon.style.display = 'block';
                     }
                 }
-                if (JDataSplit.drawerMode && !JDataSplit.drawerModeNow) {
-                    var dwidth = JDataSplit.drawerWidth;
-                    if (dwidth > 0 && _this.getWidth() < dwidth) {
-                        JDataSplit.drawerModeNow = true;
-                        child1.setChildStyle('client');
-                        child0.setOrderTop(true);
-                        _this.JDataSplit.splitter.setVisible(false);
-                        child0.getNode().style.backgroundColor = 'rgba(255,255,255,0.8)';
-                        child0.addEventListener('active', active);
-                        child0.setAnimation('show', 'DrawerShow 0.5s ease 0s normal');
-                        child0.setAnimation('close', 'DrawerClose 0.5s ease 0s normal');
-                        child0.active();
-                        child0.setVisible(false);
-                        _this.JDataSplit.menuIcon.style.display = 'block';
+                //動的分割機能の処理
+                if (JDataSplit.drawerMode && !JDataSplit.splitterMoving) {
+                    var type = JDataSplit.splitterType;
+                    var dsize = JDataSplit.drawerWidth + JDataSplit.splitterPos;
+                    var ssize = type === 'ew' || type === 'we' ? _this.getWidth() : _this.getHeight();
+                    if (!JDataSplit.drawerModeNow) {
+                        if (dsize > 0 && ssize < dsize) {
+                            JDataSplit.drawerModeNow = true;
+                            child1.setChildStyle('client');
+                            child0.setOrderTop(true);
+                            _this.JDataSplit.splitter.setVisible(false);
+                            child0.getNode().style.backgroundColor = 'rgba(255,255,255,0.8)';
+                            child0.addEventListener('active', active);
+                            child0.setAnimation('show', JDataSplit.splitterType + 'DrawerShow 0.5s ease 0s normal');
+                            child0.setAnimation('close', JDataSplit.splitterType + 'DrawerClose 0.5s ease 0s normal');
+                            child0.active();
+                            child0.setVisible(false);
+                            _this.JDataSplit.menuIcon.style.display = 'block';
+                        }
                     }
-                }
-                if (JDataSplit.drawerMode && JDataSplit.drawerModeNow) {
-                    var dwidth = JDataSplit.drawerWidth;
-                    if (dwidth > 0 && _this.getWidth() >= dwidth) {
-                        JDataSplit.drawerModeNow = false;
-                        child0.removeEventListener('active', active);
-                        child1.setChildStyle(null);
-                        child0.setOrderTop(false);
-                        child0.setVisible(true);
-                        _this.JDataSplit.splitter.setVisible(true);
-                        _this.JDataSplit.menuIcon.style.display = 'none';
+                    else {
+                        if (dsize > 0 && ssize >= dsize) {
+                            JDataSplit.drawerModeNow = false;
+                            child0.removeEventListener('active', active);
+                            child1.setChildStyle(null);
+                            child0.setOrderTop(false);
+                            child0.setVisible(true);
+                            _this.JDataSplit.splitter.setVisible(true);
+                            _this.JDataSplit.menuIcon.style.display = 'none';
+                        }
                     }
                 }
                 var width = that.getClientWidth();
@@ -2192,7 +2213,7 @@ var JSW;
                 var splitterThick = JDataSplit.splitterThick;
                 if (JDataSplit.splitterPos < 0)
                     JDataSplit.splitterPos = 0;
-                switch (that.getNode().dataset.splitterType) {
+                switch (JDataSplit.splitterType) {
                     case "we":
                         if (JDataSplit.splitterPos >= width - splitterThick)
                             JDataSplit.splitterPos = width - splitterThick - 1;
@@ -2283,6 +2304,7 @@ var JSW;
             }
             this.JDataSplit.splitterPos = this.JDataSplit.pos;
             if (this.JDataSplit.type != null) {
+                this.getClient().dataset.splitterType = this.JDataSplit.type;
                 this.JDataSplit.splitterType = this.JDataSplit.type;
             }
             this.layout();
@@ -2603,7 +2625,8 @@ var JSW;
          */
         TreeItem.prototype.selectItem = function (scroll) {
             var treeView = this.getTreeView();
-            treeView.selectItem(this, scroll);
+            if (treeView)
+                treeView.selectItem(this, scroll);
         };
         /**
          *所属先のTreeViewを返す
@@ -2613,7 +2636,7 @@ var JSW;
          */
         TreeItem.prototype.getTreeView = function () {
             var node = this.hNode;
-            while (node && node.dataset.kind !== 'TreeView')
+            while (node && node.dataset.jswStyle !== 'TreeView')
                 node = node.parentElement;
             if (node)
                 return node.treeView;
@@ -2638,7 +2661,7 @@ var JSW;
         function TreeView(params) {
             var _this = _super.call(this, params) || this;
             var client = _this.getClient();
-            client.dataset.kind = 'TreeView';
+            client.dataset.jswStyle = 'TreeView';
             client.treeView = _this;
             var item = new TreeItem('root', true);
             _this.mRootItem = item;

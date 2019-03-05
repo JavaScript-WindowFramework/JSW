@@ -405,6 +405,7 @@ declare namespace JSW {
          * @memberof Window
          */
         onLayout(flag: boolean): void;
+        private orderSort;
         show(flag: boolean): void;
         /**
          *ウインドウの重ね合わせ順位を上位に持って行く
@@ -867,6 +868,7 @@ declare namespace JSW {
         type?: string;
         drawerMode: boolean;
         drawerModeNow: boolean;
+        splitterMoving: boolean;
         menuIcon?: HTMLElement;
         drawerWidth: number;
     }

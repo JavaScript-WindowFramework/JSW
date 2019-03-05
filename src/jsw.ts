@@ -172,7 +172,7 @@ namespace JSW {
 			if (!WindowManager.layoutHandler) {
 				//タイマーによる遅延実行
 				WindowManager.layoutHandler = setTimeout(function () {
-					let nodes = document.querySelectorAll("[data-type=Window]")
+					let nodes = document.querySelectorAll("[data-jsw=Window]")
 					let count = nodes.length
 					for (let i = 0; i < count; i++) {
 						let node = nodes[i] as JNode
@@ -199,17 +199,17 @@ namespace JSW {
 	function mouseDown(e:MouseEvent|TouchEvent){
 		let node = e.target as HTMLElement
 		do{
-			if(node.dataset && node.dataset.type === "Window"){
+			if(node.dataset && node.dataset.jsw === "Window"){
 				return
 			}
 		}while(node = node.parentNode as HTMLElement)
 		deactive()
 	}
 	function deactive(){
-		let activeWindows = document.querySelectorAll('[data-type="Window"][data-active="true"]')
+		let activeWindows = document.querySelectorAll('[data-jsw="Window"][data-jsw-active="true"]')
 		for (let i = 0, l = activeWindows.length; i < l; i++) {
 			let w = activeWindows[i] as JNode
-			w.dataset.active = 'false'
+			w.dataset.jswActive = 'false'
 			w.Jsw.callEvent('active',{active:false})
 			console.log('deactive')
 		}

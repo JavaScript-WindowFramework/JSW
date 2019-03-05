@@ -11,6 +11,7 @@ namespace JSW{
 		type?: string
 		drawerMode:boolean
 		drawerModeNow: boolean
+		splitterMoving : boolean
 		menuIcon?:HTMLElement
 		drawerWidth: number
 	}
@@ -25,6 +26,7 @@ namespace JSW{
 		JDataSplit: JSWSPLITDATA = {
 			drawerMode:false,
 			drawerModeNow: false,
+			splitterMoving:false,
 			splitterThick:10,
 			splitterPos:100,
 			splitterType:'we',
@@ -47,7 +49,7 @@ namespace JSW{
 				this.JDataSplit.splitterType = splitType
 			}
 			this.getClient().dataset.kind = 'SplitterView'
-			this.getNode().dataset.splitterType = this.JDataSplit.splitterType
+			this.getClient().dataset.splitterType = this.JDataSplit.splitterType
 			this.JDataSplit.childList = [new Window(), new Window()]
 			super.addChild(this.JDataSplit.childList[0])
 			super.addChild(this.JDataSplit.childList[1])
@@ -57,7 +59,7 @@ namespace JSW{
 			this.JDataSplit.menuIcon = icon
 			icon.dataset.kind = 'SplitterMenu'
 			icon.style.display = 'none'
-			this.getNode().appendChild(icon)
+			this.getClient().appendChild(icon)
 			icon.addEventListener('click',()=>{
 				const child0 = this.JDataSplit.childList[0]
 				this.JDataSplit.childList[0].addEventListener('visibled', e => {
@@ -79,29 +81,35 @@ namespace JSW{
 			super.addChild(splitter)
 
 			let that = this
+			let handle = null
 			splitter.getNode().addEventListener("move", function (e: any) {
 
 				let p = e.params as MovePoint
 				let width = that.getClientWidth()
 				let height = that.getClientHeight()
-				let splitterThick = that.JDataSplit.splitterThick
+				const JDataSplit = that.JDataSplit
+				let splitterThick = JDataSplit.splitterThick
 				let x = p.nodePoint.x + p.nowPoint.x - p.basePoint.x
 				let y = p.nodePoint.y + p.nowPoint.y - p.basePoint.y
 				switch (that.getNode().dataset.splitterType) {
 					case "ns":
-						that.JDataSplit.splitterPos = y
+						JDataSplit.splitterPos = y
 						break
 					case "sn":
-						that.JDataSplit.splitterPos = height - (y + splitterThick)
+						JDataSplit.splitterPos = height - (y + splitterThick)
 						break
 					case "we":
-						that.JDataSplit.splitterPos = x
+						JDataSplit.splitterPos = x
 						break
 					case "ew":
-						that.JDataSplit.splitterPos = width - (x + splitterThick)
+						JDataSplit.splitterPos = width - (x + splitterThick)
 						break
 
 				}
+				JDataSplit.splitterMoving = true
+				if(handle)
+					clearTimeout(handle)
+				handle = setTimeout(function(){handle=null;JDataSplit.splitterMoving = false;that.layout()},2000)
 				that.layout()
 
 			})
@@ -117,34 +125,35 @@ namespace JSW{
 						JDataSplit.menuIcon.style.display = 'block'
 					}
 				}
-				if (JDataSplit.drawerMode && !JDataSplit.drawerModeNow){
-					const dwidth = JDataSplit.drawerWidth
-
-
-					if (dwidth > 0 && this.getWidth() < dwidth){
-						JDataSplit.drawerModeNow = true
-						child1.setChildStyle('client')
-						child0.setOrderTop(true)
-						this.JDataSplit.splitter.setVisible(false)
-						child0.getNode().style.backgroundColor = 'rgba(255,255,255,0.8)'
-						child0.addEventListener('active', active)
-						child0.setAnimation('show', 'DrawerShow 0.5s ease 0s normal')
-						child0.setAnimation('close', 'DrawerClose 0.5s ease 0s normal')
-						child0.active()
-						child0.setVisible(false)
-						this.JDataSplit.menuIcon.style.display = 'block'
-					}
-				}
-				if (JDataSplit.drawerMode && JDataSplit.drawerModeNow) {
-					const dwidth = JDataSplit.drawerWidth
-					if (dwidth > 0 && this.getWidth() >= dwidth){
-						JDataSplit.drawerModeNow = false
-						child0.removeEventListener('active', active)
-						child1.setChildStyle(null)
-						child0.setOrderTop(false)
-						child0.setVisible(true)
-						this.JDataSplit.splitter.setVisible(true)
-						this.JDataSplit.menuIcon.style.display = 'none'
+				//動的分割機能の処理
+				if (JDataSplit.drawerMode && !JDataSplit.splitterMoving){
+					const type = JDataSplit.splitterType
+					const dsize = JDataSplit.drawerWidth+JDataSplit.splitterPos
+					const ssize =  type==='ew'||type==='we'?this.getWidth():this.getHeight()
+					if(!JDataSplit.drawerModeNow){
+						if (dsize > 0 && ssize < dsize){
+							JDataSplit.drawerModeNow = true
+							child1.setChildStyle('client')
+							child0.setOrderTop(true)
+							this.JDataSplit.splitter.setVisible(false)
+							child0.getNode().style.backgroundColor = 'rgba(255,255,255,0.8)'
+							child0.addEventListener('active', active)
+							child0.setAnimation('show', JDataSplit.splitterType+'DrawerShow 0.5s ease 0s normal')
+							child0.setAnimation('close', JDataSplit.splitterType+'DrawerClose 0.5s ease 0s normal')
+							child0.active()
+							child0.setVisible(false)
+							this.JDataSplit.menuIcon.style.display = 'block'
+						}
+					}else{
+						if (dsize > 0 && ssize >= dsize){
+							JDataSplit.drawerModeNow = false
+							child0.removeEventListener('active', active)
+							child1.setChildStyle(null)
+							child0.setOrderTop(false)
+							child0.setVisible(true)
+							this.JDataSplit.splitter.setVisible(true)
+							this.JDataSplit.menuIcon.style.display = 'none'
+						}
 					}
 				}
 
@@ -154,7 +163,7 @@ namespace JSW{
 
 				if (JDataSplit.splitterPos < 0)
 					JDataSplit.splitterPos = 0
-				switch (that.getNode().dataset.splitterType) {
+				switch (JDataSplit.splitterType) {
 					case "we":
 						if (JDataSplit.splitterPos >= width - splitterThick)
 							JDataSplit.splitterPos = width - splitterThick - 1
@@ -246,6 +255,7 @@ namespace JSW{
 
 			this.JDataSplit.splitterPos = this.JDataSplit.pos
 			if (this.JDataSplit.type != null) {
+				this.getClient().dataset.splitterType = this.JDataSplit.type
 				this.JDataSplit.splitterType = this.JDataSplit.type
 			}
 			this.layout()

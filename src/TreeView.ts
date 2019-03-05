@@ -314,7 +314,8 @@ namespace JSW{
 		 */
 		selectItem(scroll?: boolean) {
 			let treeView = this.getTreeView()
-			treeView.selectItem(this, scroll)
+			if(treeView)
+				treeView.selectItem(this, scroll)
 		}
 		/**
 		 *所属先のTreeViewを返す
@@ -324,7 +325,7 @@ namespace JSW{
 		 */
 		getTreeView(): TreeView {
 			var node = this.hNode
-			while (node && node.dataset.kind !== 'TreeView')
+			while (node && node.dataset.jswStyle !== 'TreeView')
 				node = node.parentElement;
 			if (node)
 				return (node as any).treeView
@@ -351,7 +352,7 @@ namespace JSW{
 		constructor(params?) {
 			super(params)
 			let client = this.getClient() as any
-			client.dataset.kind = 'TreeView'
+			client.dataset.jswStyle = 'TreeView'
 			client.treeView = this
 
 			let item = new TreeItem('root', true)

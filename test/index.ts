@@ -30,8 +30,8 @@ function Main() {
 	//分割バーの分割サイズと方向設定(WestEast、左右)
 	//weは左が領域0、右が領域1
 	//nsにすると上下分割も可能
-	splitter.setSplitterPos(200,'we')
-	splitter.setOverlay(true,500)
+	splitter.setSplitterPos(200,'sn')
+	splitter.setOverlay(true,300)
 
 	//treeにアイテムを追加
 	tree.getRootItem().setItemText('最上位アイテム')
