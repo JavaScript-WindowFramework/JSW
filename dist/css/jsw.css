@@ -1,38 +1,38 @@
 @charset "UTF-8";
-[data-type="Window"] {
+[data-jsw="Window"] {
   box-sizing: border-box;
 }
 
-[data-type="Window"][data-visible="false"] {
+[data-jsw="Window"][data-jsw-visible="false"] {
   display: none;
 }
 
-[data-type="Window"]:not([data-style="frame"]) {
+[data-jsw="Window"]:not([data-jsw-type="Frame"]) {
   overflow: hidden;
 }
 
-[data-type="Window"] > [data-type="frame"] {
-  position: absolute;
-  user-select: none;
-}
-
-[data-type="Window"][data-style="frame"]:not([data-stat="maximize"]) {
+[data-jsw="Window"][data-jsw-type="Frame"]:not([data-jsw-stat="maximize"]) {
   border-radius: 10px 10px 0px 0px;
   border: solid 1px;
   box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.4);
 }
 
-[data-type="Window"][data-stat="maximize"] > [data-type="frame"] {
+[data-jsw="Window"] > [data-jsw-style="border"] {
+  position: absolute;
+  user-select: none;
+}
+
+[data-jsw="Window"][data-jsw-stat="maximize"] > [data-jsw-style="border"] {
   display: none;
   box-sizing: border-box;
 }
 
-[data-type="Window"][data-active='true'] > [data-type="title"] {
+[data-jsw="Window"][data-jsw-active='true'] > [data-jsw-style="title"] {
   background-color: #5577dd;
   color: white;
 }
 
-[data-type="Window"] > [data-type="title"] {
+[data-jsw="Window"] > [data-jsw-style="title"] {
   border-radius: 10px 10px 0px 0px;
   display: flex;
   position: absolute;
@@ -41,7 +41,7 @@
   overflow: hidden;
 }
 
-[data-type="Window"] > [data-type="title"] [data-type="text"] {
+[data-jsw="Window"] > [data-jsw-style="title"] [data-jsw-style="text"] {
   flex: 1;
   overflow: hidden;
   font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande", "Lucida Sans", Arial, sans-serif;
@@ -51,44 +51,44 @@
   white-space: nowrap;
 }
 
-[data-type="Window"] > [data-type="title"] > [data-type="icon"] {
+[data-jsw="Window"] > [data-jsw-style="title"] > [data-jsw-style="icon"] {
   display: inline-block;
   cursor: default;
   background-size: 100% 100%;
 }
 
-[data-type="Window"] > [data-type="title"] > [data-type="icon"]:hover {
+[data-jsw="Window"] > [data-jsw-style="title"] > [data-jsw-style="icon"]:hover {
   background-color: rgba(0, 0, 0, 0.2);
 }
 
-[data-type="Window"] > [data-type="title"] > [data-type="icon"][data-kind="min"] {
+[data-jsw="Window"] > [data-jsw-style="title"] > [data-jsw-style="icon"][data-jsw-kind="min"] {
   background-image: url("images/min.svg");
 }
 
-[data-type="Window"] > [data-type="title"] > [data-type="icon"][data-kind="restore"] {
+[data-jsw="Window"] > [data-jsw-style="title"] > [data-jsw-style="icon"][data-jsw-kind="restore"] {
   background-image: url("images/min.svg");
 }
 
-[data-type="Window"] > [data-type="title"] > [data-type="icon"][data-kind="max"] {
+[data-jsw="Window"] > [data-jsw-style="title"] > [data-jsw-style="icon"][data-jsw-kind="max"] {
   background-image: url("images/max.svg");
 }
 
-[data-type="Window"] > [data-type="title"] > [data-type="icon"][data-kind="close"] {
+[data-jsw="Window"] > [data-jsw-style="title"] > [data-jsw-style="icon"][data-jsw-kind="close"] {
   background-image: url("images/close.svg");
 }
 
-[data-type="Window"] > [data-type="title"] > [data-type="icon"][data-kind="normal"] {
+[data-jsw="Window"] > [data-jsw-style="title"] > [data-jsw-style="icon"][data-jsw-kind="normal"] {
   background-image: url("images/normal.svg");
 }
 
-[data-type="Window"] > [data-type="client"] {
+[data-jsw="Window"] > [data-jsw-style="client"] {
   box-sizing: border-box;
   position: absolute;
   overflow: hidden;
   background-color: whitesmoke;
 }
 
-[data-type="Window"] [data-scale="auto"] {
+[data-jsw="Window"] [data-jsw-scale="auto"] {
   white-space: normal;
 }
 
@@ -231,15 +231,39 @@
 /* Splitter用設定  */
 [data-kind="SplitterView"] {
   display: flex;
+}
+
+[data-kind="SplitterView"][data-splitter-type='ew'] {
   align-items: center;
 }
 
-[data-kind="Splitter"] {
-  background-color: #aaaaaa;
-  border: outset 2px #b8b7b7;
+[data-kind="SplitterView"][data-splitter-type='ew'] [data-kind="SplitterMenu"] {
+  right: 0;
 }
 
-[data-kind="SplitterMenu"] {
+[data-kind="SplitterView"][data-splitter-type='we'] {
+  align-items: center;
+}
+
+[data-kind="SplitterView"][data-splitter-type='ns'] {
+  justify-content: center;
+}
+
+[data-kind="SplitterView"][data-splitter-type='sn'] {
+  justify-content: center;
+}
+
+[data-kind="SplitterView"][data-splitter-type='sn'] [data-kind="SplitterMenu"] {
+  bottom: 0;
+}
+
+[data-kind="SplitterView"] [data-kind="Splitter"] {
+  background-color: #aaaaaa;
+  border: outset 2px #b8b7b7;
+  user-select: none;
+}
+
+[data-kind="SplitterView"] [data-kind="SplitterMenu"] {
   position: absolute;
   background-color: rgba(255, 255, 255, 0.7);
   opacity: 0.7;
@@ -254,17 +278,13 @@
   z-index: 100;
 }
 
-[data-kind="Splitter"] {
-  user-select: none;
-}
-
-[data-splitter-type="ns"] > [data-kind="Splitter"],
-[data-splitter-type="sn"] > [data-kind="Splitter"] {
+[data-kind="SplitterView"][data-splitter-type="ns"] > [data-kind="Splitter"],
+[data-kind="SplitterView"] [data-splitter-type="sn"] > [data-kind="Splitter"] {
   cursor: ns-resize;
 }
 
-[data-splitter-type="we"] > [data-kind="Splitter"],
-[data-splitter-type="ew"] > [data-kind="Splitter"] {
+[data-kind="SplitterView"][data-splitter-type="we"] > [data-kind="Splitter"],
+[data-kind="SplitterView"] [data-splitter-type="ew"] > [data-kind="Splitter"] {
   cursor: ew-resize;
 }
 
@@ -296,50 +316,50 @@
   }
 }
 
-[data-kind="TreeView"] {
+[data-jsw-style="TreeView"] {
   overflow: auto !important;
   user-select: none;
 }
 
-[data-kind="TreeItem"] {
+[data-jsw-style="TreeView"] [data-kind="TreeItem"] {
   display: flex;
   flex-direction: column;
   flex: 1;
 }
 
-[data-kind="TreeItem"] > [data-kind="TreeRow"]:first-child:hover {
+[data-jsw-style="TreeView"] [data-kind="TreeItem"] > [data-kind="TreeRow"]:first-child:hover {
   border-bottom: black 1px solid;
 }
 
-[data-kind="TreeItem"] > [data-kind="TreeRow"][data-drag='over'] {
+[data-jsw-style="TreeView"] [data-kind="TreeItem"] > [data-kind="TreeRow"][data-drag='over'] {
   background-color: rgba(80, 233, 149, 0.2);
 }
 
-[data-kind="TreeItem"] [data-kind="TreeItem"] {
+[data-jsw-style="TreeView"] [data-kind="TreeItem"] [data-kind="TreeItem"] {
   padding-left: 1em;
 }
 
-[data-kind="TreeRow"]:first-child {
+[data-jsw-style="TreeView"] [data-kind="TreeRow"]:first-child {
   cursor: pointer;
 }
 
-[data-kind="TreeRow"] {
+[data-jsw-style="TreeView"] [data-kind="TreeRow"] {
   display: flex;
 }
 
-[data-kind="TreeChild"] {
+[data-jsw-style="TreeView"] [data-kind="TreeChild"] {
   flex: 1;
 }
 
-[data-kind="TreeBody"] {
+[data-jsw-style="TreeView"] [data-kind="TreeBody"] {
   flex: 1;
 }
 
-[data-kind="TreeItem"] > [data-kind="TreeRow"]:nth-child(2) > [data-kind="TreeChild"] {
+[data-jsw-style="TreeView"] [data-kind="TreeItem"] > [data-kind="TreeRow"]:nth-child(2) > [data-kind="TreeChild"] {
   overflow: hidden;
 }
 
-[data-kind="TreeItem"] > div > [data-kind="TreeIcon"] {
+[data-jsw-style="TreeView"] [data-kind="TreeItem"] > div > [data-kind="TreeIcon"] {
   background-repeat: no-repeat;
   width: 16px;
   height: 16px;
@@ -351,23 +371,23 @@
   flex-shrink: 0;
 }
 
-[data-kind="TreeItem"][data-stat="close"] > [data-kind="TreeRow"] > [data-kind="TreeIcon"] {
+[data-jsw-style="TreeView"] [data-kind="TreeItem"][data-stat="close"] > [data-kind="TreeRow"] > [data-kind="TreeIcon"] {
   background-image: url("images/tclose.svg");
 }
 
-[data-kind="TreeItem"][data-stat="open"] > [data-kind="TreeRow"] > [data-kind="TreeIcon"] {
+[data-jsw-style="TreeView"] [data-kind="TreeItem"][data-stat="open"] > [data-kind="TreeRow"] > [data-kind="TreeIcon"] {
   background-image: url("images/topen.svg");
 }
 
-[data-kind="TreeItem"][data-stat="alone"] > [data-kind="TreeRow"] > [data-kind="TreeIcon"] {
+[data-jsw-style="TreeView"] [data-kind="TreeItem"][data-stat="alone"] > [data-kind="TreeRow"] > [data-kind="TreeIcon"] {
   background-image: url("images/talone.svg");
 }
 
-[data-kind="TreeItem"] > [data-kind="TreeRow"]:first-child {
+[data-jsw-style="TreeView"] [data-kind="TreeItem"] > [data-kind="TreeRow"]:first-child {
   cursor: pointer;
 }
 
-[data-kind="TreeItem"][data-select="true"] > [data-kind="TreeRow"]:first-child {
+[data-jsw-style="TreeView"] [data-kind="TreeItem"][data-select="true"] > [data-kind="TreeRow"]:first-child {
   background-color: rgba(80, 80, 233, 0.2);
   flex: 1;
 }
@@ -538,7 +558,43 @@
   background-color: rgba(58, 180, 200, 0.7);
 }
 
-@keyframes DrawerShow {
+@keyframes nsDrawerShow {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes nsDrawerClose {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes snDrawerShow {
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes snDrawerClose {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes weDrawerShow {
   0% {
     transform: translateX(-100%);
   }
@@ -547,12 +603,30 @@
   }
 }
 
-@keyframes DrawerClose {
+@keyframes weDrawerClose {
   0% {
     transform: translateX(0);
   }
   100% {
     transform: translateX(-100%);
+  }
+}
+
+@keyframes ewDrawerShow {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes ewDrawerClose {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(100%);
   }
 }
 

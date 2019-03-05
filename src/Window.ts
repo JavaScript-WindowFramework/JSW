@@ -95,7 +95,7 @@ namespace JSW {
 			hNode.Jsw = this
 			this.JData.clientArea = hNode
 			this.hNode = hNode
-			hNode.dataset.type = "Window"
+			hNode.dataset.jsw = "Window"
 			//位置を絶対位置指定
 			hNode.style.position = 'absolute'
 			hNode.style.visibility = 'hidden'
@@ -142,27 +142,27 @@ namespace JSW {
 		}
 		//フレーム追加処理
 		private addFrame(titleFlag: boolean): void {
-			this.hNode.dataset.style = 'frame'
+			this.hNode.dataset.jswType = 'Frame'
 			//タイトルの設定
 			this.JData.titleSize = titleFlag ? TITLE_SIZE : 0
 			this.hNode.style.minHeight = this.JData.titleSize + "px"
 			//各パーツのスタイル設定
 			let frameStyles = [
-				["frame", "cursor:n-resize; left:0px;top:-{0}px;right:0px;height:{0}px;"],//上
-				["frame", "cursor:e-resize; top:0px;right:-{0}px;bottom:0px;width:{0}px;"],//右
-				["frame", "cursor:s-resize; left:0px;right:0px;height:{0}px;bottom:-{0}px;"],//下
-				["frame", "cursor:w-resize; top:0px;left:-{0}px;bottom:0px;width:{0}px;"],//左
-				["frame", "cursor:nw-resize;left:-{0}px;top:-{0}px;width:{0}px;height:{0}px;"],//左上
-				["frame", "cursor:ne-resize;right:-{0}px;top:-{0}px;width:{0}px;height:{0}px;"],//右上
-				["frame", "cursor:sw-resize;left:-{0}px;bottom:-{0}px;width:{0}px;height:{0}px;"],//左下
-				["frame", "cursor:se-resize;right:-{0}px;bottom:-{0}px;width:{0}px;height:{0}px;"],//右下
+				["border", "cursor:n-resize; left:0px;top:-{0}px;right:0px;height:{0}px;"],//上
+				["border", "cursor:e-resize; top:0px;right:-{0}px;bottom:0px;width:{0}px;"],//右
+				["border", "cursor:s-resize; left:0px;right:0px;height:{0}px;bottom:-{0}px;"],//下
+				["border", "cursor:w-resize; top:0px;left:-{0}px;bottom:0px;width:{0}px;"],//左
+				["border", "cursor:nw-resize;left:-{0}px;top:-{0}px;width:{0}px;height:{0}px;"],//左上
+				["border", "cursor:ne-resize;right:-{0}px;top:-{0}px;width:{0}px;height:{0}px;"],//右上
+				["border", "cursor:sw-resize;left:-{0}px;bottom:-{0}px;width:{0}px;height:{0}px;"],//左下
+				["border", "cursor:se-resize;right:-{0}px;bottom:-{0}px;width:{0}px;height:{0}px;"],//右下
 				["title", "left:0px;top:0px;right:0px;height:{1}px"],//タイトル
 				["client", "left:0px;top:{1}px;right:0px;bottom:0px"],//クライアント領域
 			]
 
 
 			//フレームクリックイベントの処理
-			function onFrame(e) {
+			function onFrame() {
 				if (WindowManager.frame == null)
 					WindowManager.frame = this.dataset.index
 				//EDGEはここでイベントを止めないとテキスト選択が入る
@@ -175,7 +175,7 @@ namespace JSW {
 				frame.style.cssText = frameStyles[i][1].replace(/\{0\}/g, FRAME_SIZE.toString()).replace(/\{1\}/g,
 					this.JData.titleSize.toString())
 				frame.dataset.index = i.toString()
-				frame.dataset.type = frameStyles[i][0]
+				frame.dataset.jswStyle = frameStyles[i][0]
 				this.hNode.appendChild(frame)
 
 				frame.addEventListener("touchstart", onFrame, { passive: false })
@@ -186,15 +186,15 @@ namespace JSW {
 			let node = this.hNode
 			//タイトルバーの作成
 			let title = node.childNodes[8]
-			let titleText = WindowManager.createElement("div", { "dataset": { type: "text" } })
+			let titleText = WindowManager.createElement("div", { "dataset": { jswStyle: "text" } })
 			title.appendChild(titleText)
 			//アイコンの作成
 			let icons = ["min", "max", "close"]
 			for (let index in icons) {
-				let icon = WindowManager.createElement("div", { style: { "width": this.JData.titleSize + "px", "height": this.JData.titleSize + "px" }, "dataset": { type: "icon", kind: icons[index] } })
+				let icon = WindowManager.createElement("div", { style: { "width": this.JData.titleSize + "px", "height": this.JData.titleSize + "px" }, "dataset": { jswStyle: "icon", jswKind: icons[index] } })
 				title.appendChild(icon)
 				icon.addEventListener("click", function () {
-					WindowManager.callEvent(node, "JSW" + this.dataset.kind)
+					WindowManager.callEvent(node, "JSW" + this.dataset.jswKind)
 				})
 			}
 			//クライアント領域の取得を書き換える
@@ -565,7 +565,7 @@ namespace JSW {
 			}
 			else{
 				const animationEnd = () => {
-					let nodes = node.querySelectorAll('[data-type="Window"]') as any as JNode[]
+					let nodes = node.querySelectorAll('[data-jsw="Window"]') as any as JNode[]
 					let count = nodes.length
 					for (let i = 0; i < count; i++) {
 						nodes[i].Jsw.layout()
@@ -623,7 +623,7 @@ namespace JSW {
 		}
 		active(flag?:boolean){
 			if (!this.JData.noActive)
-				this.getNode().dataset.active = (flag||flag==null)?'true':'false'
+				this.getNode().dataset.jswActive = (flag||flag==null)?'true':'false'
 		}
 		/**
 		 *子ウインドウのサイズを再計算
@@ -645,7 +645,7 @@ namespace JSW {
 			let client = this.getClient()
 			for (let i = 0; i < client.childNodes.length; i++) {
 				let node = client.childNodes[i] as JNode
-				if (node.dataset && node.dataset.type === "Window")
+				if (node.dataset && node.dataset.jsw === "Window")
 					(flag as any) |= node.Jsw.onMeasure(false) as any
 			}
 			if (!this.isAutoSize())
@@ -693,7 +693,7 @@ namespace JSW {
 		 */
 		onLayout(flag: boolean): void {
 			if (flag || this.JData.redraw) {
-				if (this.hNode.dataset.stat == 'maximize') {
+				if (this.hNode.dataset.jswStat == 'maximize') {
 					this.setPos(0, 0)
 					this.setSize(this.getParentWidth(), this.getParentHeight())
 				}
@@ -712,7 +712,7 @@ namespace JSW {
 			let nodes = []
 			for (let i = 0; i < client.childElementCount; i++) {
 				let node = client.childNodes[i] as HTMLElement
-				if (node.dataset && node.dataset.type === "Window")
+				if (node.dataset && node.dataset.jsw === "Window")
 					nodes.push(node)
 			}
 			let count = nodes.length
@@ -773,6 +773,17 @@ namespace JSW {
 			}
 			this.JData.redraw = false
 
+			this.orderSort(client)
+
+		}
+		private orderSort(client:HTMLElement){
+			let nodes = []
+			for (let i = 0; i < client.childElementCount; i++) {
+				let node = client.childNodes[i] as HTMLElement
+				if (node.dataset && node.dataset.jsw === "Window")
+					nodes.push(node)
+			}
+
 			//重ね合わせソート
 			nodes.sort(function (anode: JNode, bnode: JNode) {
 				const a = anode.Jsw.JData
@@ -791,7 +802,6 @@ namespace JSW {
 			for (let i = 0; i < nodes.length; i++) {
 				nodes[i].style.zIndex = i
 			}
-
 		}
 		show(flag:boolean):void{
 			if(flag==null || flag){
@@ -815,20 +825,21 @@ namespace JSW {
 			do {
 				activeNodes.add(p)
 				if ((flag || flag == null) && p.dataset) {
-					p.dataset.active = 'true';
+					p.dataset.jswActive = 'true';
 					p.style.zIndex = '1000';
 					if (p.Jsw)
 						p.Jsw.callEvent('active', { active: true });
 				}
+				this.orderSort(p)
 			}
 			while (p = p.parentNode as JNode)
 
 			if (flag || flag == null) {
-				var activeWindows = document.querySelectorAll('[data-type="Window"][data-active="true"]')
+				var activeWindows = document.querySelectorAll('[data-jsw="Window"][data-jsw-active="true"]')
 				for (let i = 0, l = activeWindows.length; i < l; i++) {
 					let w = activeWindows[i] as JNode
 					if (!activeNodes.has(w)){
-						w.dataset.active = 'false'
+						w.dataset.jswActive = 'false'
 						w.Jsw.callEvent('active',{active:false})
 					}
 				}
@@ -864,7 +875,7 @@ namespace JSW {
 		close(): void {
 			const that = this
 			function animationEnd() {
-				let nodes = this.querySelectorAll('[data-type="Window"]') as JNode[]
+				let nodes = this.querySelectorAll('[data-jsw="Window"]') as JNode[]
 				let count = nodes.length
 				for (let i = 0; i < count; i++) {
 					nodes[i].Jsw.layout()
@@ -1040,7 +1051,7 @@ namespace JSW {
 			var childList = client.childNodes;
 			for (var i = childList.length - 1; i >= 0; i--) {
 				var child = childList[i] as JNode
-				if (child.dataset.type === "Window") {
+				if (child.dataset.jsw === "Window") {
 					child.Jsw.JData.parent = null;
 					client.removeChild(child);
 				}
@@ -1117,12 +1128,12 @@ namespace JSW {
 				this.style.minHeight = that.JData.titleSize + "px";
 				this.removeEventListener("animationend", animationEnd)
 			}
-			if (this.hNode.dataset.stat != 'maximize') {
+			if (this.hNode.dataset.jswStat != 'maximize') {
 				this.JData.normalX = this.JData.x
 				this.JData.normalY = this.JData.y
 				this.JData.normalWidth = this.JData.width
 				this.JData.normalHeight = this.JData.height
-				this.hNode.dataset.stat = 'maximize'
+				this.hNode.dataset.jswStat = 'maximize'
 				this.hNode.style.minWidth = this.JData.width + "px"
 				this.hNode.style.minHeight = this.JData.height + "px"
 				this.hNode.style.animation = "JSWmaximize 0.2s ease 0s 1 forwards"
@@ -1132,17 +1143,17 @@ namespace JSW {
 				this.JData.y = this.JData.normalY
 				this.JData.width = this.JData.normalWidth
 				this.JData.height = this.JData.normalHeight
-				this.hNode.dataset.stat = 'normal'
+				this.hNode.dataset.jswStat = 'normal'
 				this.hNode.style.animation = "JSWmaxrestore 0.2s ease 0s 1 forwards"
 			}
 			if (flag) {
-				let icon = this.hNode.querySelector("*>[data-type=title]>[data-type=icon][data-kind=max]") as HTMLElement
+				let icon = this.hNode.querySelector("*>[data-jsw-style=title]>[data-jsw-style=icon][data-jsw-kind=max]") as HTMLElement
 				if (icon)
-					icon.dataset.kind = "normal"
+					icon.dataset.jswKind = "normal"
 			} else {
-				let icon = this.hNode.querySelector("*>[data-type=title]>[data-type=icon][data-kind=normal]") as HTMLElement
+				let icon = this.hNode.querySelector("*>[data-jsw-style=title]>[data-jsw-style=icon][data-jsw-kind=normal]") as HTMLElement
 				if (icon)
-					icon.dataset.kind = "max"
+					icon.dataset.jswKind = "max"
 			}
 
 			this.layout()
@@ -1157,22 +1168,22 @@ namespace JSW {
 		setMinimize(flag: boolean): void {
 			var that = this
 			this.hNode.addEventListener("animationend", function () { that.layout() })
-			if (this.hNode.dataset.stat != 'minimize') {
+			if (this.hNode.dataset.jswStat != 'minimize') {
 
 				//client.style.animation="Jswminimize 0.2s ease 0s 1 forwards"
 				this.hNode.style.animation = "JSWminimize 0.2s ease 0s 1 forwards"
-				this.hNode.dataset.stat = 'minimize'
+				this.hNode.dataset.jswStat = 'minimize'
 			} else {
 				//client.style.animation="Jswrestore 0.2s ease 0s 1 backwards"
 				this.hNode.style.animation = "JSWrestore 0.2s ease 0s 1 forwards"
-				this.hNode.dataset.stat = 'normal'
+				this.hNode.dataset.jswStat = 'normal'
 			}
 			if (flag) {
-				let icon = this.hNode.querySelector("*>[data-type=title]>[data-type=icon][data-kind=min]") as HTMLElement
-				icon.dataset.kind = "restore"
+				let icon = this.hNode.querySelector("*>[data-jsw-style=title]>[data-jsw-style=icon][data-jsw-kind=min]") as HTMLElement
+				icon.dataset.jswKind = "restore"
 			} else {
-				let icon = this.hNode.querySelector("*>[data-type=title]>[data-type=icon][data-kind=restore]") as HTMLElement
-				icon.dataset.kind = "min"
+				let icon = this.hNode.querySelector("*>[data-jsw-style=title]>[data-jsw-style=icon][data-jsw-kind=restore]") as HTMLElement
+				icon.dataset.jswKind = "min"
 			}
 			this.JData.minimize = flag
 			this.layout()

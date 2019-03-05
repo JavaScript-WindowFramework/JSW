@@ -16,8 +16,8 @@ module JSW{
 				if(!e.active)
 					this.close()
 			})
-			this.setAnimation('show','DrawerShow 0.5s ease 0s normal')
-			this.setAnimation('close','DrawerClose 0.5s ease 0s normal')
+			this.setAnimation('show','weDrawerShow 0.5s ease 0s normal')
+			this.setAnimation('close','weDrawerClose 0.5s ease 0s normal')
 			this.foreground(true)
 		}
 		addEventListener<K extends keyof ListViewEventMap>(type: K|string, listener: (this: Window,ev: ListViewEventMap[K]) => any): void{
