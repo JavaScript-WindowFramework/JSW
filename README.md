@@ -1,9 +1,10 @@
 # JSW
 JavaScript用ウインドウフレームワーク<br>
-[ドキュメント](https://javascript-windowframework.github.io/TypeDocViewer/)<br>
-<br>
 [基本サンプル](https://javascript-windowframework.github.io/JSW/Samples/) [ソース](https://github.com/JavaScript-WindowFramework/JSW)<br>
 <br>
+[ドキュメント](https://javascript-windowframework.github.io/TypeDocViewer/)<br>
+<br>
+# アプリケーションの例
 [GoogleDrive操作サンプル](https://gdriveexplorer.github.croud.jp/) [ソース](https://github.com/JavaScript-WindowFramework/GDriveExplorer)<br>
 [TypeDocViewerサンプル](https://javascript-windowframework.github.io/TypeDocViewer/) [ソース](https://github.com/JavaScript-WindowFramework/TypeDocViewer)<br>
 
@@ -18,13 +19,13 @@ JavaScriptでウインドウシステムを扱うためのフレームワーク<
 ## 使い方
 ・JavaScriptとして使う場合<br>
 　distに入っている「css」と[js」をターゲット環境にコピーし、HTMLファイルから以下のような形で呼び出す<br>
- 
+
 　```
 
     <link rel="stylesheet" href="css/jsw.css"/>
     <script type="text/javascript" src="js/jsw.js"></script>
 　```
- 
+
 
 ・TypeScriptとして使う場合<br>
 　基本的にはJavaScriptと同じだが、型宣言は以下のように利用する<br>
