@@ -14,6 +14,18 @@ function Main() {
     var splitter = new JSW.Splitter();
     var tree = new JSW.TreeView();
     var list = new JSW.ListView();
+    var panel = new JSW.Panel();
+    frame.addChild(panel, 'top');
+    var names = ["we", "ew", "ns", "sn"];
+    for (var _i = 0, names_1 = names; _i < names_1.length; _i++) {
+        var n = names_1[_i];
+        var button = document.createElement('button');
+        button.innerText = n;
+        button.addEventListener('click', function () {
+            splitter.setSplitterPos(200, this.innerText);
+        });
+        panel.getClient().appendChild(button);
+    }
     //タイトル設定
     frame.setTitle('分割ウインドウのサンプル');
     //frameに対して、分割ウインドウをclient(画面いっぱい)で追加する
