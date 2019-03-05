@@ -279,12 +279,12 @@
 		z-index: 100;
 	}
 	&[data-splitter-type="ns"]>[data-kind="Splitter"],
-	[data-splitter-type="sn"]>[data-kind="Splitter"] {
+	&[data-splitter-type="sn"]>[data-kind="Splitter"] {
 		cursor: ns-resize;
 	}
 
 	&[data-splitter-type="we"]>[data-kind="Splitter"],
-	[data-splitter-type="ew"]>[data-kind="Splitter"] {
+	&[data-splitter-type="ew"]>[data-kind="Splitter"] {
 		cursor: ew-resize;
 	}
 }

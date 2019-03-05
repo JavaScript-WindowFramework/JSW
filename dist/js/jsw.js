@@ -869,7 +869,7 @@ var JSW;
                 var priority = { top: 10, bottom: 10, left: 8, right: 8, client: 5 };
                 var a = anode.Jsw.JData;
                 var b = bnode.Jsw.JData;
-                return priority[a.style] - priority[b.style];
+                return priority[b.style] - priority[a.style];
             });
             var padding = this.JData.padding;
             var width = this.getClientWidth();
@@ -2219,8 +2219,9 @@ var JSW;
                             JDataSplit.splitterPos = width - splitterThick - 1;
                         splitter.setSize(splitterThick, height);
                         splitter.setPos(JDataSplit.splitterPos, 0);
+                        child0.setPos(0, 0);
                         child0.setSize(splitter.getPosX(), height);
-                        child1.setPosX(JDataSplit.splitterPos + splitterThick);
+                        child1.setPos(JDataSplit.splitterPos + splitterThick, 0);
                         child1.setSize(width - (JDataSplit.splitterPos + splitterThick), height);
                         break;
                     case "ew":
@@ -2229,17 +2230,19 @@ var JSW;
                         var p = width - JDataSplit.splitterPos - splitterThick;
                         splitter.setSize(splitterThick, height);
                         splitter.setPos(p, 0);
+                        child1.setPos(0, 0);
                         child1.setSize(p, height);
-                        child0.setPosX(p + splitterThick);
-                        child0.setSize(p + splitterThick, height);
+                        child0.setPos(p + splitterThick, 0);
+                        child0.setSize(JDataSplit.splitterPos, height);
                         break;
                     case "ns":
                         if (JDataSplit.splitterPos >= height - splitterThick)
                             JDataSplit.splitterPos = height - splitterThick - 1;
                         splitter.setSize(width, splitterThick);
                         splitter.setPos(0, JDataSplit.splitterPos);
+                        child0.setPos(0, 0);
                         child0.setSize(width, JDataSplit.splitterPos);
-                        child1.setPosY(JDataSplit.splitterPos + splitterThick);
+                        child1.setPos(0, JDataSplit.splitterPos + splitterThick);
                         child1.setSize(width, height - (JDataSplit.splitterPos + splitterThick));
                         break;
                     case "sn":
@@ -2248,9 +2251,10 @@ var JSW;
                         splitter.setSize(width, splitterThick);
                         p = height - JDataSplit.splitterPos - splitterThick;
                         splitter.setPos(0, p);
+                        child1.setPos(0, 0);
                         child1.setSize(width, p);
-                        child0.setPosY(p + splitterThick);
-                        child0.setSize(width, p + splitterThick);
+                        child0.setPos(0, p + splitterThick);
+                        child0.setSize(width, JDataSplit.splitterPos);
                         break;
                 }
             });
@@ -2298,7 +2302,8 @@ var JSW;
          * @memberof Splitter
          */
         Splitter.prototype.setSplitterPos = function (pos, type) {
-            this.JDataSplit.pos = pos;
+            if (pos != null)
+                this.JDataSplit.pos = pos;
             if (type) {
                 this.JDataSplit.type = type;
             }

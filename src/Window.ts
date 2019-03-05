@@ -722,7 +722,7 @@ namespace JSW {
 				const priority = { top: 10, bottom: 10, left: 8, right: 8, client: 5 }
 				const a = anode.Jsw.JData
 				const b = bnode.Jsw.JData
-				return priority[a.style] - priority[b.style]
+				return priority[b.style] - priority[a.style]
 			})
 
 			const padding = this.JData.padding

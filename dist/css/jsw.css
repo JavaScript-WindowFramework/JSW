@@ -279,12 +279,12 @@
 }
 
 [data-kind="SplitterView"][data-splitter-type="ns"] > [data-kind="Splitter"],
-[data-kind="SplitterView"] [data-splitter-type="sn"] > [data-kind="Splitter"] {
+[data-kind="SplitterView"][data-splitter-type="sn"] > [data-kind="Splitter"] {
   cursor: ns-resize;
 }
 
 [data-kind="SplitterView"][data-splitter-type="we"] > [data-kind="Splitter"],
-[data-kind="SplitterView"] [data-splitter-type="ew"] > [data-kind="Splitter"] {
+[data-kind="SplitterView"][data-splitter-type="ew"] > [data-kind="Splitter"] {
   cursor: ew-resize;
 }
 

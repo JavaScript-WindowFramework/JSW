@@ -169,8 +169,9 @@ namespace JSW{
 							JDataSplit.splitterPos = width - splitterThick - 1
 						splitter.setSize(splitterThick, height)
 						splitter.setPos(JDataSplit.splitterPos, 0)
+						child0.setPos(0,0)
 						child0.setSize(splitter.getPosX(), height)
-						child1.setPosX(JDataSplit.splitterPos + splitterThick)
+						child1.setPos(JDataSplit.splitterPos + splitterThick,0)
 						child1.setSize(width - (JDataSplit.splitterPos + splitterThick), height)
 						break
 					case "ew":
@@ -179,17 +180,19 @@ namespace JSW{
 						let p = width - JDataSplit.splitterPos - splitterThick
 						splitter.setSize(splitterThick, height)
 						splitter.setPos(p, 0)
+						child1.setPos(0,0)
 						child1.setSize(p, height)
-						child0.setPosX(p + splitterThick)
-						child0.setSize(p + splitterThick, height)
+						child0.setPos(p + splitterThick,0)
+						child0.setSize(JDataSplit.splitterPos, height)
 						break
 					case "ns":
 						if (JDataSplit.splitterPos >= height - splitterThick)
 							JDataSplit.splitterPos = height - splitterThick - 1
 						splitter.setSize(width, splitterThick)
 						splitter.setPos(0, JDataSplit.splitterPos)
+						child0.setPos(0,0)
 						child0.setSize(width, JDataSplit.splitterPos)
-						child1.setPosY(JDataSplit.splitterPos + splitterThick)
+						child1.setPos(0,JDataSplit.splitterPos + splitterThick)
 						child1.setSize(width, height - (JDataSplit.splitterPos + splitterThick))
 						break
 					case "sn":
@@ -198,9 +201,10 @@ namespace JSW{
 						splitter.setSize(width, splitterThick)
 						p = height - JDataSplit.splitterPos - splitterThick
 						splitter.setPos(0, p)
+						child1.setPos(0,0)
 						child1.setSize(width, p)
-						child0.setPosY(p + splitterThick)
-						child0.setSize(width, p + splitterThick)
+						child0.setPos(0,p + splitterThick)
+						child0.setSize(width, JDataSplit.splitterPos)
 						break
 				}
 			})
@@ -248,7 +252,8 @@ namespace JSW{
 		 * @memberof Splitter
 		 */
 		setSplitterPos(pos: number, type?: 'ns' | 'sn' | 'ew' | 'we') {
-			this.JDataSplit.pos = pos
+			if(pos != null)
+				this.JDataSplit.pos = pos
 			if (type) {
 				this.JDataSplit.type = type
 			}

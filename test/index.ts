@@ -12,11 +12,23 @@ function Main() {
 	})
 
 
-		//各ウインドウのインスタンスを作成
+	//各ウインドウのインスタンスを作成
 	const frame = new JSW.FrameWindow()
 	const splitter = new JSW.Splitter()
 	const tree = new JSW.TreeView()
 	const list = new JSW.ListView()
+	const panel = new JSW.Panel()
+	frame.addChild(panel,'top')
+
+	const names = ["we","ew","ns","sn"]
+	for(let n of names){
+		const button = document.createElement('button')
+		button.innerText = n
+		button.addEventListener('click',function(){
+			splitter.setSplitterPos(200,this.innerText as any)
+		})
+		panel.getClient().appendChild(button)
+	}
 
 	//タイトル設定
 	frame.setTitle('分割ウインドウのサンプル')

@@ -21,6 +21,8 @@ function Sample06() {
 	//weは左が領域0、右が領域1
 	//nsにすると上下分割も可能
 	splitter.setSplitterPos(200,'we')
+	//表示領域が300を切ると、動的なオーバーレイ表示にする
+	splitter.setOverlay(true,300)
 
 	//treeにアイテムを追加
 	tree.getRootItem().setItemText('最上位アイテム')
