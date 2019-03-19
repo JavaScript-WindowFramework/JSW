@@ -1344,6 +1344,34 @@ var JSW;
 /// <reference path="./Window.ts" />
 var JSW;
 (function (JSW) {
+    var Button = /** @class */ (function (_super) {
+        __extends(Button, _super);
+        function Button(text) {
+            var _this = _super.call(this) || this;
+            _this.setMargin(1, 1, 1, 1);
+            _this.setAutoSize(true);
+            var node = _this.getClient();
+            node.dataset.kind = 'JButton';
+            var nodeText = document.createElement('span');
+            nodeText.style.whiteSpace = 'nowrap';
+            node.appendChild(nodeText);
+            _this.nodeText = nodeText;
+            if (text)
+                _this.setText(text);
+            return _this;
+        }
+        Button.prototype.setText = function (text) {
+            var nodeText = this.nodeText;
+            nodeText.textContent = text;
+            this.layout();
+        };
+        return Button;
+    }(JSW.Window));
+    JSW.Button = Button;
+})(JSW || (JSW = {}));
+/// <reference path="./Window.ts" />
+var JSW;
+(function (JSW) {
     var DrawerView = /** @class */ (function (_super) {
         __extends(DrawerView, _super);
         function DrawerView() {
@@ -2340,6 +2368,40 @@ var JSW;
         return Splitter;
     }(JSW.Window));
     JSW.Splitter = Splitter;
+})(JSW || (JSW = {}));
+/// <reference path="./Window.ts" />
+var JSW;
+(function (JSW) {
+    var TextBox = /** @class */ (function (_super) {
+        __extends(TextBox, _super);
+        function TextBox(text) {
+            var _this = _super.call(this) || this;
+            var node = _this.getClient();
+            var nodeText = document.createElement('input');
+            nodeText.style.width = '100%';
+            nodeText.style.height = '100%';
+            node.appendChild(nodeText);
+            _this.nodeText = nodeText;
+            //デフォルトの高さをinputタグに合わせる
+            var size = nodeText.getBoundingClientRect();
+            _this.setSize(300, size.top + size.bottom + 1);
+            if (text)
+                _this.setText(text);
+            return _this;
+        }
+        TextBox.prototype.setText = function (text) {
+            var nodeText = this.nodeText;
+            nodeText.value = text;
+        };
+        TextBox.prototype.getText = function () {
+            return this.nodeText.value;
+        };
+        TextBox.prototype.getTextNode = function () {
+            return this.nodeText;
+        };
+        return TextBox;
+    }(JSW.Window));
+    JSW.TextBox = TextBox;
 })(JSW || (JSW = {}));
 /// <reference path="./Window.ts" />
 //

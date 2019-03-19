@@ -597,6 +597,13 @@ declare namespace JSW {
         constructor(param?: any);
     }
 }
+declare namespace JSW {
+    class Button extends Window {
+        nodeText: HTMLElement;
+        constructor(text?: string);
+        setText(text: string): void;
+    }
+}
 declare module JSW {
     interface ListViewEventMap extends WINDOW_EVENT_MAP {
         "selectItem": {
@@ -935,6 +942,15 @@ declare namespace JSW {
          * @memberof Splitter
          */
         getChild(index: number): Window;
+    }
+}
+declare namespace JSW {
+    class TextBox extends Window {
+        nodeText: HTMLInputElement;
+        constructor(text?: string);
+        setText(text: string): void;
+        getText(): string;
+        getTextNode(): HTMLInputElement;
     }
 }
 declare namespace JSW {
