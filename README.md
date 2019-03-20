@@ -31,11 +31,9 @@ JavaScriptでウインドウシステムを扱うためのフレームワーク<
 　基本的にはJavaScriptと同じだが、型宣言は以下のように利用する<br>
 	定義だけ必要な場合はソースコード中に以下の参照設定を入れる(パスは適宜修正)<br>
 		///<reference path="js/jsw.d.ts"/><br>
-	自分のプロジェクトに組み込む場合は、以下のファイルをコピー<br>
-		"src/jsw.ts"<br>
 
-・webpackのようなパッケージバンドラとimportを前提とする場合<br>
-　"src/jsw.ts"の以下の行にexportを入れるとモジュール化される<br>
+・webpackのようなモジュールバンドラとimportを前提とする場合<br>
+　"src/jsw.ts" の以下の行にexportを入れるとモジュール化される <br>
 　export namespace JSW {<br>
 
 ## ターゲット
@@ -43,4 +41,5 @@ TypeScript+ES5(JavaScript)<br>
 IE11で動作するレベルのDOM<br>
 
 ## ライセンス
-[MIT License](https://opensource.org/licenses/mit-license.php)
+[MIT License](https://opensource.org/licenses/mit-license.php)<br>
+ソースの利用に制限はありませんが、無保証です<br>
