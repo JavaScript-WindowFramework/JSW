@@ -172,6 +172,7 @@ namespace JSW {
 			if (!WindowManager.layoutHandler) {
 				//タイマーによる遅延実行
 				WindowManager.layoutHandler = setTimeout(function () {
+					WindowManager.layoutHandler = null
 					let nodes = document.querySelectorAll("[data-jsw=Window]")
 					let count = nodes.length
 					for (let i = 0; i < count; i++) {
@@ -180,7 +181,7 @@ namespace JSW {
 							node.Jsw.onMeasure(WindowManager.layoutForced)
 						node.Jsw.onLayout(WindowManager.layoutForced)
 					}
-					WindowManager.layoutHandler = null
+
 					WindowManager.layoutForced = false
 				}, 0)
 			}

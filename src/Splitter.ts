@@ -42,14 +42,15 @@ namespace JSW{
 		 */
 		constructor(splitPos?: number, splitType?: 'ns' | 'sn' | 'ew' | 'we') {
 			super()
+			this.setJswStyle('SplitterView')
 			this.setSize(640, 480)
 			if(splitPos != null)
 				this.JDataSplit.splitterPos = splitPos
 			if(splitType != null){
 				this.JDataSplit.splitterType = splitType
 			}
-			this.getClient().dataset.kind = 'SplitterView'
-			this.getClient().dataset.splitterType = this.JDataSplit.splitterType
+			const client = this.getClient()
+			client.dataset.splitterType = this.JDataSplit.splitterType
 			this.JDataSplit.childList = [new Window(), new Window()]
 			super.addChild(this.JDataSplit.childList[0])
 			super.addChild(this.JDataSplit.childList[1])
@@ -59,7 +60,7 @@ namespace JSW{
 			this.JDataSplit.menuIcon = icon
 			icon.dataset.kind = 'SplitterMenu'
 			icon.style.display = 'none'
-			this.getClient().appendChild(icon)
+			client.appendChild(icon)
 			icon.addEventListener('click',()=>{
 				const child0 = this.JDataSplit.childList[0]
 				this.JDataSplit.childList[0].addEventListener('visibled', e => {
@@ -75,7 +76,7 @@ namespace JSW{
 
 			let splitter = new Window()
 			this.JDataSplit.splitter = splitter
-			splitter.getNode().dataset.kind = 'Splitter'
+			splitter.setJswStyle('Splitter')
 			splitter.setOrderTop(true)
 			splitter.setNoActive(true)
 			super.addChild(splitter)
@@ -91,7 +92,7 @@ namespace JSW{
 				let splitterThick = JDataSplit.splitterThick
 				let x = p.nodePoint.x + p.nowPoint.x - p.basePoint.x
 				let y = p.nodePoint.y + p.nowPoint.y - p.basePoint.y
-				switch (that.getNode().dataset.splitterType) {
+				switch (that.getClient().dataset.splitterType) {
 					case "ns":
 						JDataSplit.splitterPos = y
 						break

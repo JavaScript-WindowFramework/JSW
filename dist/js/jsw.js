@@ -135,6 +135,7 @@ var JSW;
             if (!WindowManager.layoutHandler) {
                 //タイマーによる遅延実行
                 WindowManager.layoutHandler = setTimeout(function () {
+                    WindowManager.layoutHandler = null;
                     var nodes = document.querySelectorAll("[data-jsw=Window]");
                     var count = nodes.length;
                     for (var i = 0; i < count; i++) {
@@ -143,7 +144,6 @@ var JSW;
                             node.Jsw.onMeasure(WindowManager.layoutForced);
                         node.Jsw.onLayout(WindowManager.layoutForced);
                     }
-                    WindowManager.layoutHandler = null;
                     WindowManager.layoutForced = false;
                 }, 0);
             }
@@ -224,6 +224,7 @@ var JSW;
          * @memberof Window
          */
         function Window(params) {
+            var _this = this;
             this.Events = new Map();
             this.JData = {
                 x: 0,
@@ -250,17 +251,23 @@ var JSW;
                 moveable: false,
                 reshow: true,
                 noActive: false,
-                animation: {}
+                animation: {},
+                autoSizeNode: null
             };
             //ウインドウ用ノードの作成
             var hNode = document.createElement('DIV');
             hNode.Jsw = this;
-            this.JData.clientArea = hNode;
             this.hNode = hNode;
             hNode.dataset.jsw = "Window";
             //位置を絶対位置指定
             hNode.style.position = 'absolute';
             hNode.style.visibility = 'hidden';
+            //クライアント領域を作成
+            var client = document.createElement('div');
+            this.JData.clientArea = client;
+            client.dataset.jswType = 'client';
+            hNode.appendChild(client);
+            //パラメータに従いウインドウの作成
             if (params) {
                 if (params.frame) {
                     this.addFrame(params.title == null ? true : params.title);
@@ -278,6 +285,15 @@ var JSW;
                     this.setOverlap(params.overlap);
                 }
             }
+            hNode.addEventListener("animationend", function () {
+                _this.layout();
+            });
+            // hNode.addEventListener("animationiteration", () => {
+            // 	this.layout()
+            // });
+            // hNode.addEventListener("animationstart", () => {
+            // 	this.layout()
+            // });
             //移動に備えて、必要な情報を収集
             hNode.addEventListener("touchstart", this.onMouseDown.bind(this), { passive: false });
             hNode.addEventListener("mousedown", this.onMouseDown.bind(this));
@@ -300,6 +316,9 @@ var JSW;
         Window.prototype.setOverlap = function (flag) {
             this.hNode.style.position = flag ? 'fixed' : 'absolute';
         };
+        Window.prototype.setJswStyle = function (style) {
+            this.getNode().dataset.jswStyle = style;
+        };
         //フレーム追加処理
         Window.prototype.addFrame = function (titleFlag) {
             this.hNode.dataset.jswType = 'Frame';
@@ -316,8 +335,7 @@ var JSW;
                 ["border", "cursor:ne-resize;right:-{0}px;top:-{0}px;width:{0}px;height:{0}px;"],
                 ["border", "cursor:sw-resize;left:-{0}px;bottom:-{0}px;width:{0}px;height:{0}px;"],
                 ["border", "cursor:se-resize;right:-{0}px;bottom:-{0}px;width:{0}px;height:{0}px;"],
-                ["title", "left:0px;top:0px;right:0px;height:{1}px"],
-                ["client", "left:0px;top:{1}px;right:0px;bottom:0px"],
+                ["title", "left:0px;top:0px;right:0px;height:{1}px"] //タイトル
             ];
             //フレームクリックイベントの処理
             function onFrame() {
@@ -332,29 +350,29 @@ var JSW;
                 var frame = document.createElement('div');
                 frame.style.cssText = frameStyles[i][1].replace(/\{0\}/g, FRAME_SIZE.toString()).replace(/\{1\}/g, this.JData.titleSize.toString());
                 frame.dataset.index = i.toString();
-                frame.dataset.jswStyle = frameStyles[i][0];
+                frame.dataset.jswType = frameStyles[i][0];
                 this.hNode.appendChild(frame);
                 frame.addEventListener("touchstart", onFrame, { passive: false });
                 frame.addEventListener("touchend", function () { JSW.WindowManager.frame = null; }, { passive: false });
                 frame.addEventListener("mousedown", onFrame, false);
                 frame.addEventListener("mouseup", function () { JSW.WindowManager.frame = null; }, false);
             }
+            this.JData.frameSize = 1;
+            this.getClient().style.top = this.JData.titleSize + 'px';
             var node = this.hNode;
             //タイトルバーの作成
-            var title = node.childNodes[8];
-            var titleText = JSW.WindowManager.createElement("div", { "dataset": { jswStyle: "text" } });
+            var title = node.childNodes[9];
+            var titleText = JSW.WindowManager.createElement("div", { "dataset": { jswType: "text" } });
             title.appendChild(titleText);
             //アイコンの作成
             var icons = ["min", "max", "close"];
             for (var index in icons) {
-                var icon = JSW.WindowManager.createElement("div", { style: { "width": this.JData.titleSize + "px", "height": this.JData.titleSize + "px" }, "dataset": { jswStyle: "icon", jswKind: icons[index] } });
+                var icon = JSW.WindowManager.createElement("div", { style: { "width": this.JData.titleSize + "px", "height": this.JData.titleSize + "px" }, "dataset": { jswType: "icon", jswKind: icons[index] } });
                 title.appendChild(icon);
                 icon.addEventListener("click", function () {
                     JSW.WindowManager.callEvent(node, "JSW" + this.dataset.jswKind);
                 });
             }
-            //クライアント領域の取得を書き換える
-            this.JData.clientArea = this.hNode.childNodes[9];
         };
         Window.prototype.onMouseDown = function (e) {
             if (JSW.WindowManager.moveNode == null) {
@@ -621,6 +639,8 @@ var JSW;
             this.JData.width = parseInt(width);
             this.JData.height = parseInt(height);
             this.layout();
+            if (this.getParent())
+                this.getParent().layout();
         };
         /**
          *ウインドウの幅の設定
@@ -631,6 +651,8 @@ var JSW;
         Window.prototype.setWidth = function (width) {
             this.JData.width = parseInt(width);
             this.layout();
+            if (this.getParent())
+                this.getParent().layout();
         };
         /**
          *ウインドウの高さの設定
@@ -641,6 +663,8 @@ var JSW;
         Window.prototype.setHeight = function (height) {
             this.JData.height = parseInt(height);
             this.layout();
+            if (this.getParent())
+                this.getParent().layout();
         };
         /**
          * クライアント領域のpadding設定
@@ -777,12 +801,42 @@ var JSW;
                 this.getNode().dataset.jswActive = (flag || flag == null) ? 'true' : 'false';
         };
         /**
-         *子ウインドウのサイズを再計算
+         *親のクライアント領域を返す
          *
-         * @param {boolean} flag true:強制再計算 false:必要があれば再計算
-         * @returns {boolean} 再計算の必要を行ったかどうか
+         * @returns
          * @memberof Window
          */
+        Window.prototype.getParentWidth = function () {
+            var node = this.hNode;
+            if (node.style.position === 'fixed')
+                return window.innerWidth;
+            var parent = node.parentNode;
+            if (parent.Jsw)
+                return parent.Jsw.getWidth();
+            return parent.offsetWidth;
+        };
+        /**
+         *親のクライアント領域を返す
+         *
+         * @returns
+         * @memberof Window
+         */
+        Window.prototype.getParentHeight = function () {
+            var node = this.hNode;
+            if (node.style.position === 'fixed')
+                return window.innerHeight;
+            var parent = node.parentNode;
+            if (parent.Jsw)
+                return parent.Jsw.getHeight();
+            return parent.offsetHeight;
+        };
+        /**
+         *子ウインドウのサイズを再計算
+        *
+        * @param {boolean} flag true:強制再計算 false:必要があれば再計算
+        * @returns {boolean} 再計算の必要を行ったかどうか
+        * @memberof Window
+        */
         Window.prototype.onMeasure = function (flag) {
             //表示状態の更新
             if (this.JData.reshow) {
@@ -796,44 +850,24 @@ var JSW;
             for (var i = 0; i < client.childNodes.length; i++) {
                 var node = client.childNodes[i];
                 if (node.dataset && node.dataset.jsw === "Window")
-                    flag |= node.Jsw.onMeasure(false);
+                    flag |= node.Jsw.onMeasure(flag);
             }
+            if (!flag && !this.JData.redraw)
+                return false;
+            this.layout();
             if (!this.isAutoSize())
                 return false;
-            if (!flag && !this.JData.redraw) {
+            this.callEvent('measure', {});
+            var width = this.getClient().scrollWidth;
+            var height = this.getClient().scrollHeight;
+            if (width === this.getClientWidth() && height === this.getClientHeight())
                 return false;
-            }
+            this.setClientSize(width, height);
             this.JData.redraw = true;
-            this.getClient().style.width = 'auto';
-            this.getClient().style.height = 'auto';
-            this.setClientSize(this.getClient().scrollWidth, this.getClient().scrollHeight);
+            if (this.getParent())
+                this.getParent().layout();
+            //this.layout()
             return true;
-        };
-        /**
-         *親のクライアント領域を返す
-         *
-         * @returns
-         * @memberof Window
-         */
-        Window.prototype.getParentWidth = function () {
-            var node = this.hNode;
-            if (node.style.position === 'fixed')
-                return window.innerWidth;
-            var parent = node.parentNode;
-            return parent.scrollWidth;
-        };
-        /**
-         *親のクライアント領域を返す
-         *
-         * @returns
-         * @memberof Window
-         */
-        Window.prototype.getParentHeight = function () {
-            var node = this.hNode;
-            if (node.style.position === 'fixed')
-                return window.innerHeight;
-            var parent = node.parentNode;
-            return parent.scrollHeight;
         };
         /**
          *位置やサイズの確定処理
@@ -843,6 +877,7 @@ var JSW;
          */
         Window.prototype.onLayout = function (flag) {
             if (flag || this.JData.redraw) {
+                this.onMeasure(true); //直下の子リスト
                 if (this.hNode.dataset.jswStat == 'maximize') {
                     this.setPos(0, 0);
                     this.setSize(this.getParentWidth(), this.getParentHeight());
@@ -855,7 +890,6 @@ var JSW;
                 flag = true;
                 this.callEvent('layout', {});
             }
-            //直下の子リスト
             var client = this.getClient();
             var nodes = [];
             for (var i = 0; i < client.childElementCount; i++) {
@@ -918,6 +952,7 @@ var JSW;
             }
             this.JData.redraw = false;
             this.orderSort(client);
+            this.callEvent('layouted', {});
         };
         Window.prototype.orderSort = function (client) {
             var nodes = [];
@@ -1107,7 +1142,7 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setClientSize = function (width, height) {
-            this.setSize(this.getNode().offsetWidth - this.getClientWidth() + width, this.getNode().offsetHeight - this.getClientHeight() + height);
+            this.setSize(width + this.JData.frameSize * 2, height + this.JData.frameSize * 2 + this.JData.titleSize);
         };
         /**
          *クライアントサイズを元にウインドウサイズを設定
@@ -1116,7 +1151,7 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setClientWidth = function (width) {
-            this.setWidth(this.getNode().offsetWidth - this.getClientWidth() + width);
+            this.setWidth(width + this.JData.frameSize * 2);
         };
         /**
          *クライアントサイズを元にウインドウサイズを設定
@@ -1125,7 +1160,7 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setClientHeight = function (height) {
-            this.setHeight(this.getNode().offsetHeight - this.getClientHeight() + height);
+            this.setWidth(height + this.JData.frameSize * 2 + this.JData.titleSize);
         };
         /**
          *クライアントサイズを取得
@@ -1134,7 +1169,7 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.getClientWidth = function () {
-            return this.getClient().clientWidth;
+            return this.getWidth() - this.JData.frameSize * 2;
         };
         /**
          *クライアントサイズを取得
@@ -1143,7 +1178,7 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.getClientHeight = function () {
-            return this.getClient().clientHeight;
+            return this.getHeight() - this.JData.frameSize * 2 - this.JData.titleSize;
         };
         /**
          *子ノードの追加
@@ -1226,8 +1261,8 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setTitle = function (title) {
-            if (this.hNode.childNodes[8]) {
-                this.hNode.childNodes[8].childNodes[0].textContent = title;
+            if (this.hNode.childNodes[9]) {
+                this.hNode.childNodes[9].childNodes[0].textContent = title;
             }
         };
         /**
@@ -1237,8 +1272,8 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.getTitle = function () {
-            if (this.hNode.childNodes[8]) {
-                return this.hNode.childNodes[8].childNodes[0].textContent;
+            if (this.hNode.childNodes[9]) {
+                return this.hNode.childNodes[9].childNodes[0].textContent;
             }
             return "";
         };
@@ -1344,26 +1379,76 @@ var JSW;
 /// <reference path="./Window.ts" />
 var JSW;
 (function (JSW) {
+    /**
+     *ボタン用クラス
+     *
+     * @export
+     * @class Button
+     * @extends {Window}
+     */
     var Button = /** @class */ (function (_super) {
         __extends(Button, _super);
+        /**
+         *Creates an instance of Button.
+         * @param {string} [text] ボタンに設定するテキスト
+         * @memberof Button
+         */
         function Button(text) {
             var _this = _super.call(this) || this;
-            _this.setMargin(1, 1, 1, 1);
             _this.setAutoSize(true);
+            _this.getNode().dataset.jswStyle = 'Button';
             var node = _this.getClient();
-            node.dataset.kind = 'JButton';
+            node.tabIndex = 0;
             var nodeText = document.createElement('span');
             nodeText.style.whiteSpace = 'nowrap';
             node.appendChild(nodeText);
             _this.nodeText = nodeText;
             if (text)
                 _this.setText(text);
+            node.addEventListener('keypress', function (e) {
+                if (e.keyCode !== 13)
+                    _this.callEvent('submit', { event: e });
+            });
+            node.addEventListener('click', function (e) {
+                _this.callEvent('buttonClick', { event: e });
+                _this.callEvent('submit', { event: e });
+            });
+            node.addEventListener('dblclick', function (e) {
+                _this.callEvent('buttonDblClick', { event: e });
+            });
             return _this;
         }
+        /**
+         *ボタンに対してテキストを設定する
+         *
+         * @param {string} text
+         * @memberof Button
+         */
         Button.prototype.setText = function (text) {
             var nodeText = this.nodeText;
             nodeText.textContent = text;
             this.layout();
+        };
+        /**
+         *ボタンに設定したテキストを取得する
+         *
+         * @returns {string}
+         * @memberof Button
+         */
+        Button.prototype.getText = function () {
+            return this.nodeText.textContent;
+        };
+        /**
+         *イベントの設定
+         * 'buttonClick','buttonDblClick'
+         *
+         * @template K
+         * @param {K} type
+         * @param {(ev: ButtonEventMap[K]) => any} listener
+         * @memberof Button
+         */
+        Button.prototype.addEventListener = function (type, listener) {
+            _super.prototype.addEventListener.call(this, type, listener);
         };
         return Button;
     }(JSW.Window));
@@ -1425,6 +1510,63 @@ var JSW;
 /// <reference path="./Window.ts" />
 var JSW;
 (function (JSW) {
+    var Label = /** @class */ (function (_super) {
+        __extends(Label, _super);
+        function Label(text) {
+            var _this = _super.call(this) || this;
+            var node = _this.getClient();
+            node.style.overflow = 'visible';
+            node.style.display = 'flex';
+            var nodeText = document.createElement('span');
+            node.appendChild(nodeText);
+            _this.nodeText = nodeText;
+            if (text)
+                _this.setText(text);
+            //this.setAutoSize(true)
+            _this.addEventListener('layout', function () {
+                _this.resize();
+            });
+            return _this;
+        }
+        Label.prototype.resize = function () {
+            //デフォルトの高さをタグに合わせる
+            var height = this.getHeight();
+            var size = this.nodeText.getBoundingClientRect();
+            var height2 = size.bottom - size.top;
+            if (height !== height2) {
+                this.setHeight(height2);
+                var parent_1 = this.getParent();
+                if (parent_1)
+                    parent_1.layout();
+            }
+        };
+        Label.prototype.setFontSize = function (size) {
+            var nodeText = this.nodeText;
+            nodeText.style.fontSize = size + 'px';
+            this.layout();
+        };
+        Label.prototype.setText = function (text) {
+            var nodeText = this.nodeText;
+            nodeText.textContent = text;
+        };
+        Label.prototype.getText = function () {
+            return this.nodeText.textContent;
+        };
+        Label.prototype.getTextNode = function () {
+            return this.nodeText;
+        };
+        Label.prototype.setAlign = function (style) {
+            var node = this.getClient();
+            node.style.alignItems = style;
+            node.style.justifyContent = style;
+        };
+        return Label;
+    }(JSW.Window));
+    JSW.Label = Label;
+})(JSW || (JSW = {}));
+/// <reference path="./Window.ts" />
+var JSW;
+(function (JSW) {
     /**
      *ListView用クラス
     *
@@ -1450,7 +1592,7 @@ var JSW;
             _this.areaWidth = 0;
             var that = _this;
             var client = _this.getClient();
-            client.dataset.kind = 'ListView';
+            client.dataset.jswStyle = 'ListView';
             var headerBack = document.createElement('div');
             _this.headerBack = headerBack;
             headerBack.dataset.kind = 'ListHeaderBack';
@@ -2086,13 +2228,20 @@ var JSW;
 /// <reference path="./Window.ts" />
 var JSW;
 (function (JSW) {
+    /**
+     *パネル用クラス
+     *
+     * @export
+     * @class Panel
+     * @extends {Window}
+     */
     var Panel = /** @class */ (function (_super) {
         __extends(Panel, _super);
         function Panel() {
             var _this = _super.call(this) || this;
             _this.setHeight(32);
-            var node = _this.getClient();
-            node.dataset.kind = 'Panel';
+            var node = _this.getNode();
+            node.dataset.jswStyle = 'Panel';
             return _this;
         }
         return Panel;
@@ -2130,14 +2279,15 @@ var JSW;
                 childList: null,
                 drawerWidth: 0
             };
+            _this.setJswStyle('SplitterView');
             _this.setSize(640, 480);
             if (splitPos != null)
                 _this.JDataSplit.splitterPos = splitPos;
             if (splitType != null) {
                 _this.JDataSplit.splitterType = splitType;
             }
-            _this.getClient().dataset.kind = 'SplitterView';
-            _this.getClient().dataset.splitterType = _this.JDataSplit.splitterType;
+            var client = _this.getClient();
+            client.dataset.splitterType = _this.JDataSplit.splitterType;
             _this.JDataSplit.childList = [new JSW.Window(), new JSW.Window()];
             _super.prototype.addChild.call(_this, _this.JDataSplit.childList[0]);
             _super.prototype.addChild.call(_this, _this.JDataSplit.childList[1]);
@@ -2145,7 +2295,7 @@ var JSW;
             _this.JDataSplit.menuIcon = icon;
             icon.dataset.kind = 'SplitterMenu';
             icon.style.display = 'none';
-            _this.getClient().appendChild(icon);
+            client.appendChild(icon);
             icon.addEventListener('click', function () {
                 var child0 = _this.JDataSplit.childList[0];
                 _this.JDataSplit.childList[0].addEventListener('visibled', function (e) {
@@ -2159,7 +2309,7 @@ var JSW;
             });
             var splitter = new JSW.Window();
             _this.JDataSplit.splitter = splitter;
-            splitter.getNode().dataset.kind = 'Splitter';
+            splitter.setJswStyle('Splitter');
             splitter.setOrderTop(true);
             splitter.setNoActive(true);
             _super.prototype.addChild.call(_this, splitter);
@@ -2173,7 +2323,7 @@ var JSW;
                 var splitterThick = JDataSplit.splitterThick;
                 var x = p.nodePoint.x + p.nowPoint.x - p.basePoint.x;
                 var y = p.nodePoint.y + p.nowPoint.y - p.basePoint.y;
-                switch (that.getNode().dataset.splitterType) {
+                switch (that.getClient().dataset.splitterType) {
                     case "ns":
                         JDataSplit.splitterPos = y;
                         break;
@@ -2374,27 +2524,64 @@ var JSW;
 (function (JSW) {
     var TextBox = /** @class */ (function (_super) {
         __extends(TextBox, _super);
-        function TextBox(text) {
+        function TextBox(params) {
             var _this = _super.call(this) || this;
+            _this.getNode().dataset.jswStyle = 'TextBox';
             var node = _this.getClient();
+            node.style.overflow = 'visible';
+            var img = document.createElement('img');
+            if (params && params.image)
+                img.src = params.image;
+            node.appendChild(img);
+            var textArea = document.createElement('div');
+            node.appendChild(textArea);
+            var nodeLabel = document.createElement('div');
+            textArea.appendChild(nodeLabel);
+            if (params && params.label)
+                nodeLabel.textContent = params.label;
             var nodeText = document.createElement('input');
-            nodeText.style.width = '100%';
-            nodeText.style.height = '100%';
-            node.appendChild(nodeText);
+            if (params && params.type)
+                nodeText.type = params.type;
+            textArea.appendChild(nodeText);
             _this.nodeText = nodeText;
             //デフォルトの高さをinputタグに合わせる
             var size = nodeText.getBoundingClientRect();
-            _this.setSize(300, size.top + size.bottom + 1);
-            if (text)
-                _this.setText(text);
+            _this.setSize(300, size.top + size.bottom);
+            if (params && params.text)
+                _this.setText(params.text);
+            _this.addEventListener('layouted', function () {
+                _this.resize();
+            });
+            _this.addEventListener('measure', function () {
+                _this.resize();
+            });
             return _this;
         }
+        TextBox.prototype.resize = function () {
+            //デフォルトの高さをタグに合わせる
+            var height = this.getHeight();
+            var size = this.nodeText.getBoundingClientRect();
+            var height2 = size.bottom - size.top;
+            if (height !== height2) {
+                this.setHeight(height2);
+                var parent_2 = this.getParent();
+                if (parent_2)
+                    parent_2.layout();
+            }
+        };
         TextBox.prototype.setText = function (text) {
             var nodeText = this.nodeText;
             nodeText.value = text;
         };
         TextBox.prototype.getText = function () {
             return this.nodeText.value;
+        };
+        TextBox.prototype.setLabel = function (text) {
+            var node = this.nodeLabel;
+            node.textContent = text;
+        };
+        TextBox.prototype.getLabel = function () {
+            return this.nodeLabel.textContent;
         };
         TextBox.prototype.getTextNode = function () {
             return this.nodeText;
@@ -2793,9 +2980,9 @@ var JSW;
                 item.getNode().dataset.select = 'true';
                 this.mSelectItem = item;
                 item.openItem(true);
-                var parent_1 = item;
-                while (parent_1 = parent_1.getParentItem()) {
-                    parent_1.openItem(true);
+                var parent_3 = item;
+                while (parent_3 = parent_3.getParentItem()) {
+                    parent_3.openItem(true);
                 }
                 if (scroll) {
                     this.getClient().scrollTo(0, item.getNode().offsetTop - this.getClientHeight() / 2);
