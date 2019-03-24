@@ -156,6 +156,7 @@ declare namespace JSW {
         reshow: boolean;
         animation: {};
         noActive: boolean;
+        autoSizeNode: HTMLElement;
     }
     interface WINDOW_EVENT_MAP {
         any: any;
@@ -191,6 +192,7 @@ declare namespace JSW {
             overlap?: boolean;
         });
         setOverlap(flag: boolean): void;
+        setJswStyle(style: string): void;
         private addFrame;
         private onMouseDown;
         private onMouseMove;
@@ -377,14 +379,6 @@ declare namespace JSW {
         layout(): void;
         active(flag?: boolean): void;
         /**
-         *子ウインドウのサイズを再計算
-         *
-         * @param {boolean} flag true:強制再計算 false:必要があれば再計算
-         * @returns {boolean} 再計算の必要を行ったかどうか
-         * @memberof Window
-         */
-        onMeasure(flag: boolean): boolean;
-        /**
          *親のクライアント領域を返す
          *
          * @returns
@@ -398,6 +392,14 @@ declare namespace JSW {
          * @memberof Window
          */
         getParentHeight(): number;
+        /**
+         *子ウインドウのサイズを再計算
+        *
+        * @param {boolean} flag true:強制再計算 false:必要があれば再計算
+        * @returns {boolean} 再計算の必要を行ったかどうか
+        * @memberof Window
+        */
+        onMeasure(flag: boolean): boolean;
         /**
          *位置やサイズの確定処理
          *非同期で必要なときに呼び出されるので、基本的には直接呼び出さないこと
@@ -598,10 +600,52 @@ declare namespace JSW {
     }
 }
 declare namespace JSW {
+    interface BUTTON_EVENT_ITEM_CLICK {
+        event: Event;
+    }
+    interface ButtonEventMap extends WINDOW_EVENT_MAP {
+        "buttonClick": BUTTON_EVENT_ITEM_CLICK;
+        "buttonDblClick": BUTTON_EVENT_ITEM_CLICK;
+    }
+    /**
+     *ボタン用クラス
+     *
+     * @export
+     * @class Button
+     * @extends {Window}
+     */
     class Button extends Window {
         nodeText: HTMLElement;
+        /**
+         *Creates an instance of Button.
+         * @param {string} [text] ボタンに設定するテキスト
+         * @memberof Button
+         */
         constructor(text?: string);
+        /**
+         *ボタンに対してテキストを設定する
+         *
+         * @param {string} text
+         * @memberof Button
+         */
         setText(text: string): void;
+        /**
+         *ボタンに設定したテキストを取得する
+         *
+         * @returns {string}
+         * @memberof Button
+         */
+        getText(): string;
+        /**
+         *イベントの設定
+         * 'buttonClick','buttonDblClick'
+         *
+         * @template K
+         * @param {K} type
+         * @param {(ev: ButtonEventMap[K]) => any} listener
+         * @memberof Button
+         */
+        addEventListener<K extends keyof ButtonEventMap>(type: K, listener: (ev: ButtonEventMap[K]) => any): void;
     }
 }
 declare module JSW {
@@ -620,19 +664,27 @@ declare module JSW {
     }
 }
 declare namespace JSW {
-    interface LISTVIEW_EVENT_ITEM_CLICK extends Event {
-        params: {
-            itemIndex: number;
-            subItemIndex: number;
-            event: MouseEvent;
-        };
+    class Label extends Window {
+        nodeText: HTMLSpanElement;
+        constructor(text?: string);
+        resize(): void;
+        setFontSize(size: number): void;
+        setText(text: string): void;
+        getText(): string;
+        getTextNode(): HTMLSpanElement;
+        setAlign(style: string): void;
+    }
+}
+declare namespace JSW {
+    interface LISTVIEW_EVENT_ITEM_CLICK {
+        itemIndex: number;
+        subItemIndex: number;
+        event: MouseEvent;
     }
     interface LISTVIEW_EVENT_DRAG_START {
-        params: {
-            itemIndex: number;
-            subItemIndex: number;
-            event: DragEvent;
-        };
+        itemIndex: number;
+        subItemIndex: number;
+        event: DragEvent;
     }
     interface ListViewEventMap extends WINDOW_EVENT_MAP {
         "itemClick": LISTVIEW_EVENT_ITEM_CLICK;
@@ -860,6 +912,13 @@ declare namespace JSW {
     }
 }
 declare namespace JSW {
+    /**
+     *パネル用クラス
+     *
+     * @export
+     * @class Panel
+     * @extends {Window}
+     */
     class Panel extends Window {
         constructor();
     }
@@ -946,10 +1005,19 @@ declare namespace JSW {
 }
 declare namespace JSW {
     class TextBox extends Window {
+        nodeLabel: HTMLElement;
         nodeText: HTMLInputElement;
-        constructor(text?: string);
+        constructor(params?: {
+            text?: string;
+            label?: string;
+            type?: string;
+            image?: string;
+        });
+        resize(): void;
         setText(text: string): void;
         getText(): string;
+        setLabel(text: string): void;
+        getLabel(): string;
         getTextNode(): HTMLInputElement;
     }
 }

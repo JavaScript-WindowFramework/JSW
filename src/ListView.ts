@@ -48,7 +48,7 @@ namespace JSW{
 			super(params)
 			const that = this
 			var client = this.getClient()
-			client.dataset.kind = 'ListView'
+			client.dataset.jswStyle = 'ListView'
 
 			var headerBack = document.createElement('div')
 			this.headerBack = headerBack

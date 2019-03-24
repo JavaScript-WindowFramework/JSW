@@ -1,5 +1,28 @@
 /// <reference path="../dist/js/jsw.d.ts" />
 
+function createLogin(){
+	const win = new JSW.FrameWindow()
+	win.setSize(640,480)
+	win.setTitle('タイトル')
+	const label = new JSW.Label('ログイン')
+	win.addChild(label,'top')
+	label.setAlign('center')
+	label.setFontSize(32)
+
+	const textBox = new JSW.TextBox({label:'ユーザID',image:'dist/css/images/login_id.svg'})
+	win.addChild(textBox, 'top')
+	textBox.setMargin(10,10,10,10)
+	const textBox2 = new JSW.TextBox({ label: 'パスワード', type: 'password', image: 'dist/css/images/login_pass.svg'})
+	textBox2.setMargin(10, 10, 10, 10)
+	win.addChild(textBox2, 'top')
+
+	const button = new JSW.Button('保存')
+	win.addChild(button,'top')
+
+	win.setPos()
+	return win
+}
+
 //ページ読み込み時に実行する処理を設定
 addEventListener("DOMContentLoaded", Main)
 //ページ読み込み後に実行される内容
@@ -22,12 +45,11 @@ function Main() {
 
 	const names = ["we","ew","ns","sn"]
 	for(let n of names){
-		const button = document.createElement('button')
-		button.innerText = n
-		button.addEventListener('click',function(){
-			splitter.setSplitterPos(200,this.innerText as any)
+		const button = new JSW.Button(n)
+		panel.addChild(button,'left')
+		button.addEventListener('buttonClick',function(){
+			splitter.setSplitterPos(200,button.getText() as any)
 		})
-		panel.getClient().appendChild(button)
 	}
 
 	//タイトル設定
@@ -68,4 +90,6 @@ function Main() {
 	//位置とサイズの設定
 	frame.setSize(800,600)
 	frame.setPos()
+
+	createLogin()
 }
