@@ -768,7 +768,7 @@ namespace JSW {
 
 			let client = this.getClient()
 			let nodes = []
-			for (let i = 0; i < client.childElementCount; i++) {
+			for (let i = 0; i < client.childNodes.length; i++) {
 				let node = client.childNodes[i] as HTMLElement
 				if (node.dataset && node.dataset.jsw === "Window")
 					nodes.push(node)
@@ -838,25 +838,22 @@ namespace JSW {
 		}
 		private orderSort(client:HTMLElement){
 			let nodes = []
-			for (let i = 0; i < client.childElementCount; i++) {
+			for (let i = 0; i < client.childNodes.length; i++) {
 				let node = client.childNodes[i] as HTMLElement
 				if (node.dataset && node.dataset.jsw === "Window")
 					nodes.push(node)
 			}
-
 			//重ね合わせソート
 			nodes.sort(function (anode: JNode, bnode: JNode) {
 				const a = anode.Jsw.JData
 				const b = bnode.Jsw.JData
-				console.log('TEST')
 				if (a.orderTop)
 					return 1
 				if (b.orderTop)
 					return -1
-				// let layer = a.orderLayer - b.orderLayer
-				// if (layer)
-				// 	return layer
-				console.log('%s %s', anode.style.zIndex, bnode.style.zIndex)
+				let layer = a.orderLayer - b.orderLayer
+				if (layer)
+					return layer
 				return parseInt(anode.style.zIndex) - parseInt(bnode.style.zIndex)
 			})
 
@@ -885,8 +882,9 @@ namespace JSW {
 			let activeNodes = new Set<HTMLElement>()
 			let p = this.hNode
 			do {
-				activeNodes.add(p)
+
 				if ((flag || flag == null) && p.dataset) {
+					activeNodes.add(p)
 					p.dataset.jswActive = 'true';
 					p.style.zIndex = '1000';
 					if (p.Jsw)
@@ -894,7 +892,7 @@ namespace JSW {
 				}
 				this.orderSort(p)
 			}
-			while (p = p.parentNode as JNode)
+			while (p = p.parentNode as JNode);
 
 			if (flag || flag == null) {
 				var activeWindows = document.querySelectorAll('[data-jsw="Window"][data-jsw-active="true"]')

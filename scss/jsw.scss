@@ -29,7 +29,7 @@
 		box-sizing: border-box;
 	}
 
-	&[data-jsw-active='true']>[data-jsw-type="title"] {
+	&[data-jsw-active="true"]>[data-jsw-type="title"] {
 		background-color: darken($TITLE_COLOR, 20%);
 		color: white
 	}

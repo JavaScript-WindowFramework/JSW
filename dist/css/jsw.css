@@ -27,7 +27,7 @@
   box-sizing: border-box;
 }
 
-[data-jsw="Window"][data-jsw-active='true'] > [data-jsw-type="title"] {
+[data-jsw="Window"][data-jsw-active="true"] > [data-jsw-type="title"] {
   background-color: #5577dd;
   color: white;
 }

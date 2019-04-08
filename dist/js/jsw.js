@@ -909,7 +909,7 @@ var JSW;
             }
             var client = this.getClient();
             var nodes = [];
-            for (var i = 0; i < client.childElementCount; i++) {
+            for (var i = 0; i < client.childNodes.length; i++) {
                 var node = client.childNodes[i];
                 if (node.dataset && node.dataset.jsw === "Window")
                     nodes.push(node);
@@ -973,7 +973,7 @@ var JSW;
         };
         Window.prototype.orderSort = function (client) {
             var nodes = [];
-            for (var i = 0; i < client.childElementCount; i++) {
+            for (var i = 0; i < client.childNodes.length; i++) {
                 var node = client.childNodes[i];
                 if (node.dataset && node.dataset.jsw === "Window")
                     nodes.push(node);
@@ -982,15 +982,13 @@ var JSW;
             nodes.sort(function (anode, bnode) {
                 var a = anode.Jsw.JData;
                 var b = bnode.Jsw.JData;
-                console.log('TEST');
                 if (a.orderTop)
                     return 1;
                 if (b.orderTop)
                     return -1;
-                // let layer = a.orderLayer - b.orderLayer
-                // if (layer)
-                // 	return layer
-                console.log('%s %s', anode.style.zIndex, bnode.style.zIndex);
+                var layer = a.orderLayer - b.orderLayer;
+                if (layer)
+                    return layer;
                 return parseInt(anode.style.zIndex) - parseInt(bnode.style.zIndex);
             });
             //Zオーダーの再附番
@@ -1019,8 +1017,8 @@ var JSW;
             var activeNodes = new Set();
             var p = this.hNode;
             do {
-                activeNodes.add(p);
                 if ((flag || flag == null) && p.dataset) {
+                    activeNodes.add(p);
                     p.dataset.jswActive = 'true';
                     p.style.zIndex = '1000';
                     if (p.Jsw)
