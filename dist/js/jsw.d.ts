@@ -193,6 +193,7 @@ declare namespace JSW {
         });
         setOverlap(flag: boolean): void;
         setJswStyle(style: string): void;
+        getJswStyle(): string;
         private addFrame;
         private onMouseDown;
         private onMouseMove;
@@ -636,6 +637,7 @@ declare namespace JSW {
          * @memberof Button
          */
         getText(): string;
+        setAlign(style: string): void;
         /**
          *イベントの設定
          * 'buttonClick','buttonDblClick'
@@ -646,6 +648,18 @@ declare namespace JSW {
          * @memberof Button
          */
         addEventListener<K extends keyof ButtonEventMap>(type: K, listener: (ev: ButtonEventMap[K]) => any): void;
+    }
+}
+declare namespace JSW {
+    class CheckBox extends Window {
+        nodeText: HTMLSpanElement;
+        constructor(params?: {
+            text?: string;
+            checked?: boolean;
+        });
+        setText(text: string): void;
+        getText(): string;
+        getTextNode(): HTMLSpanElement;
     }
 }
 declare module JSW {
@@ -667,7 +681,6 @@ declare namespace JSW {
     class Label extends Window {
         nodeText: HTMLSpanElement;
         constructor(text?: string);
-        resize(): void;
         setFontSize(size: number): void;
         setText(text: string): void;
         getText(): string;
@@ -1013,7 +1026,6 @@ declare namespace JSW {
             type?: string;
             image?: string;
         });
-        resize(): void;
         setText(text: string): void;
         getText(): string;
         setLabel(text: string): void;

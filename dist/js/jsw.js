@@ -176,7 +176,6 @@ var JSW;
             var w = activeWindows[i];
             w.dataset.jswActive = 'false';
             w.Jsw.callEvent('active', { active: false });
-            console.log('deactive');
         }
     }
     //マウスが離された場合に選択をリセット
@@ -318,6 +317,9 @@ var JSW;
         };
         Window.prototype.setJswStyle = function (style) {
             this.getNode().dataset.jswStyle = style;
+        };
+        Window.prototype.getJswStyle = function () {
+            return this.getNode().dataset.jswStyle;
         };
         //フレーム追加処理
         Window.prototype.addFrame = function (titleFlag) {
@@ -558,6 +560,8 @@ var JSW;
                 else
                     y = (parentHeight - height) / 2;
             }
+            if (this.JData.x === x && this.JData.y === y)
+                return;
             this.JData.x = x;
             this.JData.y = y;
             this.layout();
@@ -569,6 +573,9 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setPosX = function (x) {
+            x = parseInt(x);
+            if (this.JData.x === x)
+                return;
             this.JData.x = parseInt(x);
             this.layout();
         };
@@ -579,6 +586,9 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setPosY = function (y) {
+            y = parseInt(y);
+            if (this.JData.x === y)
+                return;
             this.JData.y = parseInt(y);
             this.layout();
         };
@@ -636,8 +646,12 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setSize = function (width, height) {
-            this.JData.width = parseInt(width);
-            this.JData.height = parseInt(height);
+            width = parseInt(width);
+            height = parseInt(height);
+            if (this.JData.width === width && this.JData.height === height)
+                return;
+            this.JData.width = width;
+            this.JData.height = height;
             this.layout();
             if (this.getParent())
                 this.getParent().layout();
@@ -649,7 +663,10 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setWidth = function (width) {
-            this.JData.width = parseInt(width);
+            width = parseInt(width);
+            if (this.JData.width === width)
+                return;
+            this.JData.width = width;
             this.layout();
             if (this.getParent())
                 this.getParent().layout();
@@ -661,7 +678,10 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setHeight = function (height) {
-            this.JData.height = parseInt(height);
+            height = parseInt(height);
+            if (this.JData.height === height)
+                return;
+            this.JData.height = height;
             this.layout();
             if (this.getParent())
                 this.getParent().layout();
@@ -727,7 +747,6 @@ var JSW;
                     node.removeEventListener("animationend", animationEnd_1);
                     node.style.animation = '';
                     node.style.display = '';
-                    console.log(0);
                 };
                 if (animation) {
                     node.addEventListener("animationend", animationEnd_1);
@@ -745,7 +764,6 @@ var JSW;
                     for (var i = 0; i < count; i++) {
                         nodes[i].Jsw.layout();
                     }
-                    console.log(1);
                     node.style.display = 'none';
                     node.removeEventListener("animationend", animationEnd_2);
                     node.style.animation = '';
@@ -854,7 +872,7 @@ var JSW;
             }
             if (!flag && !this.JData.redraw)
                 return false;
-            this.layout();
+            //this.layout()
             if (!this.isAutoSize())
                 return false;
             this.callEvent('measure', {});
@@ -864,8 +882,8 @@ var JSW;
                 return false;
             this.setClientSize(width, height);
             this.JData.redraw = true;
-            if (this.getParent())
-                this.getParent().layout();
+            //if (this.getParent())
+            //	this.getParent().layout()
             //this.layout()
             return true;
         };
@@ -877,12 +895,11 @@ var JSW;
          */
         Window.prototype.onLayout = function (flag) {
             if (flag || this.JData.redraw) {
-                this.onMeasure(true); //直下の子リスト
+                //this.onMeasure(true)			//直下の子リスト
                 if (this.hNode.dataset.jswStat == 'maximize') {
                     this.setPos(0, 0);
                     this.setSize(this.getParentWidth(), this.getParentHeight());
                 }
-                this.JData.redraw = false;
                 this.hNode.style.left = this.JData.x + 'px';
                 this.hNode.style.top = this.JData.y + 'px';
                 this.hNode.style.width = this.JData.width + 'px';
@@ -926,7 +943,7 @@ var JSW;
                     case "top":
                         win.setPos(px1, py1);
                         win.setWidth(px2 - px1);
-                        y1 += win.getHeight() + margin.y2;
+                        y1 += win.getHeight() + margin.y1 + margin.y2;
                         break;
                     case "bottom":
                         win.setPos(px1, py2 - win.getHeight());
@@ -965,13 +982,15 @@ var JSW;
             nodes.sort(function (anode, bnode) {
                 var a = anode.Jsw.JData;
                 var b = bnode.Jsw.JData;
+                console.log('TEST');
                 if (a.orderTop)
                     return 1;
                 if (b.orderTop)
                     return -1;
-                var layer = a.orderLayer - b.orderLayer;
-                if (layer)
-                    return layer;
+                // let layer = a.orderLayer - b.orderLayer
+                // if (layer)
+                // 	return layer
+                console.log('%s %s', anode.style.zIndex, bnode.style.zIndex);
                 return parseInt(anode.style.zIndex) - parseInt(bnode.style.zIndex);
             });
             //Zオーダーの再附番
@@ -1142,7 +1161,7 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setClientSize = function (width, height) {
-            this.setSize(width + this.JData.frameSize * 2, height + this.JData.frameSize * 2 + this.JData.titleSize);
+            this.setSize(width + this.JData.frameSize * 2 + this.JData.padding.x1 + this.JData.padding.x2, height + this.JData.frameSize + this.JData.padding.y1 + this.JData.padding.y2 * 2 + this.JData.titleSize);
         };
         /**
          *クライアントサイズを元にウインドウサイズを設定
@@ -1151,7 +1170,7 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setClientWidth = function (width) {
-            this.setWidth(width + this.JData.frameSize * 2);
+            this.setWidth(width + this.JData.frameSize * 2 + this.JData.padding.x1 + this.JData.padding.x2);
         };
         /**
          *クライアントサイズを元にウインドウサイズを設定
@@ -1160,7 +1179,7 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setClientHeight = function (height) {
-            this.setWidth(height + this.JData.frameSize * 2 + this.JData.titleSize);
+            this.setWidth(height + this.JData.frameSize + this.JData.padding.y1 + this.JData.padding.y2 * 2 + this.JData.titleSize);
         };
         /**
          *クライアントサイズを取得
@@ -1169,7 +1188,7 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.getClientWidth = function () {
-            return this.getWidth() - this.JData.frameSize * 2;
+            return this.getWidth() - this.JData.frameSize * 2 - this.JData.padding.x1 - this.JData.padding.x2;
         };
         /**
          *クライアントサイズを取得
@@ -1178,7 +1197,7 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.getClientHeight = function () {
-            return this.getHeight() - this.JData.frameSize * 2 - this.JData.titleSize;
+            return this.getHeight() - this.JData.frameSize * 2 - this.JData.padding.y1 - this.JData.padding.y2 - this.JData.titleSize;
         };
         /**
          *子ノードの追加
@@ -1396,24 +1415,25 @@ var JSW;
         function Button(text) {
             var _this = _super.call(this) || this;
             _this.setAutoSize(true);
-            _this.getNode().dataset.jswStyle = 'Button';
-            var node = _this.getClient();
-            node.tabIndex = 0;
+            _this.setJswStyle('Button');
+            //this.setAlign('center')
+            var button = document.createElement('div');
+            _this.getClient().appendChild(button);
+            button.tabIndex = 0;
             var nodeText = document.createElement('span');
-            nodeText.style.whiteSpace = 'nowrap';
-            node.appendChild(nodeText);
+            button.appendChild(nodeText);
             _this.nodeText = nodeText;
             if (text)
                 _this.setText(text);
-            node.addEventListener('keypress', function (e) {
+            button.addEventListener('keypress', function (e) {
                 if (e.keyCode !== 13)
                     _this.callEvent('submit', { event: e });
             });
-            node.addEventListener('click', function (e) {
+            button.addEventListener('click', function (e) {
                 _this.callEvent('buttonClick', { event: e });
                 _this.callEvent('submit', { event: e });
             });
-            node.addEventListener('dblclick', function (e) {
+            button.addEventListener('dblclick', function (e) {
                 _this.callEvent('buttonDblClick', { event: e });
             });
             return _this;
@@ -1438,6 +1458,10 @@ var JSW;
         Button.prototype.getText = function () {
             return this.nodeText.textContent;
         };
+        Button.prototype.setAlign = function (style) {
+            var node = this.getClient();
+            node.style.justifyContent = style;
+        };
         /**
          *イベントの設定
          * 'buttonClick','buttonDblClick'
@@ -1453,6 +1477,45 @@ var JSW;
         return Button;
     }(JSW.Window));
     JSW.Button = Button;
+})(JSW || (JSW = {}));
+/// <reference path="./Window.ts" />
+var JSW;
+(function (JSW) {
+    var CheckBox = /** @class */ (function (_super) {
+        __extends(CheckBox, _super);
+        function CheckBox(params) {
+            var _this = _super.call(this) || this;
+            _this.setJswStyle('CheckBox');
+            _this.setAutoSize(true);
+            var node = _this.getClient();
+            var textArea = document.createElement('label');
+            node.appendChild(textArea);
+            var nodeCheck = document.createElement('input');
+            nodeCheck.type = 'checkbox';
+            textArea.appendChild(nodeCheck);
+            if (params && params.checked != null)
+                nodeCheck.checked = params.checked;
+            var nodeText = document.createElement('span');
+            _this.nodeText = nodeText;
+            textArea.appendChild(nodeText);
+            if (params && params.text)
+                _this.setText(params.text);
+            return _this;
+        }
+        CheckBox.prototype.setText = function (text) {
+            var nodeText = this.nodeText;
+            nodeText.textContent = text;
+        };
+        CheckBox.prototype.getText = function () {
+            var nodeText = this.nodeText;
+            return nodeText.textContent;
+        };
+        CheckBox.prototype.getTextNode = function () {
+            return this.nodeText;
+        };
+        return CheckBox;
+    }(JSW.Window));
+    JSW.CheckBox = CheckBox;
 })(JSW || (JSW = {}));
 /// <reference path="./Window.ts" />
 var JSW;
@@ -1514,32 +1577,19 @@ var JSW;
         __extends(Label, _super);
         function Label(text) {
             var _this = _super.call(this) || this;
+            _this.setJswStyle('Label');
             var node = _this.getClient();
-            node.style.overflow = 'visible';
-            node.style.display = 'flex';
             var nodeText = document.createElement('span');
             node.appendChild(nodeText);
             _this.nodeText = nodeText;
             if (text)
                 _this.setText(text);
-            //this.setAutoSize(true)
+            _this.setAutoSize(true);
             _this.addEventListener('layout', function () {
-                _this.resize();
+                console.log('layout');
             });
             return _this;
         }
-        Label.prototype.resize = function () {
-            //デフォルトの高さをタグに合わせる
-            var height = this.getHeight();
-            var size = this.nodeText.getBoundingClientRect();
-            var height2 = size.bottom - size.top;
-            if (height !== height2) {
-                this.setHeight(height2);
-                var parent_1 = this.getParent();
-                if (parent_1)
-                    parent_1.layout();
-            }
-        };
         Label.prototype.setFontSize = function (size) {
             var nodeText = this.nodeText;
             nodeText.style.fontSize = size + 'px';
@@ -1557,7 +1607,7 @@ var JSW;
         };
         Label.prototype.setAlign = function (style) {
             var node = this.getClient();
-            node.style.alignItems = style;
+            //node.style.alignItems = style;
             node.style.justifyContent = style;
         };
         return Label;
@@ -2526,9 +2576,9 @@ var JSW;
         __extends(TextBox, _super);
         function TextBox(params) {
             var _this = _super.call(this) || this;
-            _this.getNode().dataset.jswStyle = 'TextBox';
+            _this.setJswStyle('TextBox');
+            _this.setAutoSize(true);
             var node = _this.getClient();
-            node.style.overflow = 'visible';
             var img = document.createElement('img');
             if (params && params.image)
                 img.src = params.image;
@@ -2544,31 +2594,10 @@ var JSW;
                 nodeText.type = params.type;
             textArea.appendChild(nodeText);
             _this.nodeText = nodeText;
-            //デフォルトの高さをinputタグに合わせる
-            var size = nodeText.getBoundingClientRect();
-            _this.setSize(300, size.top + size.bottom);
             if (params && params.text)
                 _this.setText(params.text);
-            _this.addEventListener('layouted', function () {
-                _this.resize();
-            });
-            _this.addEventListener('measure', function () {
-                _this.resize();
-            });
             return _this;
         }
-        TextBox.prototype.resize = function () {
-            //デフォルトの高さをタグに合わせる
-            var height = this.getHeight();
-            var size = this.nodeText.getBoundingClientRect();
-            var height2 = size.bottom - size.top;
-            if (height !== height2) {
-                this.setHeight(height2);
-                var parent_2 = this.getParent();
-                if (parent_2)
-                    parent_2.layout();
-            }
-        };
         TextBox.prototype.setText = function (text) {
             var nodeText = this.nodeText;
             nodeText.value = text;
@@ -2980,9 +3009,9 @@ var JSW;
                 item.getNode().dataset.select = 'true';
                 this.mSelectItem = item;
                 item.openItem(true);
-                var parent_3 = item;
-                while (parent_3 = parent_3.getParentItem()) {
-                    parent_3.openItem(true);
+                var parent_1 = item;
+                while (parent_1 = parent_1.getParentItem()) {
+                    parent_1.openItem(true);
                 }
                 if (scroll) {
                     this.getClient().scrollTo(0, item.getNode().offsetTop - this.getClientHeight() / 2);

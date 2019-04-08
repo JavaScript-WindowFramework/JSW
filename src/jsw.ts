@@ -212,7 +212,6 @@ namespace JSW {
 			let w = activeWindows[i] as JNode
 			w.dataset.jswActive = 'false'
 			w.Jsw.callEvent('active',{active:false})
-			console.log('deactive')
 		}
 	}
 

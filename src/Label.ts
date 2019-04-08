@@ -5,9 +5,8 @@ namespace JSW{
 		nodeText: HTMLSpanElement
 		constructor(text?: string) {
 			super()
+			this.setJswStyle('Label')
 			let node = this.getClient()
-			node.style.overflow = 'visible'
-			node.style.display = 'flex'
 
 			let nodeText = document.createElement('span')
 			node.appendChild(nodeText)
@@ -16,23 +15,11 @@ namespace JSW{
 			if (text)
 				this.setText(text)
 
-			//this.setAutoSize(true)
-			this.addEventListener('layout',()=>{
-				this.resize()
-			})
+			this.setAutoSize(true)
+			 this.addEventListener('layout',()=>{
+				 console.log('layout')
+			 })
 
-		}
-		resize(){
-			//デフォルトの高さをタグに合わせる
-			const height = this.getHeight()
-			let size = this.nodeText.getBoundingClientRect()
-			const height2 = size.bottom - size.top
-			if(height !== height2){
-				this.setHeight(height2)
-				const parent = this.getParent()
-				if(parent)
-					parent.layout()
-			}
 		}
 		setFontSize(size:number){
 			let nodeText = this.nodeText
@@ -51,7 +38,7 @@ namespace JSW{
 		}
 		setAlign(style:string){
 			let node = this.getClient()
-			node.style.alignItems = style;
+			//node.style.alignItems = style;
 			node.style.justifyContent = style;
 		}
 	}

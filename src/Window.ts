@@ -161,6 +161,9 @@ namespace JSW {
 		setJswStyle(style:string){
 			this.getNode().dataset.jswStyle = style
 		}
+		getJswStyle():string{
+			return this.getNode().dataset.jswStyle
+		}
 		//フレーム追加処理
 		private addFrame(titleFlag: boolean): void {
 			this.hNode.dataset.jswType = 'Frame'
@@ -406,6 +409,8 @@ namespace JSW {
 				else
 					y = (parentHeight - height) / 2
 			}
+			if (this.JData.x === x && this.JData.y === y)
+				return
 			this.JData.x = x
 			this.JData.y = y
 			this.layout()
@@ -417,6 +422,9 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setPosX(x: number): void {
+			x = parseInt(x as any)
+			if (this.JData.x === x)
+				return
 			this.JData.x = parseInt(x as any)
 			this.layout()
 		}
@@ -427,6 +435,9 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setPosY(y: number): void {
+			y = parseInt(y as any)
+			if (this.JData.x === y)
+				return
 			this.JData.y = parseInt(y as any)
 			this.layout()
 		}
@@ -485,8 +496,12 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setSize(width: number, height: number): void {
-			this.JData.width = parseInt(width as any)
-			this.JData.height = parseInt(height as any)
+			width = parseInt(width as any)
+			height = parseInt(height as any)
+			if (this.JData.width === width && this.JData.height === height)
+				return
+			this.JData.width = width
+			this.JData.height = height
 			this.layout()
 			if (this.getParent())
 				this.getParent().layout()
@@ -498,7 +513,10 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setWidth(width: number): void {
-			this.JData.width = parseInt(width as any)
+			width = parseInt(width as any)
+			if (this.JData.width === width)
+				return
+			this.JData.width = width
 			this.layout()
 			if (this.getParent())
 				this.getParent().layout()
@@ -511,7 +529,10 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setHeight(height: number): void {
-			this.JData.height = parseInt(height as any)
+			height = parseInt(height as any)
+			if (this.JData.height === height)
+				return
+			this.JData.height = height
 			this.layout()
 			if (this.getParent())
 				this.getParent().layout()
@@ -580,7 +601,6 @@ namespace JSW {
 					node.removeEventListener("animationend", animationEnd)
 					node.style.animation = ''
 					node.style.display = '';
-					console.log(0)
 				}
 				if (animation) {
 					node.addEventListener("animationend", animationEnd)
@@ -597,7 +617,6 @@ namespace JSW {
 					for (let i = 0; i < count; i++) {
 						nodes[i].Jsw.layout()
 					}
-					console.log(1)
 					node.style.display = 'none';
 					node.removeEventListener("animationend", animationEnd)
 					node.style.animation = ''
@@ -708,7 +727,7 @@ namespace JSW {
 			}
 			if (!flag && !this.JData.redraw)
 				return false;
-			this.layout()
+			//this.layout()
 			if (!this.isAutoSize())
 				return false;
 
@@ -720,8 +739,8 @@ namespace JSW {
 			this.setClientSize(width, height)
 
 			this.JData.redraw = true
-			if (this.getParent())
-				this.getParent().layout()
+			//if (this.getParent())
+			//	this.getParent().layout()
 			//this.layout()
 			return true;
 		}
@@ -733,13 +752,12 @@ namespace JSW {
 		 */
 		onLayout(flag: boolean): void {
 			if (flag || this.JData.redraw) {
-				this.onMeasure(true)			//直下の子リスト
+				//this.onMeasure(true)			//直下の子リスト
 				if (this.hNode.dataset.jswStat == 'maximize') {
 					this.setPos(0, 0)
 					this.setSize(this.getParentWidth(), this.getParentHeight())
 				}
 
-				this.JData.redraw = false
 				this.hNode.style.left = this.JData.x + 'px'
 				this.hNode.style.top = this.JData.y + 'px'
 				this.hNode.style.width = this.JData.width + 'px'
@@ -787,7 +805,7 @@ namespace JSW {
 					case "top":
 						win.setPos(px1, py1)
 						win.setWidth(px2 - px1)
-						y1 += win.getHeight() + margin.y2
+						y1 += win.getHeight() + margin.y1 + margin.y2
 						break
 					case "bottom":
 						win.setPos(px1, py2 - win.getHeight())
@@ -830,13 +848,15 @@ namespace JSW {
 			nodes.sort(function (anode: JNode, bnode: JNode) {
 				const a = anode.Jsw.JData
 				const b = bnode.Jsw.JData
+				console.log('TEST')
 				if (a.orderTop)
 					return 1
 				if (b.orderTop)
 					return -1
-				let layer = a.orderLayer - b.orderLayer
-				if (layer)
-					return layer
+				// let layer = a.orderLayer - b.orderLayer
+				// if (layer)
+				// 	return layer
+				console.log('%s %s', anode.style.zIndex, bnode.style.zIndex)
 				return parseInt(anode.style.zIndex) - parseInt(bnode.style.zIndex)
 			})
 
@@ -1014,7 +1034,9 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setClientSize(width: number, height: number) {
-			this.setSize(width + this.JData.frameSize * 2, height + this.JData.frameSize * 2 + this.JData.titleSize)
+			this.setSize(
+				width + this.JData.frameSize*2 + this.JData.padding.x1 + this.JData.padding.x2,
+				height + this.JData.frameSize  + this.JData.padding.y1 + this.JData.padding.y2 * 2 + this.JData.titleSize)
 		}
 
 		/**
@@ -1024,7 +1046,7 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setClientWidth(width: number) {
-			this.setWidth(width+this.JData.frameSize*2)
+			this.setWidth(width + this.JData.frameSize*2 + this.JData.padding.x1 + this.JData.padding.x2)
 		}
 		/**
 		 *クライアントサイズを元にウインドウサイズを設定
@@ -1033,7 +1055,7 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setClientHeight(height: number) {
-			this.setWidth(height + this.JData.frameSize * 2 + this.JData.titleSize)
+			this.setWidth(height + this.JData.frameSize  + this.JData.padding.y1 + this.JData.padding.y2 * 2 + this.JData.titleSize)
 		}
 		/**
 		 *クライアントサイズを取得
@@ -1042,7 +1064,7 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		getClientWidth(): number {
-			return this.getWidth() - this.JData.frameSize*2
+			return this.getWidth() - this.JData.frameSize*2 - this.JData.padding.x1 - this.JData.padding.x2
 
 		}
 		/**
@@ -1052,7 +1074,7 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		getClientHeight(): number {
-			return this.getHeight() - this.JData.frameSize*2 - this.JData.titleSize
+			return this.getHeight() - this.JData.frameSize*2 - this.JData.padding.y1 - this.JData.padding.y2 - this.JData.titleSize
 		}
 
 		/**
