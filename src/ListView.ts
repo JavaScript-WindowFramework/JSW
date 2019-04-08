@@ -1,19 +1,15 @@
 /// <reference path="./Window.ts" />
 
 namespace JSW{
-	export interface LISTVIEW_EVENT_ITEM_CLICK extends Event {
-		params: {
-			itemIndex: number
-			subItemIndex: number
-			event: MouseEvent
-		}
+	export interface LISTVIEW_EVENT_ITEM_CLICK{
+		itemIndex: number
+		subItemIndex: number
+		event: MouseEvent
 	}
 	export interface LISTVIEW_EVENT_DRAG_START{
-		params: {
-			itemIndex: number
-			subItemIndex: number
-			event: DragEvent
-		}
+		itemIndex: number
+		subItemIndex: number
+		event: DragEvent
 	}
 	export interface ListViewEventMap extends WINDOW_EVENT_MAP{
 		"itemClick": LISTVIEW_EVENT_ITEM_CLICK
@@ -52,7 +48,7 @@ namespace JSW{
 			super(params)
 			const that = this
 			var client = this.getClient()
-			client.dataset.kind = 'ListView'
+			client.dataset.jswStyle = 'ListView'
 
 			var headerBack = document.createElement('div')
 			this.headerBack = headerBack
@@ -520,7 +516,7 @@ namespace JSW{
 				cell.addEventListener('dragstart', function (e) {
 					let index = ListView.getIndexOfNode(this)
 					let index2 = ListView.getIndexOfNode(this.parentNode as HTMLElement)
-					that.callEvent('itemDragStart', { itemIndex: index, subItemIndex: index2, event: e })
+					that.callEvent('itemDragStart', { itemIndex: index, subItemIndex: index2, event: e } as LISTVIEW_EVENT_DRAG_START)
 				})
 				cell.addEventListener('dragleave', function () {
 					let index = ListView.getIndexOfNode(this)
@@ -578,12 +574,12 @@ namespace JSW{
 						that.selectItem(index)
 					that.lastIndex = index
 
-					that.callEvent('itemClick', { itemIndex: index, subItemIndex: index2, event: e })
+					that.callEvent('itemClick', { itemIndex: index, subItemIndex: index2, event: e } as LISTVIEW_EVENT_ITEM_CLICK)
 				})
 				cell.addEventListener('dblclick', function (e) {
 					let index = ListView.getIndexOfNode(this)
 					let index2 = ListView.getIndexOfNode(this.parentNode as HTMLElement)
-					that.callEvent('itemDblClick', { itemIndex: index, subItemIndex: index2, event: e })
+					that.callEvent('itemDblClick', { itemIndex: index, subItemIndex: index2, event: e } as LISTVIEW_EVENT_ITEM_CLICK)
 				})
 			}
 			if (columns.length === 0)

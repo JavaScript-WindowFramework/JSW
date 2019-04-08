@@ -135,6 +135,7 @@ var JSW;
             if (!WindowManager.layoutHandler) {
                 //タイマーによる遅延実行
                 WindowManager.layoutHandler = setTimeout(function () {
+                    WindowManager.layoutHandler = null;
                     var nodes = document.querySelectorAll("[data-jsw=Window]");
                     var count = nodes.length;
                     for (var i = 0; i < count; i++) {
@@ -143,7 +144,6 @@ var JSW;
                             node.Jsw.onMeasure(WindowManager.layoutForced);
                         node.Jsw.onLayout(WindowManager.layoutForced);
                     }
-                    WindowManager.layoutHandler = null;
                     WindowManager.layoutForced = false;
                 }, 0);
             }
@@ -176,7 +176,6 @@ var JSW;
             var w = activeWindows[i];
             w.dataset.jswActive = 'false';
             w.Jsw.callEvent('active', { active: false });
-            console.log('deactive');
         }
     }
     //マウスが離された場合に選択をリセット
@@ -1397,6 +1396,128 @@ var JSW;
 /// <reference path="./Window.ts" />
 var JSW;
 (function (JSW) {
+    /**
+     *ボタン用クラス
+     *
+     * @export
+     * @class Button
+     * @extends {Window}
+     */
+    var Button = /** @class */ (function (_super) {
+        __extends(Button, _super);
+        /**
+         *Creates an instance of Button.
+         * @param {string} [text] ボタンに設定するテキスト
+         * @memberof Button
+         */
+        function Button(text) {
+            var _this = _super.call(this) || this;
+            _this.setAutoSize(true);
+            _this.setJswStyle('Button');
+            //this.setAlign('center')
+            var button = document.createElement('div');
+            _this.getClient().appendChild(button);
+            button.tabIndex = 0;
+            var nodeText = document.createElement('span');
+            button.appendChild(nodeText);
+            _this.nodeText = nodeText;
+            if (text)
+                _this.setText(text);
+            button.addEventListener('keypress', function (e) {
+                if (e.keyCode !== 13)
+                    _this.callEvent('submit', { event: e });
+            });
+            button.addEventListener('click', function (e) {
+                _this.callEvent('buttonClick', { event: e });
+                _this.callEvent('submit', { event: e });
+            });
+            button.addEventListener('dblclick', function (e) {
+                _this.callEvent('buttonDblClick', { event: e });
+            });
+            return _this;
+        }
+        /**
+         *ボタンに対してテキストを設定する
+         *
+         * @param {string} text
+         * @memberof Button
+         */
+        Button.prototype.setText = function (text) {
+            var nodeText = this.nodeText;
+            nodeText.textContent = text;
+            this.layout();
+        };
+        /**
+         *ボタンに設定したテキストを取得する
+         *
+         * @returns {string}
+         * @memberof Button
+         */
+        Button.prototype.getText = function () {
+            return this.nodeText.textContent;
+        };
+        Button.prototype.setAlign = function (style) {
+            var node = this.getClient();
+            node.style.justifyContent = style;
+        };
+        /**
+         *イベントの設定
+         * 'buttonClick','buttonDblClick'
+         *
+         * @template K
+         * @param {K} type
+         * @param {(ev: ButtonEventMap[K]) => any} listener
+         * @memberof Button
+         */
+        Button.prototype.addEventListener = function (type, listener) {
+            _super.prototype.addEventListener.call(this, type, listener);
+        };
+        return Button;
+    }(JSW.Window));
+    JSW.Button = Button;
+})(JSW || (JSW = {}));
+/// <reference path="./Window.ts" />
+var JSW;
+(function (JSW) {
+    var CheckBox = /** @class */ (function (_super) {
+        __extends(CheckBox, _super);
+        function CheckBox(params) {
+            var _this = _super.call(this) || this;
+            _this.setJswStyle('CheckBox');
+            _this.setAutoSize(true);
+            var node = _this.getClient();
+            var textArea = document.createElement('label');
+            node.appendChild(textArea);
+            var nodeCheck = document.createElement('input');
+            nodeCheck.type = 'checkbox';
+            textArea.appendChild(nodeCheck);
+            if (params && params.checked != null)
+                nodeCheck.checked = params.checked;
+            var nodeText = document.createElement('span');
+            _this.nodeText = nodeText;
+            textArea.appendChild(nodeText);
+            if (params && params.text)
+                _this.setText(params.text);
+            return _this;
+        }
+        CheckBox.prototype.setText = function (text) {
+            var nodeText = this.nodeText;
+            nodeText.textContent = text;
+        };
+        CheckBox.prototype.getText = function () {
+            var nodeText = this.nodeText;
+            return nodeText.textContent;
+        };
+        CheckBox.prototype.getTextNode = function () {
+            return this.nodeText;
+        };
+        return CheckBox;
+    }(JSW.Window));
+    JSW.CheckBox = CheckBox;
+})(JSW || (JSW = {}));
+/// <reference path="./Window.ts" />
+var JSW;
+(function (JSW) {
     var DrawerView = /** @class */ (function (_super) {
         __extends(DrawerView, _super);
         function DrawerView() {
@@ -1450,6 +1571,50 @@ var JSW;
 /// <reference path="./Window.ts" />
 var JSW;
 (function (JSW) {
+    var Label = /** @class */ (function (_super) {
+        __extends(Label, _super);
+        function Label(text) {
+            var _this = _super.call(this) || this;
+            _this.setJswStyle('Label');
+            var node = _this.getClient();
+            var nodeText = document.createElement('span');
+            node.appendChild(nodeText);
+            _this.nodeText = nodeText;
+            if (text)
+                _this.setText(text);
+            _this.setAutoSize(true);
+            _this.addEventListener('layout', function () {
+                console.log('layout');
+            });
+            return _this;
+        }
+        Label.prototype.setFontSize = function (size) {
+            var nodeText = this.nodeText;
+            nodeText.style.fontSize = size + 'px';
+            this.layout();
+        };
+        Label.prototype.setText = function (text) {
+            var nodeText = this.nodeText;
+            nodeText.textContent = text;
+        };
+        Label.prototype.getText = function () {
+            return this.nodeText.textContent;
+        };
+        Label.prototype.getTextNode = function () {
+            return this.nodeText;
+        };
+        Label.prototype.setAlign = function (style) {
+            var node = this.getClient();
+            //node.style.alignItems = style;
+            node.style.justifyContent = style;
+        };
+        return Label;
+    }(JSW.Window));
+    JSW.Label = Label;
+})(JSW || (JSW = {}));
+/// <reference path="./Window.ts" />
+var JSW;
+(function (JSW) {
     /**
      *ListView用クラス
     *
@@ -1475,7 +1640,7 @@ var JSW;
             _this.areaWidth = 0;
             var that = _this;
             var client = _this.getClient();
-            client.dataset.kind = 'ListView';
+            client.dataset.jswStyle = 'ListView';
             var headerBack = document.createElement('div');
             _this.headerBack = headerBack;
             headerBack.dataset.kind = 'ListHeaderBack';
@@ -2111,13 +2276,20 @@ var JSW;
 /// <reference path="./Window.ts" />
 var JSW;
 (function (JSW) {
+    /**
+     *パネル用クラス
+     *
+     * @export
+     * @class Panel
+     * @extends {Window}
+     */
     var Panel = /** @class */ (function (_super) {
         __extends(Panel, _super);
         function Panel() {
             var _this = _super.call(this) || this;
             _this.setHeight(32);
-            var node = _this.getClient();
-            node.dataset.kind = 'Panel';
+            var node = _this.getNode();
+            node.dataset.jswStyle = 'Panel';
             return _this;
         }
         return Panel;
@@ -2155,14 +2327,15 @@ var JSW;
                 childList: null,
                 drawerWidth: 0
             };
+            _this.setJswStyle('SplitterView');
             _this.setSize(640, 480);
             if (splitPos != null)
                 _this.JDataSplit.splitterPos = splitPos;
             if (splitType != null) {
                 _this.JDataSplit.splitterType = splitType;
             }
-            _this.getClient().dataset.kind = 'SplitterView';
-            _this.getClient().dataset.splitterType = _this.JDataSplit.splitterType;
+            var client = _this.getClient();
+            client.dataset.splitterType = _this.JDataSplit.splitterType;
             _this.JDataSplit.childList = [new JSW.Window(), new JSW.Window()];
             _super.prototype.addChild.call(_this, _this.JDataSplit.childList[0]);
             _super.prototype.addChild.call(_this, _this.JDataSplit.childList[1]);
@@ -2170,7 +2343,7 @@ var JSW;
             _this.JDataSplit.menuIcon = icon;
             icon.dataset.kind = 'SplitterMenu';
             icon.style.display = 'none';
-            _this.getClient().appendChild(icon);
+            client.appendChild(icon);
             icon.addEventListener('click', function () {
                 var child0 = _this.JDataSplit.childList[0];
                 _this.JDataSplit.childList[0].addEventListener('visibled', function (e) {
@@ -2184,7 +2357,7 @@ var JSW;
             });
             var splitter = new JSW.Window();
             _this.JDataSplit.splitter = splitter;
-            splitter.getNode().dataset.kind = 'Splitter';
+            splitter.setJswStyle('Splitter');
             splitter.setOrderTop(true);
             splitter.setNoActive(true);
             _super.prototype.addChild.call(_this, splitter);
@@ -2198,7 +2371,7 @@ var JSW;
                 var splitterThick = JDataSplit.splitterThick;
                 var x = p.nodePoint.x + p.nowPoint.x - p.basePoint.x;
                 var y = p.nodePoint.y + p.nowPoint.y - p.basePoint.y;
-                switch (that.getNode().dataset.splitterType) {
+                switch (that.getClient().dataset.splitterType) {
                     case "ns":
                         JDataSplit.splitterPos = y;
                         break;
@@ -2393,6 +2566,56 @@ var JSW;
         return Splitter;
     }(JSW.Window));
     JSW.Splitter = Splitter;
+})(JSW || (JSW = {}));
+/// <reference path="./Window.ts" />
+var JSW;
+(function (JSW) {
+    var TextBox = /** @class */ (function (_super) {
+        __extends(TextBox, _super);
+        function TextBox(params) {
+            var _this = _super.call(this) || this;
+            _this.setJswStyle('TextBox');
+            _this.setAutoSize(true);
+            var node = _this.getClient();
+            var img = document.createElement('img');
+            if (params && params.image)
+                img.src = params.image;
+            node.appendChild(img);
+            var textArea = document.createElement('div');
+            node.appendChild(textArea);
+            var nodeLabel = document.createElement('div');
+            textArea.appendChild(nodeLabel);
+            if (params && params.label)
+                nodeLabel.textContent = params.label;
+            var nodeText = document.createElement('input');
+            if (params && params.type)
+                nodeText.type = params.type;
+            textArea.appendChild(nodeText);
+            _this.nodeText = nodeText;
+            if (params && params.text)
+                _this.setText(params.text);
+            return _this;
+        }
+        TextBox.prototype.setText = function (text) {
+            var nodeText = this.nodeText;
+            nodeText.value = text;
+        };
+        TextBox.prototype.getText = function () {
+            return this.nodeText.value;
+        };
+        TextBox.prototype.setLabel = function (text) {
+            var node = this.nodeLabel;
+            node.textContent = text;
+        };
+        TextBox.prototype.getLabel = function () {
+            return this.nodeLabel.textContent;
+        };
+        TextBox.prototype.getTextNode = function () {
+            return this.nodeText;
+        };
+        return TextBox;
+    }(JSW.Window));
+    JSW.TextBox = TextBox;
 })(JSW || (JSW = {}));
 /// <reference path="./Window.ts" />
 //
