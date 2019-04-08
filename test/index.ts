@@ -2,22 +2,35 @@
 
 function createLogin(){
 	const win = new JSW.FrameWindow()
-	win.setSize(640,480)
-	win.setTitle('タイトル')
-	const label = new JSW.Label('ログイン')
-	win.addChild(label,'top')
-	label.setAlign('center')
-	label.setFontSize(32)
+	win.setSize(300,300)
+	win.setTitle('ログイン')
+	win.setPadding(10,30,10,10)
+	// const label = new JSW.Label('ログイン')
+	// //win.addChild(label,'top')
+	// label.setAlign('center')
+	// label.setFontSize(32)
 
 	const textBox = new JSW.TextBox({label:'ユーザID',image:'dist/css/images/login_id.svg'})
 	win.addChild(textBox, 'top')
-	textBox.setMargin(10,10,10,10)
+	textBox.setMargin(0,0,0,10)
 	const textBox2 = new JSW.TextBox({ label: 'パスワード', type: 'password', image: 'dist/css/images/login_pass.svg'})
-	textBox2.setMargin(10, 10, 10, 10)
+	textBox2.setMargin(0, 10, 0, 10)
 	win.addChild(textBox2, 'top')
 
-	const button = new JSW.Button('保存')
+	const localCheck = new JSW.CheckBox({text:"ローカルログイン"})
+	win.addChild(localCheck, 'top')
+
+	const keepCheck = new JSW.CheckBox({text:"ログイン情報の保存"})
+	win.addChild(keepCheck, 'top')
+
+	const button = new JSW.Button('ログイン')
+	button.setMargin(0, 10, 0, 5)
+	button.setAlign('center')
 	win.addChild(button,'top')
+
+	const button2 = new JSW.Button('ログアウト')
+	button2.setAlign('center')
+	win.addChild(button2, 'top')
 
 	win.setPos()
 	return win

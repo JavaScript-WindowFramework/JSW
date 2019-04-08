@@ -24,26 +24,28 @@ namespace JSW {
 		constructor(text?:string){
 			super()
 			this.setAutoSize(true)
-			this.getNode().dataset.jswStyle = 'Button'
-			const node = this.getClient()
-			node.tabIndex = 0
+			this.setJswStyle('Button')
+			//this.setAlign('center')
+
+			const button = document.createElement('div')
+			this.getClient().appendChild(button)
+			button.tabIndex = 0
 
 			let nodeText = document.createElement('span')
-			nodeText.style.whiteSpace = 'nowrap'
-			node.appendChild(nodeText)
+			button.appendChild(nodeText)
 			this.nodeText = nodeText
 			if (text)
 				this.setText(text)
 
-			node.addEventListener('keypress',e=>{
+			button.addEventListener('keypress',e=>{
 				if (e.keyCode !== 13)
 					this.callEvent('submit', { event: e } as BUTTON_EVENT_ITEM_CLICK)
 			})
-			node.addEventListener('click',(e)=>{
+			button.addEventListener('click',(e)=>{
 				this.callEvent('buttonClick', { event: e } as BUTTON_EVENT_ITEM_CLICK)
 				this.callEvent('submit', { event: e } as BUTTON_EVENT_ITEM_CLICK)
 			})
-			node.addEventListener('dblclick',(e)=>{
+			button.addEventListener('dblclick',(e)=>{
 				this.callEvent('buttonDblClick', { event: e } as BUTTON_EVENT_ITEM_CLICK)
 			})
 		}
@@ -66,6 +68,10 @@ namespace JSW {
 		 */
 		getText():string{
 			return this.nodeText.textContent
+		}
+		setAlign(style: string) {
+			let node = this.getClient()
+			node.style.justifyContent = style;
 		}
 		/**
 		 *イベントの設定

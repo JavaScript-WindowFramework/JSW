@@ -82,7 +82,6 @@
 }
 
 [data-jsw="Window"] > [data-jsw-type="client"] {
-  box-sizing: border-box;
   position: absolute;
   overflow: hidden;
   background-color: whitesmoke;
@@ -396,36 +395,6 @@
   flex: 1;
 }
 
-/* Button用設定 */
-[data-jsw-style="Button"] > [data-jsw-type='client'] {
-  margin: 1px;
-  white-space: nowrap;
-  user-select: none;
-  display: flex;
-  overflow: hidden;
-  justify-content: center;
-  align-items: center;
-  border-width: 1px;
-  border-style: solid;
-  border-color: gainsboro dimgrey dimgrey gainsboro;
-  border-radius: 10px;
-  color: white;
-  background-image: linear-gradient(120deg, rgba(156, 159, 161, 0.9) 0%, #74757a 100%);
-}
-
-[data-jsw-style="Button"] > [data-jsw-type='client']:hover, [data-jsw-style="Button"] > [data-jsw-type='client']:focus {
-  background-image: linear-gradient(120deg, rgba(108, 155, 194, 0.9) 0%, #6275df 100%);
-  font-weight: bold;
-}
-
-[data-jsw-style="Button"] > [data-jsw-type='client']:active {
-  border-style: inset;
-}
-
-[data-jsw-style="Button"] > [data-jsw-type='client'] > span {
-  padding: 7px 20px;
-}
-
 /* Panel用設定 */
 [data-jsw-style="Panel"] > [data-jsw-type="client"] {
   box-sizing: border-box;
@@ -671,8 +640,52 @@
   color: #5c6bb6;
 }
 
+/* Button用設定 */
+[data-jsw-style="Button"] > [data-jsw-type='client'] {
+  display: flex;
+  background-color: transparent;
+}
+
+[data-jsw-style="Button"] > [data-jsw-type='client'] > div {
+  margin: 2px;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+  border-width: 1px;
+  border-style: solid;
+  border-color: gainsboro dimgrey dimgrey gainsboro;
+  border-radius: 10px;
+  color: white;
+  background-image: linear-gradient(120deg, rgba(156, 159, 161, 0.9) 0%, #74757a 100%);
+}
+
+[data-jsw-style="Button"] > [data-jsw-type='client'] > div:hover, [data-jsw-style="Button"] > [data-jsw-type='client'] > div:focus {
+  background-image: linear-gradient(120deg, rgba(108, 155, 194, 0.9) 0%, #6275df 100%);
+  font-weight: bold;
+}
+
+[data-jsw-style="Button"] > [data-jsw-type='client'] > div:active {
+  border-style: inset;
+}
+
+[data-jsw-style="Button"] > [data-jsw-type='client'] > div > span {
+  display: block;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+/* Label用設定 */
+[data-jsw-style="Label"] > [data-jsw-type='client'] {
+  display: flex;
+  overflow: visible;
+}
+
+[data-jsw-style="Label"] > [data-jsw-type='client'] > span {
+  white-space: nowrap;
+}
+
+/* TextBox用設定 */
 [data-jsw-style="TextBox"] > [data-jsw-type='client'] {
-  position: absolute;
   border: inset;
   display: flex;
 }
@@ -692,10 +705,21 @@
 }
 
 [data-jsw-style="TextBox"] > [data-jsw-type='client'] > div > div {
+  white-space: nowrap;
   position: absolute;
   padding: 0.2em;
 }
 
 [data-jsw-style="TextBox"] > [data-jsw-type='client'] > img {
   height: 100%;
+}
+
+/* CheckBox用設定 */
+[data-jsw-style="CheckBox"] > [data-jsw-type='client'] {
+  display: flex;
+  white-space: nowrap;
+}
+
+[data-jsw-style="CheckBox"] > [data-jsw-type='client'] > label:hover {
+  background-color: rgba(186, 190, 245, 0.274);
 }

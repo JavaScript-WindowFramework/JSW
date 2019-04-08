@@ -7,10 +7,10 @@ namespace JSW{
 		constructor(params?:{text?: string,label?:string,type?:string,image?:string}) {
 			super()
 
-			this.getNode().dataset.jswStyle = 'TextBox'
+			this.setJswStyle('TextBox')
+			this.setAutoSize(true)
 
 			let node = this.getClient()
-			node.style.overflow = 'visible'
 			let img = document.createElement('img')
 			if (params && params.image)
 				img.src = params.image
@@ -31,33 +31,11 @@ namespace JSW{
 			textArea.appendChild(nodeText)
 			this.nodeText = nodeText
 
-			//デフォルトの高さをinputタグに合わせる
-			let size = nodeText.getBoundingClientRect()
-			this.setSize(300,size.top + size.bottom)
-
 			if (params && params.text)
 				this.setText(params.text)
 
-			this.addEventListener('layouted', () => {
-				this.resize()
-			})
-			this.addEventListener('measure', () => {
-				this.resize()
-			})
+		}
 
-		}
-		resize() {
-			//デフォルトの高さをタグに合わせる
-			const height = this.getHeight()
-			let size = this.nodeText.getBoundingClientRect()
-			const height2 = size.bottom - size.top
-			if (height !== height2) {
-				this.setHeight(height2)
-				const parent = this.getParent()
-				if (parent)
-					parent.layout()
-			}
-		}
 		setText(text: string) {
 			let nodeText = this.nodeText
 			nodeText.value = text
