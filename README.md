@@ -1,12 +1,13 @@
 # JSW
 JavaScript用ウインドウフレームワーク<br>
-[基本サンプル](https://javascript-windowframework.github.io/JSW/Samples/) [ソース](https://github.com/JavaScript-WindowFramework/JSW)<br>
-<br>
-[ドキュメント](https://javascript-windowframework.github.io/TypeDocViewer/)<br>
-<br>
+ [基本サンプル](https://javascript-windowframework.github.io/JSW/Samples/)<br>
+ [ソース](https://github.com/JavaScript-WindowFramework/JSW)<br>
+ [ドキュメント](https://javascript-windowframework.github.io/TypeDocViewer/)<br>
 # アプリケーションの例
-[GoogleDrive操作サンプル](https://gdriveexplorer.github.croud.jp/) [ソース](https://github.com/JavaScript-WindowFramework/GDriveExplorer)<br>
-[TypeDocViewerサンプル](https://javascript-windowframework.github.io/TypeDocViewer/) [ソース](https://github.com/JavaScript-WindowFramework/TypeDocViewer)<br>
+ [GoogleDrive操作サンプル](https://gdriveexplorer.github.croud.jp/)<br>
+   [ソース](https://github.com/JavaScript-WindowFramework/GDriveExplorer)<br>
+ [TypeDocViewerサンプル](https://javascript-windowframework.github.io/TypeDocViewer/)<br>
+   [ソース](https://github.com/JavaScript-WindowFramework/TypeDocViewer)<br>
 
 ## 作成者
 [空雲](https://croud.jp/)
