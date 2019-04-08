@@ -17,24 +17,24 @@
 		box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.4);
 	}
 
-	>[data-jsw-style="border"] {
+	>[data-jsw-type="border"] {
 		position: absolute;
 		user-select: none;
 	}
 
 
 
-	&[data-jsw-stat="maximize"]>[data-jsw-style="border"] {
+	&[data-jsw-stat="maximize"]>[data-jsw-type="border"] {
 		display: none;
 		box-sizing: border-box;
 	}
 
-	&[data-jsw-active='true']>[data-jsw-style="title"] {
+	&[data-jsw-active="true"]>[data-jsw-type="title"] {
 		background-color: darken($TITLE_COLOR, 20%);
 		color: white
 	}
 
-	>[data-jsw-style="title"] {
+	>[data-jsw-type="title"] {
 		border-radius: 10px 10px 0px 0px;
 		display: flex;
 		position: absolute;
@@ -42,7 +42,7 @@
 		background-color: $TITLE_COLOR;
 		overflow: hidden;
 
-		[data-jsw-style="text"] {
+		[data-jsw-type="text"] {
 			flex: 1;
 			overflow: hidden;
 			font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
@@ -53,7 +53,7 @@
 			white-space: nowrap;
 		}
 
-		>[data-jsw-style="icon"] {
+		>[data-jsw-type="icon"] {
 			display: inline-block;
 			cursor: default;
 			background-size: 100% 100%;
@@ -84,11 +84,14 @@
 		}
 	}
 
-	>[data-jsw-style="client"] {
-		box-sizing: border-box;
+	>[data-jsw-type="client"] {
 		position: absolute;
 		overflow: hidden;
 		background-color: whitesmoke;
+		top:0px;
+		right:0px;
+		bottom:0px;
+		left:0px;
 	}
 
 	[data-jsw-scale="auto"] {
@@ -238,7 +241,7 @@
 }
 
 /* Splitter用設定  */
-[data-kind="SplitterView"] {
+[data-jsw-style="SplitterView"]>[data-jsw-type='client'] {
 	display: flex;
 
 	&[data-splitter-type='ew']{
@@ -259,7 +262,7 @@
 			bottom: 0;
 		}
 	}
-	[data-kind="Splitter"] {
+	[data-jsw-style="Splitter"]>[data-jsw-type='client'] {
 		background-color: #aaaaaa;
 		border: outset 2px #b8b7b7;
 		user-select: none;
@@ -278,13 +281,13 @@
 		flex-shrink: 0;
 		z-index: 100;
 	}
-	&[data-splitter-type="ns"]>[data-kind="Splitter"],
-	&[data-splitter-type="sn"]>[data-kind="Splitter"] {
+	&[data-splitter-type="ns"]>[data-jsw-style="Splitter"]>[data-jsw-type='client'],
+	&[data-splitter-type="sn"]>[data-jsw-style="Splitter"]>[data-jsw-type='client'] {
 		cursor: ns-resize;
 	}
 
-	&[data-splitter-type="we"]>[data-kind="Splitter"],
-	&[data-splitter-type="ew"]>[data-kind="Splitter"] {
+	&[data-splitter-type="we"]>[data-jsw-style="Splitter"]>[data-jsw-type='client'],
+	&[data-splitter-type="ew"]>[data-jsw-style="Splitter"]>[data-jsw-type='client'] {
 		cursor: ew-resize;
 	}
 }
@@ -398,36 +401,8 @@
 
 
 
-/* JButton用設定 */
-[data-kind="JButton"] {
-	user-select: none;
-	display: flex;
-	overflow: hidden;
-	justify-content: center;
-	align-items: center;
-	border-width: 1px;
-	border-style: outset;
-	border-color: gainsboro dimgrey dimgrey gainsboro;
-	padding: 7px 20px;
-	border-radius: 25px;
-	color:white;
-	background-image: linear-gradient(45deg,
-		rgba(113, 160, 201, 0.9) 0%,
-		#5c6bb6 100%);
-}
-
-[data-kind="JButton"]:hover {
-	background-image: linear-gradient(45deg,
-		rgba(108, 155, 194, 0.9) 0%,
-		#6275df 100%);
-}
-
-[data-kind="JButton"]:active {
-	border-style: inset;
-}
-
-/* JPanel用設定 */
-[data-kind="Panel"] {
+/* Panel用設定 */
+[data-jsw-style="Panel"]>[data-jsw-type="client"] {
 	box-sizing: border-box;
 	user-select: none;
 	background-color: darkgrey;
@@ -435,7 +410,7 @@
 }
 
 /*ListView用スタイル*/
-[data-kind="ListView"] {
+[data-jsw-style="ListView"] {
 	$HEADER_HEIGHT: 30px;
 	$ITEM_HEIGHT: 30px;
 	user-select: none;
@@ -639,5 +614,90 @@ $DRAWER_ITEM_SIZE: 2em;
 	&:hover{
 		background-color: #eeeeee;
 		color: #5c6bb6;
+	}
+}
+
+
+/* Button用設定 */
+[data-jsw-style="Button"]>[data-jsw-type='client'] {
+	display: flex;
+	background-color: transparent;
+	>div{
+		margin: 2px;
+		justify-content: center;
+		align-items: center;
+		user-select: none;
+		border-width: 1px;
+		border-style: solid;
+		border-color: gainsboro dimgrey dimgrey gainsboro;
+		border-radius: 10px;
+		color: white;
+
+		background-image: linear-gradient(120deg,
+		rgba(156, 159, 161, 0.9) 0%,
+		#74757a 100%);
+
+		&:hover,
+		&:focus {
+			background-image: linear-gradient(120deg,
+				rgba(108, 155, 194, 0.9) 0%,
+				#6275df 100%);
+			font-weight: bold;
+		}
+
+		&:active {
+			border-style: inset;
+		}
+
+		>span {
+			display: block;
+			padding: 2px 8px;
+			white-space: nowrap;
+		}
+	}
+
+}
+/* Label用設定 */
+[data-jsw-style="Label"]>[data-jsw-type='client'] {
+	display: flex;
+	overflow: visible;
+	>span{
+		white-space: nowrap;
+	}
+}
+/* TextBox用設定 */
+[data-jsw-style="TextBox"]>[data-jsw-type='client']{
+	border: inset;
+	display: flex;
+
+	>div{
+		flex:1;
+		position: relative;
+		>input {
+			position: absolute;
+			background-color: rgba(255, 255, 255, 0.8);
+			min-height: 2em;
+			padding: 0.2em;
+			border: none;
+			width:100%;
+		}
+		>div {
+			white-space: nowrap;
+			position: absolute;
+			padding: 0.2em;
+		}
+	}
+
+	>img{
+		height:100%;
+	}
+
+}
+/* CheckBox用設定 */
+[data-jsw-style="CheckBox"]>[data-jsw-type='client'] {
+	display: flex;
+	white-space: nowrap;
+	>label:hover{
+		background-color: rgba(186, 190, 245, 0.274);
 	}
 }

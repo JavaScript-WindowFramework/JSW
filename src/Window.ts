@@ -34,7 +34,8 @@ namespace JSW {
 		moveable: boolean
 		reshow:boolean
 		animation:{}
-		noActive:boolean
+		noActive:boolean,
+		autoSizeNode:HTMLElement
 	}
 
 
@@ -78,7 +79,8 @@ namespace JSW {
 			moveable: false,
 			reshow:true,
 			noActive:false,
-			animation: {}
+			animation: {},
+			autoSizeNode:null
 		}
 		/**
 		 * Creates an instance of Window.
@@ -93,12 +95,17 @@ namespace JSW {
 			//ウインドウ用ノードの作成
 			let hNode = document.createElement('DIV') as JNode
 			hNode.Jsw = this
-			this.JData.clientArea = hNode
 			this.hNode = hNode
 			hNode.dataset.jsw = "Window"
 			//位置を絶対位置指定
 			hNode.style.position = 'absolute'
 			hNode.style.visibility = 'hidden'
+			//クライアント領域を作成
+			var client = document.createElement('div')
+			this.JData.clientArea = client
+			client.dataset.jswType = 'client'
+			hNode.appendChild(client)
+			//パラメータに従いウインドウの作成
 			if (params) {
 				if (params.frame) {
 					this.addFrame(params.title == null ? true : params.title)
@@ -116,6 +123,17 @@ namespace JSW {
 					this.setOverlap(params.overlap)
 				}
 			}
+
+
+			hNode.addEventListener("animationend", ()=> {
+				this.layout()
+			});
+			// hNode.addEventListener("animationiteration", () => {
+			// 	this.layout()
+			// });
+			// hNode.addEventListener("animationstart", () => {
+			// 	this.layout()
+			// });
 
 
 			//移動に備えて、必要な情報を収集
@@ -140,6 +158,12 @@ namespace JSW {
 		setOverlap(flag: boolean) {
 			this.hNode.style.position = flag ? 'fixed' : 'absolute'
 		}
+		setJswStyle(style:string){
+			this.getNode().dataset.jswStyle = style
+		}
+		getJswStyle():string{
+			return this.getNode().dataset.jswStyle
+		}
 		//フレーム追加処理
 		private addFrame(titleFlag: boolean): void {
 			this.hNode.dataset.jswType = 'Frame'
@@ -156,8 +180,7 @@ namespace JSW {
 				["border", "cursor:ne-resize;right:-{0}px;top:-{0}px;width:{0}px;height:{0}px;"],//右上
 				["border", "cursor:sw-resize;left:-{0}px;bottom:-{0}px;width:{0}px;height:{0}px;"],//左下
 				["border", "cursor:se-resize;right:-{0}px;bottom:-{0}px;width:{0}px;height:{0}px;"],//右下
-				["title", "left:0px;top:0px;right:0px;height:{1}px"],//タイトル
-				["client", "left:0px;top:{1}px;right:0px;bottom:0px"],//クライアント領域
+				["title", "left:0px;top:0px;right:0px;height:{1}px"]//タイトル
 			]
 
 
@@ -175,7 +198,7 @@ namespace JSW {
 				frame.style.cssText = frameStyles[i][1].replace(/\{0\}/g, FRAME_SIZE.toString()).replace(/\{1\}/g,
 					this.JData.titleSize.toString())
 				frame.dataset.index = i.toString()
-				frame.dataset.jswStyle = frameStyles[i][0]
+				frame.dataset.jswType = frameStyles[i][0]
 				this.hNode.appendChild(frame)
 
 				frame.addEventListener("touchstart", onFrame, { passive: false })
@@ -183,22 +206,23 @@ namespace JSW {
 				frame.addEventListener("mousedown", onFrame, false)
 				frame.addEventListener("mouseup", function () { WindowManager.frame = null; }, false)
 			}
+			this.JData.frameSize = 1
+			this.getClient().style.top = this.JData.titleSize+'px'
 			let node = this.hNode
 			//タイトルバーの作成
-			let title = node.childNodes[8]
-			let titleText = WindowManager.createElement("div", { "dataset": { jswStyle: "text" } })
+			let title = node.childNodes[9]
+			let titleText = WindowManager.createElement("div", { "dataset": { jswType: "text" } })
 			title.appendChild(titleText)
 			//アイコンの作成
 			let icons = ["min", "max", "close"]
 			for (let index in icons) {
-				let icon = WindowManager.createElement("div", { style: { "width": this.JData.titleSize + "px", "height": this.JData.titleSize + "px" }, "dataset": { jswStyle: "icon", jswKind: icons[index] } })
+				let icon = WindowManager.createElement("div", { style: { "width": this.JData.titleSize + "px", "height": this.JData.titleSize + "px" }, "dataset": { jswType: "icon", jswKind: icons[index] } })
 				title.appendChild(icon)
 				icon.addEventListener("click", function () {
 					WindowManager.callEvent(node, "JSW" + this.dataset.jswKind)
 				})
 			}
-			//クライアント領域の取得を書き換える
-			this.JData.clientArea = this.hNode.childNodes[9] as HTMLElement
+
 		}
 
 		private onMouseDown(e) {
@@ -385,6 +409,8 @@ namespace JSW {
 				else
 					y = (parentHeight - height) / 2
 			}
+			if (this.JData.x === x && this.JData.y === y)
+				return
 			this.JData.x = x
 			this.JData.y = y
 			this.layout()
@@ -396,6 +422,9 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setPosX(x: number): void {
+			x = parseInt(x as any)
+			if (this.JData.x === x)
+				return
 			this.JData.x = parseInt(x as any)
 			this.layout()
 		}
@@ -406,6 +435,9 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setPosY(y: number): void {
+			y = parseInt(y as any)
+			if (this.JData.x === y)
+				return
 			this.JData.y = parseInt(y as any)
 			this.layout()
 		}
@@ -464,9 +496,15 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setSize(width: number, height: number): void {
-			this.JData.width = parseInt(width as any)
-			this.JData.height = parseInt(height as any)
+			width = parseInt(width as any)
+			height = parseInt(height as any)
+			if (this.JData.width === width && this.JData.height === height)
+				return
+			this.JData.width = width
+			this.JData.height = height
 			this.layout()
+			if (this.getParent())
+				this.getParent().layout()
 		}
 		/**
 		 *ウインドウの幅の設定
@@ -475,8 +513,13 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setWidth(width: number): void {
-			this.JData.width = parseInt(width as any)
+			width = parseInt(width as any)
+			if (this.JData.width === width)
+				return
+			this.JData.width = width
 			this.layout()
+			if (this.getParent())
+				this.getParent().layout()
 		}
 
 		/**
@@ -486,8 +529,13 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setHeight(height: number): void {
-			this.JData.height = parseInt(height as any)
+			height = parseInt(height as any)
+			if (this.JData.height === height)
+				return
+			this.JData.height = height
 			this.layout()
+			if (this.getParent())
+				this.getParent().layout()
 		}
 
 		/**
@@ -553,7 +601,6 @@ namespace JSW {
 					node.removeEventListener("animationend", animationEnd)
 					node.style.animation = ''
 					node.style.display = '';
-					console.log(0)
 				}
 				if (animation) {
 					node.addEventListener("animationend", animationEnd)
@@ -570,7 +617,6 @@ namespace JSW {
 					for (let i = 0; i < count; i++) {
 						nodes[i].Jsw.layout()
 					}
-					console.log(1)
 					node.style.display = 'none';
 					node.removeEventListener("animationend", animationEnd)
 					node.style.animation = ''
@@ -597,7 +643,7 @@ namespace JSW {
 		setOrderTop(flag: boolean): void {
 			this.JData.orderTop = flag
 			if (this.getParent())
-				this.getParent().layout();
+				this.getParent().layout()
 		}
 		/**
 		 *ウインドウの重ね合わせ順位の設定
@@ -625,40 +671,7 @@ namespace JSW {
 			if (!this.JData.noActive)
 				this.getNode().dataset.jswActive = (flag||flag==null)?'true':'false'
 		}
-		/**
-		 *子ウインドウのサイズを再計算
-		 *
-		 * @param {boolean} flag true:強制再計算 false:必要があれば再計算
-		 * @returns {boolean} 再計算の必要を行ったかどうか
-		 * @memberof Window
-		 */
-		onMeasure(flag: boolean): boolean {
-			//表示状態の更新
-			if(this.JData.reshow){
-				this.JData.reshow = false
-				this.hNode.style.visibility = ''
-				const animation = this.JData.animation['show']
-				if(animation)
-					this.hNode.style.animation = animation
-			}
 
-			let client = this.getClient()
-			for (let i = 0; i < client.childNodes.length; i++) {
-				let node = client.childNodes[i] as JNode
-				if (node.dataset && node.dataset.jsw === "Window")
-					(flag as any) |= node.Jsw.onMeasure(false) as any
-			}
-			if (!this.isAutoSize())
-				return false;
-			if (!flag && !this.JData.redraw) {
-				return false;
-			}
-			this.JData.redraw = true
-			this.getClient().style.width = 'auto'
-			this.getClient().style.height = 'auto'
-			this.setClientSize(this.getClient().scrollWidth, this.getClient().scrollHeight)
-			return true;
-		}
 		/**
 		 *親のクライアント領域を返す
 		 *
@@ -669,8 +682,10 @@ namespace JSW {
 			const node = this.hNode
 			if (node.style.position === 'fixed')
 				return window.innerWidth
-			let parent = node.parentNode as HTMLElement
-			return parent.scrollWidth
+			let parent = node.parentNode as JNode
+			if (parent.Jsw)
+				return parent.Jsw.getWidth()
+			return parent.offsetWidth
 		}
 		/**
 		 *親のクライアント領域を返す
@@ -682,8 +697,52 @@ namespace JSW {
 			const node = this.hNode
 			if (node.style.position === 'fixed')
 				return window.innerHeight
-			let parent = node.parentNode as HTMLElement
-			return parent.scrollHeight
+			let parent = node.parentNode as JNode
+			if (parent.Jsw)
+				return parent.Jsw.getHeight()
+			return parent.offsetHeight
+		}
+		/**
+		 *子ウインドウのサイズを再計算
+		*
+		* @param {boolean} flag true:強制再計算 false:必要があれば再計算
+		* @returns {boolean} 再計算の必要を行ったかどうか
+		* @memberof Window
+		*/
+		onMeasure(flag: boolean): boolean {
+			//表示状態の更新
+			if (this.JData.reshow) {
+				this.JData.reshow = false
+				this.hNode.style.visibility = ''
+				const animation = this.JData.animation['show']
+				if (animation)
+					this.hNode.style.animation = animation
+			}
+
+			let client = this.getClient()
+			for (let i = 0; i < client.childNodes.length; i++) {
+				let node = client.childNodes[i] as JNode
+				if (node.dataset && node.dataset.jsw === "Window")
+					(flag as any) |= node.Jsw.onMeasure(flag) as any
+			}
+			if (!flag && !this.JData.redraw)
+				return false;
+			//this.layout()
+			if (!this.isAutoSize())
+				return false;
+
+			this.callEvent('measure', {})
+			const width = this.getClient().scrollWidth
+			const height = this.getClient().scrollHeight
+			if(width === this.getClientWidth() && height === this.getClientHeight())
+				return false
+			this.setClientSize(width, height)
+
+			this.JData.redraw = true
+			//if (this.getParent())
+			//	this.getParent().layout()
+			//this.layout()
+			return true;
 		}
 		/**
 		 *位置やサイズの確定処理
@@ -693,24 +752,23 @@ namespace JSW {
 		 */
 		onLayout(flag: boolean): void {
 			if (flag || this.JData.redraw) {
+				//this.onMeasure(true)			//直下の子リスト
 				if (this.hNode.dataset.jswStat == 'maximize') {
 					this.setPos(0, 0)
 					this.setSize(this.getParentWidth(), this.getParentHeight())
 				}
 
-				this.JData.redraw = false
 				this.hNode.style.left = this.JData.x + 'px'
 				this.hNode.style.top = this.JData.y + 'px'
 				this.hNode.style.width = this.JData.width + 'px'
 				this.hNode.style.height = this.JData.height + 'px'
 				flag = true
-
 				this.callEvent('layout',{})
 			}
-			//直下の子リスト
+
 			let client = this.getClient()
 			let nodes = []
-			for (let i = 0; i < client.childElementCount; i++) {
+			for (let i = 0; i < client.childNodes.length; i++) {
 				let node = client.childNodes[i] as HTMLElement
 				if (node.dataset && node.dataset.jsw === "Window")
 					nodes.push(node)
@@ -747,7 +805,7 @@ namespace JSW {
 					case "top":
 						win.setPos(px1, py1)
 						win.setWidth(px2 - px1)
-						y1 += win.getHeight() + margin.y2
+						y1 += win.getHeight() + margin.y1 + margin.y2
 						break
 					case "bottom":
 						win.setPos(px1, py2 - win.getHeight())
@@ -774,16 +832,17 @@ namespace JSW {
 			this.JData.redraw = false
 
 			this.orderSort(client)
+			this.callEvent('layouted', {})
+
 
 		}
 		private orderSort(client:HTMLElement){
 			let nodes = []
-			for (let i = 0; i < client.childElementCount; i++) {
+			for (let i = 0; i < client.childNodes.length; i++) {
 				let node = client.childNodes[i] as HTMLElement
 				if (node.dataset && node.dataset.jsw === "Window")
 					nodes.push(node)
 			}
-
 			//重ね合わせソート
 			nodes.sort(function (anode: JNode, bnode: JNode) {
 				const a = anode.Jsw.JData
@@ -823,8 +882,9 @@ namespace JSW {
 			let activeNodes = new Set<HTMLElement>()
 			let p = this.hNode
 			do {
-				activeNodes.add(p)
+
 				if ((flag || flag == null) && p.dataset) {
+					activeNodes.add(p)
 					p.dataset.jswActive = 'true';
 					p.style.zIndex = '1000';
 					if (p.Jsw)
@@ -832,7 +892,7 @@ namespace JSW {
 				}
 				this.orderSort(p)
 			}
-			while (p = p.parentNode as JNode)
+			while (p = p.parentNode as JNode);
 
 			if (flag || flag == null) {
 				var activeWindows = document.querySelectorAll('[data-jsw="Window"][data-jsw-active="true"]')
@@ -973,9 +1033,8 @@ namespace JSW {
 		 */
 		setClientSize(width: number, height: number) {
 			this.setSize(
-				this.getNode().offsetWidth - this.getClientWidth() + width,
-				this.getNode().offsetHeight - this.getClientHeight() + height)
-
+				width + this.JData.frameSize*2 + this.JData.padding.x1 + this.JData.padding.x2,
+				height + this.JData.frameSize  + this.JData.padding.y1 + this.JData.padding.y2 * 2 + this.JData.titleSize)
 		}
 
 		/**
@@ -985,7 +1044,7 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setClientWidth(width: number) {
-			this.setWidth(this.getNode().offsetWidth - this.getClientWidth() + width)
+			this.setWidth(width + this.JData.frameSize*2 + this.JData.padding.x1 + this.JData.padding.x2)
 		}
 		/**
 		 *クライアントサイズを元にウインドウサイズを設定
@@ -994,7 +1053,7 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setClientHeight(height: number) {
-			this.setHeight(this.getNode().offsetHeight - this.getClientHeight() + height)
+			this.setWidth(height + this.JData.frameSize  + this.JData.padding.y1 + this.JData.padding.y2 * 2 + this.JData.titleSize)
 		}
 		/**
 		 *クライアントサイズを取得
@@ -1003,7 +1062,8 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		getClientWidth(): number {
-			return this.getClient().clientWidth
+			return this.getWidth() - this.JData.frameSize*2 - this.JData.padding.x1 - this.JData.padding.x2
+
 		}
 		/**
 		 *クライアントサイズを取得
@@ -1012,7 +1072,7 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		getClientHeight(): number {
-			return this.getClient().clientHeight
+			return this.getHeight() - this.JData.frameSize*2 - this.JData.padding.y1 - this.JData.padding.y2 - this.JData.titleSize
 		}
 
 		/**
@@ -1098,8 +1158,8 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setTitle(title: string): void {
-			if (this.hNode.childNodes[8]) {
-				this.hNode.childNodes[8].childNodes[0].textContent = title
+			if (this.hNode.childNodes[9]) {
+				this.hNode.childNodes[9].childNodes[0].textContent = title
 			}
 		}
 		/**
@@ -1109,8 +1169,8 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		getTitle(): string {
-			if (this.hNode.childNodes[8]) {
-				return this.hNode.childNodes[8].childNodes[0].textContent
+			if (this.hNode.childNodes[9]) {
+				return this.hNode.childNodes[9].childNodes[0].textContent
 			}
 			return ""
 		}

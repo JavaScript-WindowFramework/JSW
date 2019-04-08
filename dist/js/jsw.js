@@ -224,6 +224,7 @@ var JSW;
          * @memberof Window
          */
         function Window(params) {
+            var _this = this;
             this.Events = new Map();
             this.JData = {
                 x: 0,
@@ -250,17 +251,23 @@ var JSW;
                 moveable: false,
                 reshow: true,
                 noActive: false,
-                animation: {}
+                animation: {},
+                autoSizeNode: null
             };
             //ウインドウ用ノードの作成
             var hNode = document.createElement('DIV');
             hNode.Jsw = this;
-            this.JData.clientArea = hNode;
             this.hNode = hNode;
             hNode.dataset.jsw = "Window";
             //位置を絶対位置指定
             hNode.style.position = 'absolute';
             hNode.style.visibility = 'hidden';
+            //クライアント領域を作成
+            var client = document.createElement('div');
+            this.JData.clientArea = client;
+            client.dataset.jswType = 'client';
+            hNode.appendChild(client);
+            //パラメータに従いウインドウの作成
             if (params) {
                 if (params.frame) {
                     this.addFrame(params.title == null ? true : params.title);
@@ -278,6 +285,15 @@ var JSW;
                     this.setOverlap(params.overlap);
                 }
             }
+            hNode.addEventListener("animationend", function () {
+                _this.layout();
+            });
+            // hNode.addEventListener("animationiteration", () => {
+            // 	this.layout()
+            // });
+            // hNode.addEventListener("animationstart", () => {
+            // 	this.layout()
+            // });
             //移動に備えて、必要な情報を収集
             hNode.addEventListener("touchstart", this.onMouseDown.bind(this), { passive: false });
             hNode.addEventListener("mousedown", this.onMouseDown.bind(this));
@@ -300,6 +316,12 @@ var JSW;
         Window.prototype.setOverlap = function (flag) {
             this.hNode.style.position = flag ? 'fixed' : 'absolute';
         };
+        Window.prototype.setJswStyle = function (style) {
+            this.getNode().dataset.jswStyle = style;
+        };
+        Window.prototype.getJswStyle = function () {
+            return this.getNode().dataset.jswStyle;
+        };
         //フレーム追加処理
         Window.prototype.addFrame = function (titleFlag) {
             this.hNode.dataset.jswType = 'Frame';
@@ -316,8 +338,7 @@ var JSW;
                 ["border", "cursor:ne-resize;right:-{0}px;top:-{0}px;width:{0}px;height:{0}px;"],
                 ["border", "cursor:sw-resize;left:-{0}px;bottom:-{0}px;width:{0}px;height:{0}px;"],
                 ["border", "cursor:se-resize;right:-{0}px;bottom:-{0}px;width:{0}px;height:{0}px;"],
-                ["title", "left:0px;top:0px;right:0px;height:{1}px"],
-                ["client", "left:0px;top:{1}px;right:0px;bottom:0px"],
+                ["title", "left:0px;top:0px;right:0px;height:{1}px"] //タイトル
             ];
             //フレームクリックイベントの処理
             function onFrame() {
@@ -332,29 +353,29 @@ var JSW;
                 var frame = document.createElement('div');
                 frame.style.cssText = frameStyles[i][1].replace(/\{0\}/g, FRAME_SIZE.toString()).replace(/\{1\}/g, this.JData.titleSize.toString());
                 frame.dataset.index = i.toString();
-                frame.dataset.jswStyle = frameStyles[i][0];
+                frame.dataset.jswType = frameStyles[i][0];
                 this.hNode.appendChild(frame);
                 frame.addEventListener("touchstart", onFrame, { passive: false });
                 frame.addEventListener("touchend", function () { JSW.WindowManager.frame = null; }, { passive: false });
                 frame.addEventListener("mousedown", onFrame, false);
                 frame.addEventListener("mouseup", function () { JSW.WindowManager.frame = null; }, false);
             }
+            this.JData.frameSize = 1;
+            this.getClient().style.top = this.JData.titleSize + 'px';
             var node = this.hNode;
             //タイトルバーの作成
-            var title = node.childNodes[8];
-            var titleText = JSW.WindowManager.createElement("div", { "dataset": { jswStyle: "text" } });
+            var title = node.childNodes[9];
+            var titleText = JSW.WindowManager.createElement("div", { "dataset": { jswType: "text" } });
             title.appendChild(titleText);
             //アイコンの作成
             var icons = ["min", "max", "close"];
             for (var index in icons) {
-                var icon = JSW.WindowManager.createElement("div", { style: { "width": this.JData.titleSize + "px", "height": this.JData.titleSize + "px" }, "dataset": { jswStyle: "icon", jswKind: icons[index] } });
+                var icon = JSW.WindowManager.createElement("div", { style: { "width": this.JData.titleSize + "px", "height": this.JData.titleSize + "px" }, "dataset": { jswType: "icon", jswKind: icons[index] } });
                 title.appendChild(icon);
                 icon.addEventListener("click", function () {
                     JSW.WindowManager.callEvent(node, "JSW" + this.dataset.jswKind);
                 });
             }
-            //クライアント領域の取得を書き換える
-            this.JData.clientArea = this.hNode.childNodes[9];
         };
         Window.prototype.onMouseDown = function (e) {
             if (JSW.WindowManager.moveNode == null) {
@@ -540,6 +561,8 @@ var JSW;
                 else
                     y = (parentHeight - height) / 2;
             }
+            if (this.JData.x === x && this.JData.y === y)
+                return;
             this.JData.x = x;
             this.JData.y = y;
             this.layout();
@@ -551,6 +574,9 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setPosX = function (x) {
+            x = parseInt(x);
+            if (this.JData.x === x)
+                return;
             this.JData.x = parseInt(x);
             this.layout();
         };
@@ -561,6 +587,9 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setPosY = function (y) {
+            y = parseInt(y);
+            if (this.JData.x === y)
+                return;
             this.JData.y = parseInt(y);
             this.layout();
         };
@@ -618,9 +647,15 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setSize = function (width, height) {
-            this.JData.width = parseInt(width);
-            this.JData.height = parseInt(height);
+            width = parseInt(width);
+            height = parseInt(height);
+            if (this.JData.width === width && this.JData.height === height)
+                return;
+            this.JData.width = width;
+            this.JData.height = height;
             this.layout();
+            if (this.getParent())
+                this.getParent().layout();
         };
         /**
          *ウインドウの幅の設定
@@ -629,8 +664,13 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setWidth = function (width) {
-            this.JData.width = parseInt(width);
+            width = parseInt(width);
+            if (this.JData.width === width)
+                return;
+            this.JData.width = width;
             this.layout();
+            if (this.getParent())
+                this.getParent().layout();
         };
         /**
          *ウインドウの高さの設定
@@ -639,8 +679,13 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setHeight = function (height) {
-            this.JData.height = parseInt(height);
+            height = parseInt(height);
+            if (this.JData.height === height)
+                return;
+            this.JData.height = height;
             this.layout();
+            if (this.getParent())
+                this.getParent().layout();
         };
         /**
          * クライアント領域のpadding設定
@@ -703,7 +748,6 @@ var JSW;
                     node.removeEventListener("animationend", animationEnd_1);
                     node.style.animation = '';
                     node.style.display = '';
-                    console.log(0);
                 };
                 if (animation) {
                     node.addEventListener("animationend", animationEnd_1);
@@ -721,7 +765,6 @@ var JSW;
                     for (var i = 0; i < count; i++) {
                         nodes[i].Jsw.layout();
                     }
-                    console.log(1);
                     node.style.display = 'none';
                     node.removeEventListener("animationend", animationEnd_2);
                     node.style.animation = '';
@@ -777,12 +820,42 @@ var JSW;
                 this.getNode().dataset.jswActive = (flag || flag == null) ? 'true' : 'false';
         };
         /**
-         *子ウインドウのサイズを再計算
+         *親のクライアント領域を返す
          *
-         * @param {boolean} flag true:強制再計算 false:必要があれば再計算
-         * @returns {boolean} 再計算の必要を行ったかどうか
+         * @returns
          * @memberof Window
          */
+        Window.prototype.getParentWidth = function () {
+            var node = this.hNode;
+            if (node.style.position === 'fixed')
+                return window.innerWidth;
+            var parent = node.parentNode;
+            if (parent.Jsw)
+                return parent.Jsw.getWidth();
+            return parent.offsetWidth;
+        };
+        /**
+         *親のクライアント領域を返す
+         *
+         * @returns
+         * @memberof Window
+         */
+        Window.prototype.getParentHeight = function () {
+            var node = this.hNode;
+            if (node.style.position === 'fixed')
+                return window.innerHeight;
+            var parent = node.parentNode;
+            if (parent.Jsw)
+                return parent.Jsw.getHeight();
+            return parent.offsetHeight;
+        };
+        /**
+         *子ウインドウのサイズを再計算
+        *
+        * @param {boolean} flag true:強制再計算 false:必要があれば再計算
+        * @returns {boolean} 再計算の必要を行ったかどうか
+        * @memberof Window
+        */
         Window.prototype.onMeasure = function (flag) {
             //表示状態の更新
             if (this.JData.reshow) {
@@ -796,44 +869,24 @@ var JSW;
             for (var i = 0; i < client.childNodes.length; i++) {
                 var node = client.childNodes[i];
                 if (node.dataset && node.dataset.jsw === "Window")
-                    flag |= node.Jsw.onMeasure(false);
+                    flag |= node.Jsw.onMeasure(flag);
             }
+            if (!flag && !this.JData.redraw)
+                return false;
+            //this.layout()
             if (!this.isAutoSize())
                 return false;
-            if (!flag && !this.JData.redraw) {
+            this.callEvent('measure', {});
+            var width = this.getClient().scrollWidth;
+            var height = this.getClient().scrollHeight;
+            if (width === this.getClientWidth() && height === this.getClientHeight())
                 return false;
-            }
+            this.setClientSize(width, height);
             this.JData.redraw = true;
-            this.getClient().style.width = 'auto';
-            this.getClient().style.height = 'auto';
-            this.setClientSize(this.getClient().scrollWidth, this.getClient().scrollHeight);
+            //if (this.getParent())
+            //	this.getParent().layout()
+            //this.layout()
             return true;
-        };
-        /**
-         *親のクライアント領域を返す
-         *
-         * @returns
-         * @memberof Window
-         */
-        Window.prototype.getParentWidth = function () {
-            var node = this.hNode;
-            if (node.style.position === 'fixed')
-                return window.innerWidth;
-            var parent = node.parentNode;
-            return parent.scrollWidth;
-        };
-        /**
-         *親のクライアント領域を返す
-         *
-         * @returns
-         * @memberof Window
-         */
-        Window.prototype.getParentHeight = function () {
-            var node = this.hNode;
-            if (node.style.position === 'fixed')
-                return window.innerHeight;
-            var parent = node.parentNode;
-            return parent.scrollHeight;
         };
         /**
          *位置やサイズの確定処理
@@ -843,11 +896,11 @@ var JSW;
          */
         Window.prototype.onLayout = function (flag) {
             if (flag || this.JData.redraw) {
+                //this.onMeasure(true)			//直下の子リスト
                 if (this.hNode.dataset.jswStat == 'maximize') {
                     this.setPos(0, 0);
                     this.setSize(this.getParentWidth(), this.getParentHeight());
                 }
-                this.JData.redraw = false;
                 this.hNode.style.left = this.JData.x + 'px';
                 this.hNode.style.top = this.JData.y + 'px';
                 this.hNode.style.width = this.JData.width + 'px';
@@ -855,10 +908,9 @@ var JSW;
                 flag = true;
                 this.callEvent('layout', {});
             }
-            //直下の子リスト
             var client = this.getClient();
             var nodes = [];
-            for (var i = 0; i < client.childElementCount; i++) {
+            for (var i = 0; i < client.childNodes.length; i++) {
                 var node = client.childNodes[i];
                 if (node.dataset && node.dataset.jsw === "Window")
                     nodes.push(node);
@@ -892,7 +944,7 @@ var JSW;
                     case "top":
                         win.setPos(px1, py1);
                         win.setWidth(px2 - px1);
-                        y1 += win.getHeight() + margin.y2;
+                        y1 += win.getHeight() + margin.y1 + margin.y2;
                         break;
                     case "bottom":
                         win.setPos(px1, py2 - win.getHeight());
@@ -918,10 +970,11 @@ var JSW;
             }
             this.JData.redraw = false;
             this.orderSort(client);
+            this.callEvent('layouted', {});
         };
         Window.prototype.orderSort = function (client) {
             var nodes = [];
-            for (var i = 0; i < client.childElementCount; i++) {
+            for (var i = 0; i < client.childNodes.length; i++) {
                 var node = client.childNodes[i];
                 if (node.dataset && node.dataset.jsw === "Window")
                     nodes.push(node);
@@ -965,8 +1018,8 @@ var JSW;
             var activeNodes = new Set();
             var p = this.hNode;
             do {
-                activeNodes.add(p);
                 if ((flag || flag == null) && p.dataset) {
+                    activeNodes.add(p);
                     p.dataset.jswActive = 'true';
                     p.style.zIndex = '1000';
                     if (p.Jsw)
@@ -1107,7 +1160,7 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setClientSize = function (width, height) {
-            this.setSize(this.getNode().offsetWidth - this.getClientWidth() + width, this.getNode().offsetHeight - this.getClientHeight() + height);
+            this.setSize(width + this.JData.frameSize * 2 + this.JData.padding.x1 + this.JData.padding.x2, height + this.JData.frameSize + this.JData.padding.y1 + this.JData.padding.y2 * 2 + this.JData.titleSize);
         };
         /**
          *クライアントサイズを元にウインドウサイズを設定
@@ -1116,7 +1169,7 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setClientWidth = function (width) {
-            this.setWidth(this.getNode().offsetWidth - this.getClientWidth() + width);
+            this.setWidth(width + this.JData.frameSize * 2 + this.JData.padding.x1 + this.JData.padding.x2);
         };
         /**
          *クライアントサイズを元にウインドウサイズを設定
@@ -1125,7 +1178,7 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setClientHeight = function (height) {
-            this.setHeight(this.getNode().offsetHeight - this.getClientHeight() + height);
+            this.setWidth(height + this.JData.frameSize + this.JData.padding.y1 + this.JData.padding.y2 * 2 + this.JData.titleSize);
         };
         /**
          *クライアントサイズを取得
@@ -1134,7 +1187,7 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.getClientWidth = function () {
-            return this.getClient().clientWidth;
+            return this.getWidth() - this.JData.frameSize * 2 - this.JData.padding.x1 - this.JData.padding.x2;
         };
         /**
          *クライアントサイズを取得
@@ -1143,7 +1196,7 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.getClientHeight = function () {
-            return this.getClient().clientHeight;
+            return this.getHeight() - this.JData.frameSize * 2 - this.JData.padding.y1 - this.JData.padding.y2 - this.JData.titleSize;
         };
         /**
          *子ノードの追加
@@ -1226,8 +1279,8 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.setTitle = function (title) {
-            if (this.hNode.childNodes[8]) {
-                this.hNode.childNodes[8].childNodes[0].textContent = title;
+            if (this.hNode.childNodes[9]) {
+                this.hNode.childNodes[9].childNodes[0].textContent = title;
             }
         };
         /**
@@ -1237,8 +1290,8 @@ var JSW;
          * @memberof Window
          */
         Window.prototype.getTitle = function () {
-            if (this.hNode.childNodes[8]) {
-                return this.hNode.childNodes[8].childNodes[0].textContent;
+            if (this.hNode.childNodes[9]) {
+                return this.hNode.childNodes[9].childNodes[0].textContent;
             }
             return "";
         };

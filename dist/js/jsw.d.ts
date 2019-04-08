@@ -156,6 +156,7 @@ declare namespace JSW {
         reshow: boolean;
         animation: {};
         noActive: boolean;
+        autoSizeNode: HTMLElement;
     }
     interface WINDOW_EVENT_MAP {
         any: any;
@@ -191,6 +192,8 @@ declare namespace JSW {
             overlap?: boolean;
         });
         setOverlap(flag: boolean): void;
+        setJswStyle(style: string): void;
+        getJswStyle(): string;
         private addFrame;
         private onMouseDown;
         private onMouseMove;
@@ -377,14 +380,6 @@ declare namespace JSW {
         layout(): void;
         active(flag?: boolean): void;
         /**
-         *子ウインドウのサイズを再計算
-         *
-         * @param {boolean} flag true:強制再計算 false:必要があれば再計算
-         * @returns {boolean} 再計算の必要を行ったかどうか
-         * @memberof Window
-         */
-        onMeasure(flag: boolean): boolean;
-        /**
          *親のクライアント領域を返す
          *
          * @returns
@@ -398,6 +393,14 @@ declare namespace JSW {
          * @memberof Window
          */
         getParentHeight(): number;
+        /**
+         *子ウインドウのサイズを再計算
+        *
+        * @param {boolean} flag true:強制再計算 false:必要があれば再計算
+        * @returns {boolean} 再計算の必要を行ったかどうか
+        * @memberof Window
+        */
+        onMeasure(flag: boolean): boolean;
         /**
          *位置やサイズの確定処理
          *非同期で必要なときに呼び出されるので、基本的には直接呼び出さないこと
