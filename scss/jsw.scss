@@ -11,6 +11,7 @@
 	&:not([data-jsw-type="Frame"]) {
 		overflow: hidden;
 	}
+
 	&[data-jsw-type="Frame"]:not([data-jsw-stat="maximize"]) {
 		border-radius: 10px 10px 0px 0px;
 		border: solid 1px;
@@ -21,8 +22,6 @@
 		position: absolute;
 		user-select: none;
 	}
-
-
 
 	&[data-jsw-stat="maximize"]>[data-jsw-type="border"] {
 		display: none;
@@ -84,19 +83,21 @@
 		}
 	}
 
-	>[data-jsw-type="client"] {
-		position: absolute;
-		overflow: hidden;
-		background-color: whitesmoke;
-		top:0px;
-		right:0px;
-		bottom:0px;
-		left:0px;
-	}
 
-	[data-jsw-scale="auto"] {
-		white-space: normal;
-	}
+
+
+}
+[data-jsw-scale="auto"] {
+	white-space: normal;
+}
+[data-jsw-type="client"] {
+	position: absolute;
+	overflow: hidden;
+	background-color: whitesmoke;
+	top: 0px;
+	right: 0px;
+	bottom: 0px;
+	left: 0px;
 }
 
 @keyframes JSWminimize {
@@ -241,35 +242,42 @@
 }
 
 /* Splitter用設定  */
-[data-jsw-style="SplitterView"]>[data-jsw-type='client'] {
+[data-jsw-style="SplitterView"] {
 	display: flex;
 
-	&[data-splitter-type='ew']{
+	&[data-splitter-type='ew'] {
 		align-items: center;
-		[data-kind="SplitterMenu"]{
+
+		[data-kind="SplitterMenu"] {
 			right: 0;
 		}
 	}
-	&[data-splitter-type='we']{
+
+	&[data-splitter-type='we'] {
 		align-items: center;
 	}
-	&[data-splitter-type='ns']{
+
+	&[data-splitter-type='ns'] {
 		justify-content: center;
 	}
-	&[data-splitter-type='sn']{
+
+	&[data-splitter-type='sn'] {
 		justify-content: center;
-		[data-kind="SplitterMenu"]{
+
+		[data-kind="SplitterMenu"] {
 			bottom: 0;
 		}
 	}
-	[data-jsw-style="Splitter"]>[data-jsw-type='client'] {
+
+	[data-jsw-style="Splitter"] {
 		background-color: #aaaaaa;
 		border: outset 2px #b8b7b7;
 		user-select: none;
 	}
-	[data-kind="SplitterMenu"]{
+
+	[data-kind="SplitterMenu"] {
 		position: absolute;
-		background-color: rgba(255,255,255,0.7);
+		background-color: rgba(255, 255, 255, 0.7);
 		opacity: 0.7;
 		background-repeat: no-repeat;
 		width: 32px;
@@ -281,13 +289,14 @@
 		flex-shrink: 0;
 		z-index: 100;
 	}
-	&[data-splitter-type="ns"]>[data-jsw-style="Splitter"]>[data-jsw-type='client'],
-	&[data-splitter-type="sn"]>[data-jsw-style="Splitter"]>[data-jsw-type='client'] {
+
+	&[data-splitter-type="ns"] [data-jsw-style="Splitter"],
+	&[data-splitter-type="sn"] [data-jsw-style="Splitter"] {
 		cursor: ns-resize;
 	}
 
-	&[data-splitter-type="we"]>[data-jsw-style="Splitter"]>[data-jsw-type='client'],
-	&[data-splitter-type="ew"]>[data-jsw-style="Splitter"]>[data-jsw-type='client'] {
+	&[data-splitter-type="we"] [data-jsw-style="Splitter"],
+	&[data-splitter-type="ew"] [data-jsw-style="Splitter"] {
 		cursor: ew-resize;
 	}
 }
@@ -402,7 +411,7 @@
 
 
 /* Panel用設定 */
-[data-jsw-style="Panel"]>[data-jsw-type="client"] {
+[data-jsw-style="Panel"] {
 	box-sizing: border-box;
 	user-select: none;
 	background-color: darkgrey;
@@ -438,7 +447,7 @@
 			position: absolute;
 			pointer-events: none;
 			height: 100%;
-			width:100%;
+			width: 100%;
 		}
 
 		>[data-kind="ListResizers"] div {
@@ -556,43 +565,94 @@
 		}
 	}
 }
+
 $DRAWER_ITEM_SIZE: 2em;
+
 @keyframes nsDrawerShow {
-	0% {transform: translateY(-100%);}
-	100% {transform: translateY(0);}
+	0% {
+		transform: translateY(-100%);
+	}
+
+	100% {
+		transform: translateY(0);
+	}
 }
+
 @keyframes nsDrawerClose {
-	0% {transform: translateY(0);}
-	100% {transform: translateY(-100%);}
+	0% {
+		transform: translateY(0);
+	}
+
+	100% {
+		transform: translateY(-100%);
+	}
 }
+
 @keyframes snDrawerShow {
-	0% {transform: translateY(100%);}
-	100% {transform: translateY(0);}
+	0% {
+		transform: translateY(100%);
+	}
+
+	100% {
+		transform: translateY(0);
+	}
 }
+
 @keyframes snDrawerClose {
-	0% {transform: translateY(0);}
-	100% {transform: translateY(100%);}
+	0% {
+		transform: translateY(0);
+	}
+
+	100% {
+		transform: translateY(100%);
+	}
 }
+
 @keyframes weDrawerShow {
-	0% {transform: translateX(-100%);}
-	100% {transform: translateX(0);}
+	0% {
+		transform: translateX(-100%);
+	}
+
+	100% {
+		transform: translateX(0);
+	}
 }
+
 @keyframes weDrawerClose {
-	0% {transform: translateX(0);}
-	100% {transform: translateX(-100%);}
+	0% {
+		transform: translateX(0);
+	}
+
+	100% {
+		transform: translateX(-100%);
+	}
 }
+
 @keyframes ewDrawerShow {
-	0% {transform: translateX(100%);}
-	100% {transform: translateX(0);}
+	0% {
+		transform: translateX(100%);
+	}
+
+	100% {
+		transform: translateX(0);
+	}
 }
+
 @keyframes ewDrawerClose {
-	0% {transform: translateX(0);}
-	100% {transform: translateX(100%);}
+	0% {
+		transform: translateX(0);
+	}
+
+	100% {
+		transform: translateX(100%);
+	}
 }
-[data-kind="Drawer"]{
-	background-color: rgba(240,240,240,0.6);
+
+[data-kind="Drawer"] {
+	background-color: rgba(240, 240, 240, 0.6);
 }
-[data-kind="DrawerItem"]{
+
+[data-kind="DrawerItem"] {
 	cursor: pointer;
 	display: flex;
 	align-items: center;
@@ -601,17 +661,19 @@ $DRAWER_ITEM_SIZE: 2em;
 	padding: 0.5em;
 	height: $DRAWER_ITEM_SIZE;
 
-	>[data-kind="DrawerIcon"]{
+	>[data-kind="DrawerIcon"] {
 		background-size: 100% 100%;
-		height:100%;
+		height: 100%;
 		width: 1.3em;
 		margin-right: 0.4em;
 	}
-	>[data-kind="DrawerText"]{
-		flex:1;
+
+	>[data-kind="DrawerText"] {
+		flex: 1;
 		font-size: $DRAWER_ITEM_SIZE;
 	}
-	&:hover{
+
+	&:hover {
 		background-color: #eeeeee;
 		color: #5c6bb6;
 	}
@@ -619,10 +681,13 @@ $DRAWER_ITEM_SIZE: 2em;
 
 
 /* Button用設定 */
-[data-jsw-style="Button"]>[data-jsw-type='client'] {
+[data-jsw-style="Button"]{
 	display: flex;
 	background-color: transparent;
-	>div{
+
+	>div {
+		cursor: pointer;
+		white-space: nowrap;
 		margin: 2px;
 		justify-content: center;
 		align-items: center;
@@ -634,8 +699,8 @@ $DRAWER_ITEM_SIZE: 2em;
 		color: white;
 
 		background-image: linear-gradient(120deg,
-		rgba(156, 159, 161, 0.9) 0%,
-		#74757a 100%);
+			rgba(156, 159, 161, 0.9) 0%,
+			#74757a 100%);
 
 		&:hover,
 		&:focus {
@@ -653,34 +718,47 @@ $DRAWER_ITEM_SIZE: 2em;
 			display: block;
 			padding: 2px 8px;
 			white-space: nowrap;
+
+		}
+
+		>img {
+			height: 100%;
+			width:100%;
 		}
 	}
 
 }
+
 /* Label用設定 */
-[data-jsw-style="Label"]>[data-jsw-type='client'] {
+[data-jsw-style="Label"] {
 	display: flex;
 	overflow: visible;
-	>span{
+	background-color: transparent;
+
+	>span {
 		white-space: nowrap;
 	}
 }
+
 /* TextBox用設定 */
-[data-jsw-style="TextBox"]>[data-jsw-type='client']{
+[data-jsw-style="TextBox"] {
 	border: inset;
 	display: flex;
 
-	>div{
-		flex:1;
+	>div {
+		flex: 1;
 		position: relative;
+
 		>input {
+			user-select: all;
 			position: absolute;
 			background-color: rgba(255, 255, 255, 0.8);
 			min-height: 2em;
 			padding: 0.2em;
 			border: none;
-			width:100%;
+			width: 100%;
 		}
+
 		>div {
 			white-space: nowrap;
 			position: absolute;
@@ -688,16 +766,18 @@ $DRAWER_ITEM_SIZE: 2em;
 		}
 	}
 
-	>img{
-		height:100%;
+	>img {
+		height: 100%;
 	}
 
 }
+
 /* CheckBox用設定 */
-[data-jsw-style="CheckBox"]>[data-jsw-type='client'] {
+[data-jsw-style="CheckBox"] {
 	display: flex;
 	white-space: nowrap;
-	>label:hover{
+
+	>label:hover {
 		background-color: rgba(186, 190, 245, 0.274);
 	}
 }

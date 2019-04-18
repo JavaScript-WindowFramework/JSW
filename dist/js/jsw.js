@@ -11,6 +11,151 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var JSW;
+(function (JSW) {
+    var Adapter = /** @class */ (function () {
+        function Adapter(scriptUrl, keyName) {
+            this.functionSet = [];
+            this.scriptUrl = scriptUrl;
+            this.keyName = keyName || 'Session';
+        }
+        Adapter.prototype.exec = function (v1) {
+            var v2 = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                v2[_i - 1] = arguments[_i];
+            }
+            var functionSet;
+            if (Array.isArray(v1)) {
+                var functions = [];
+                for (var _a = 0, _b = v1; _a < _b.length; _a++) {
+                    var func = _b[_a];
+                    functions.push({ name: func[0], params: func.slice(1) });
+                }
+                functionSet = { functions: functions, promise: {}, array: true };
+            }
+            else {
+                functionSet = { functions: [{ name: v1, params: v2 }], promise: {}, array: false };
+            }
+            var promise = new Promise(function (resolve, reject) {
+                functionSet.promise.resolve = resolve;
+                functionSet.promise.reject = reject;
+            });
+            this.functionSet.push(functionSet);
+            this.callSend();
+            return promise;
+        };
+        Adapter.prototype.callSend = function () {
+            var _this = this;
+            if (!this.handle) {
+                this.handle = window.setTimeout(function () { _this.send(); }, 0);
+            }
+        };
+        Adapter.prototype.send = function () {
+            var _this = this;
+            this.handle = null;
+            var globalHash = localStorage.getItem(this.keyName);
+            var sessionHash = sessionStorage.getItem(this.keyName);
+            var functionSet = this.functionSet;
+            this.functionSet = [];
+            var params = {
+                globalHash: globalHash,
+                sessionHash: sessionHash,
+                functions: []
+            };
+            for (var _i = 0, functionSet_1 = functionSet; _i < functionSet_1.length; _i++) {
+                var funcs = functionSet_1[_i];
+                for (var _a = 0, _b = funcs.functions; _a < _b.length; _a++) {
+                    var func = _b[_a];
+                    params.functions.push({ function: func.name, params: func.params });
+                }
+            }
+            this.sendJson(this.scriptUrl + '?cmd=exec', params, function (res) {
+                if (res == null) {
+                    for (var _i = 0, functionSet_2 = functionSet; _i < functionSet_2.length; _i++) {
+                        var funcs = functionSet_2[_i];
+                        console.error('通信エラー');
+                        funcs.promise.reject('通信エラー');
+                    }
+                }
+                else {
+                    if (res.globalHash)
+                        localStorage.setItem(_this.keyName, res.globalHash);
+                    if (res.sessionHash)
+                        sessionStorage.setItem(_this.keyName, res.sessionHash);
+                    var results = res.results;
+                    var index = 0;
+                    for (var _a = 0, functionSet_3 = functionSet; _a < functionSet_3.length; _a++) {
+                        var funcs = functionSet_3[_a];
+                        var length_1 = funcs.functions.length;
+                        if (funcs.array) {
+                            var values = [];
+                            for (var i = index; i < length_1; i++) {
+                                if (results[i].error) {
+                                    console.error(results[i].error);
+                                    funcs.promise.reject(results[i].error);
+                                    break;
+                                }
+                                values.push(results[i].value);
+                            }
+                            funcs.promise.resolve(values);
+                        }
+                        else {
+                            var result = results[index];
+                            if (result.error)
+                                console.error(result.error);
+                            else
+                                funcs.promise.resolve(result.value);
+                        }
+                        index += length_1;
+                    }
+                }
+            });
+        };
+        Adapter.prototype.sendJson = function (url, data, proc, headers) {
+            var req = new XMLHttpRequest();
+            //ネイティブでJSON変換が可能かチェック
+            var jsonFlag = false;
+            try {
+                req.responseType = 'json';
+            }
+            catch (e) {
+                jsonFlag = true;
+            }
+            if (proc == null) {
+                req.open('POST', url, false);
+                return JSON.parse(req.responseText);
+            }
+            else {
+                req.onreadystatechange = function () {
+                    if (req.readyState == 4) {
+                        var obj = null;
+                        try {
+                            if (jsonFlag) //JSON変換の仕分け
+                                obj = JSON.parse(req.response);
+                            else
+                                obj = req.response;
+                        }
+                        catch (e) {
+                            proc(null);
+                            return;
+                        }
+                        proc(obj);
+                    }
+                };
+            }
+            req.open('POST', url, true);
+            req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            if (headers) {
+                for (var index in headers) {
+                    req.setRequestHeader(index, sessionStorage.getItem(headers[index]));
+                }
+            }
+            req.send(JSON.stringify(data));
+        };
+        return Adapter;
+    }());
+    JSW.Adapter = Adapter;
+})(JSW || (JSW = {}));
 /**
  * JavaScriptWindowフレームワーク用名前空間
  * namespaceの前に「export」を入れると、モジュールとして利用可能
@@ -160,7 +305,7 @@ var JSW;
     addEventListener("mousemove", mouseMove, false);
     addEventListener("touchmove", mouseMove, { passive: false });
     addEventListener("touchstart", mouseDown, { passive: false });
-    addEventListener("mousedown", mouseDown);
+    addEventListener("mousedown", mouseDown, false);
     function mouseDown(e) {
         var node = e.target;
         do {
@@ -169,6 +314,7 @@ var JSW;
             }
         } while (node = node.parentNode);
         deactive();
+        return false;
     }
     function deactive() {
         var activeWindows = document.querySelectorAll('[data-jsw="Window"][data-jsw-active="true"]');
@@ -189,14 +335,13 @@ var JSW;
             var node = WindowManager.moveNode; //移動中ノード
             var p = WindowManager.getPos(e); //座標の取得
             var params = {
+                event: e,
                 nodePoint: { x: WindowManager.nodeX, y: WindowManager.nodeY },
                 basePoint: { x: WindowManager.baseX, y: WindowManager.baseY },
                 nowPoint: { x: p.x, y: p.y },
                 nodeSize: { width: node.clientWidth, height: node.clientHeight }
             };
             WindowManager.callEvent(node, 'move', params);
-            e.preventDefault();
-            return false;
         }
     }
 })(JSW || (JSW = {}));
@@ -251,6 +396,7 @@ var JSW;
                 reshow: true,
                 noActive: false,
                 animation: {},
+                animationEnable: true,
                 autoSizeNode: null
             };
             //ウインドウ用ノードの作成
@@ -276,6 +422,10 @@ var JSW;
                         this.setOverlap(true);
                     this.JData.animation['show'] = 'JSWFrameShow 0.5s ease 0s 1 normal';
                     this.JData.animation['close'] = 'JSWclose 0.2s ease 0s 1 forwards';
+                    this.JData.animation['maximize'] = 'JSWmaximize 0.2s ease 0s 1 forwards';
+                    this.JData.animation['minimize'] = 'JSWminimize 0.2s ease 0s 1 forwards';
+                    this.JData.animation['maxrestore'] = 'JSWmaxrestore 0.2s ease 0s 1 forwards';
+                    this.JData.animation['restore'] = 'JSWrestore 0.2s ease 0s 1 forwards';
                 }
                 if (params.layer) {
                     this.setOrderLayer(params.layer);
@@ -316,7 +466,7 @@ var JSW;
             this.hNode.style.position = flag ? 'fixed' : 'absolute';
         };
         Window.prototype.setJswStyle = function (style) {
-            this.getNode().dataset.jswStyle = style;
+            this.getClient().dataset.jswStyle = style;
         };
         Window.prototype.getJswStyle = function () {
             return this.getNode().dataset.jswStyle;
@@ -449,8 +599,10 @@ var JSW;
             this.setPos(x, y);
             this.setSize(width, height);
             //移動フレーム処理時はイベントを止める
-            if (frameIndex < 9)
-                e.preventDefault();
+            if (frameIndex < 9 || this.JData.moveable) {
+                p.event.preventDefault();
+                window.getSelection().removeAllRanges();
+            }
         };
         /**
          *イベントの受け取り
@@ -741,7 +893,7 @@ var JSW;
             this.JData.visible = flag;
             if (flag) {
                 node.style.display = '';
-                var animation = this.JData.animation['show'];
+                var animation = this.JData.animationEnable ? this.JData.animation['show'] : '';
                 var animationEnd_1 = function () {
                     _this.callEvent('visibled', { visible: true });
                     node.removeEventListener("animationend", animationEnd_1);
@@ -769,7 +921,7 @@ var JSW;
                     node.style.animation = '';
                     _this.callEvent('visibled', { visible: false });
                 };
-                var animation = this.JData.animation['close'];
+                var animation = this.JData.animationEnable ? this.JData.animation['close'] : '';
                 if (animation) {
                     node.addEventListener("animationend", animationEnd_2);
                     node.style.animation = animation;
@@ -860,7 +1012,7 @@ var JSW;
             if (this.JData.reshow) {
                 this.JData.reshow = false;
                 this.hNode.style.visibility = '';
-                var animation = this.JData.animation['show'];
+                var animation = this.JData.animationEnable ? this.JData.animation['show'] : '';
                 if (animation)
                     this.hNode.style.animation = animation;
             }
@@ -1076,7 +1228,7 @@ var JSW;
                 this.removeEventListener("animationend", animationEnd);
                 that.callEvent('closed', {});
             }
-            var animation = this.JData.animation['close'];
+            var animation = this.JData.animationEnable ? this.JData.animation['close'] : '';
             if (animation) {
                 this.hNode.addEventListener("animationend", animationEnd);
                 this.hNode.style.animation = animation;
@@ -1315,8 +1467,12 @@ var JSW;
                 this.hNode.dataset.jswStat = 'maximize';
                 this.hNode.style.minWidth = this.JData.width + "px";
                 this.hNode.style.minHeight = this.JData.height + "px";
-                this.hNode.style.animation = "JSWmaximize 0.2s ease 0s 1 forwards";
-                this.hNode.addEventListener("animationend", animationEnd);
+                var animation = this.JData.animationEnable ? this.JData.animation['maximize'] : '';
+                this.hNode.style.animation = animation;
+                if (animation)
+                    this.hNode.addEventListener("animationend", animationEnd);
+                else
+                    animationEnd.bind(this.hNode)();
             }
             else {
                 this.JData.x = this.JData.normalX;
@@ -1324,15 +1480,16 @@ var JSW;
                 this.JData.width = this.JData.normalWidth;
                 this.JData.height = this.JData.normalHeight;
                 this.hNode.dataset.jswStat = 'normal';
-                this.hNode.style.animation = "JSWmaxrestore 0.2s ease 0s 1 forwards";
+                var animation = this.JData.animationEnable ? this.JData.animation['maxrestore'] : '';
+                this.hNode.style.animation = animation;
             }
             if (flag) {
-                var icon = this.hNode.querySelector("*>[data-jsw-style=title]>[data-jsw-style=icon][data-jsw-kind=max]");
+                var icon = this.hNode.querySelector("*>[data-jsw-type=title]>[data-jsw-type=icon][data-jsw-kind=max]");
                 if (icon)
                     icon.dataset.jswKind = "normal";
             }
             else {
-                var icon = this.hNode.querySelector("*>[data-jsw-style=title]>[data-jsw-style=icon][data-jsw-kind=normal]");
+                var icon = this.hNode.querySelector("*>[data-jsw-type=title]>[data-jsw-type=icon][data-jsw-kind=normal]");
                 if (icon)
                     icon.dataset.jswKind = "max";
             }
@@ -1349,20 +1506,22 @@ var JSW;
             this.hNode.addEventListener("animationend", function () { that.layout(); });
             if (this.hNode.dataset.jswStat != 'minimize') {
                 //client.style.animation="Jswminimize 0.2s ease 0s 1 forwards"
-                this.hNode.style.animation = "JSWminimize 0.2s ease 0s 1 forwards";
+                var animation = this.JData.animationEnable ? this.JData.animation['minimize'] : '';
+                this.hNode.style.animation = animation;
                 this.hNode.dataset.jswStat = 'minimize';
             }
             else {
                 //client.style.animation="Jswrestore 0.2s ease 0s 1 backwards"
-                this.hNode.style.animation = "JSWrestore 0.2s ease 0s 1 forwards";
+                var animation = this.JData.animationEnable ? this.JData.animation['restore'] : '';
+                this.hNode.style.animation = animation;
                 this.hNode.dataset.jswStat = 'normal';
             }
             if (flag) {
-                var icon = this.hNode.querySelector("*>[data-jsw-style=title]>[data-jsw-style=icon][data-jsw-kind=min]");
+                var icon = this.hNode.querySelector("*>[data-jsw-type=title]>[data-jsw-type=icon][data-jsw-kind=min]");
                 icon.dataset.jswKind = "restore";
             }
             else {
-                var icon = this.hNode.querySelector("*>[data-jsw-style=title]>[data-jsw-style=icon][data-jsw-kind=restore]");
+                var icon = this.hNode.querySelector("*>[data-jsw-type=title]>[data-jsw-type=icon][data-jsw-kind=restore]");
                 icon.dataset.jswKind = "min";
             }
             this.JData.minimize = flag;
@@ -1410,10 +1569,11 @@ var JSW;
          * @param {string} [text] ボタンに設定するテキスト
          * @memberof Button
          */
-        function Button(text) {
+        function Button(text, value) {
             var _this = _super.call(this) || this;
             _this.setAutoSize(true);
             _this.setJswStyle('Button');
+            _this.nodeValue = value;
             //this.setAlign('center')
             var button = document.createElement('div');
             _this.getClient().appendChild(button);
@@ -1460,6 +1620,9 @@ var JSW;
             var node = this.getClient();
             node.style.justifyContent = style;
         };
+        Button.prototype.getValue = function () {
+            return this.nodeValue;
+        };
         /**
          *イベントの設定
          * 'buttonClick','buttonDblClick'
@@ -1475,6 +1638,83 @@ var JSW;
         return Button;
     }(JSW.Window));
     JSW.Button = Button;
+    var ImageButton = /** @class */ (function (_super) {
+        __extends(ImageButton, _super);
+        /**
+         *Creates an instance of Button.
+         * @param {string} [text] ボタンに設定するテキスト
+         * @memberof Button
+         */
+        function ImageButton(image, alt) {
+            var _this = _super.call(this) || this;
+            _this.setWidth(64);
+            //this.setAutoSize(true)
+            _this.setJswStyle('Button');
+            //this.setAlign('center')
+            var button = document.createElement('div');
+            _this.getClient().appendChild(button);
+            button.tabIndex = 0;
+            var nodeImg = document.createElement('img');
+            button.appendChild(nodeImg);
+            _this.nodeImg = nodeImg;
+            if (alt)
+                nodeImg.alt = alt;
+            nodeImg.addEventListener('load', function () {
+                console.log('load %d %d', nodeImg.naturalWidth, nodeImg.naturalHeight);
+                _this.layout();
+            });
+            nodeImg.src = image;
+            button.addEventListener('keypress', function (e) {
+                if (e.keyCode !== 13)
+                    _this.callEvent('submit', { event: e });
+            });
+            button.addEventListener('click', function (e) {
+                _this.callEvent('buttonClick', { event: e });
+                _this.callEvent('submit', { event: e });
+            });
+            button.addEventListener('dblclick', function (e) {
+                _this.callEvent('buttonDblClick', { event: e });
+            });
+            return _this;
+        }
+        /**
+         *ボタンに対してテキストを設定する
+         *
+         * @param {string} text
+         * @memberof Button
+         */
+        ImageButton.prototype.setText = function (text) {
+            this.nodeImg.alt = text;
+            this.layout();
+        };
+        /**
+         *ボタンに設定したテキストを取得する
+         *
+         * @returns {string}
+         * @memberof Button
+         */
+        ImageButton.prototype.getText = function () {
+            return this.nodeImg.alt;
+        };
+        ImageButton.prototype.setAlign = function (style) {
+            var node = this.getClient();
+            node.style.justifyContent = style;
+        };
+        /**
+         *イベントの設定
+         * 'buttonClick','buttonDblClick'
+         *
+         * @template K
+         * @param {K} type
+         * @param {(ev: ButtonEventMap[K]) => any} listener
+         * @memberof Button
+         */
+        ImageButton.prototype.addEventListener = function (type, listener) {
+            _super.prototype.addEventListener.call(this, type, listener);
+        };
+        return ImageButton;
+    }(JSW.Window));
+    JSW.ImageButton = ImageButton;
 })(JSW || (JSW = {}));
 /// <reference path="./Window.ts" />
 var JSW;
@@ -1489,6 +1729,7 @@ var JSW;
             var textArea = document.createElement('label');
             node.appendChild(textArea);
             var nodeCheck = document.createElement('input');
+            _this.nodeCheck = nodeCheck;
             nodeCheck.type = 'checkbox';
             textArea.appendChild(nodeCheck);
             if (params && params.checked != null)
@@ -1500,6 +1741,12 @@ var JSW;
                 _this.setText(params.text);
             return _this;
         }
+        CheckBox.prototype.isCheck = function () {
+            return this.nodeCheck.checked;
+        };
+        CheckBox.prototype.setCheck = function (check) {
+            this.nodeCheck.checked = check;
+        };
         CheckBox.prototype.setText = function (text) {
             var nodeText = this.nodeText;
             nodeText.textContent = text;
@@ -1583,9 +1830,6 @@ var JSW;
             if (text)
                 _this.setText(text);
             _this.setAutoSize(true);
-            _this.addEventListener('layout', function () {
-                console.log('layout');
-            });
             return _this;
         }
         Label.prototype.setFontSize = function (size) {
@@ -1611,6 +1855,17 @@ var JSW;
         return Label;
     }(JSW.Window));
     JSW.Label = Label;
+})(JSW || (JSW = {}));
+var JSW;
+(function (JSW) {
+    function Sleep(timeout) {
+        return new Promise(function (resolv) {
+            setTimeout(function () {
+                resolv();
+            }, timeout);
+        });
+    }
+    JSW.Sleep = Sleep;
 })(JSW || (JSW = {}));
 /// <reference path="./Window.ts" />
 var JSW;
@@ -1781,7 +2036,7 @@ var JSW;
                     var width = x - h.offsetLeft;
                     h.style.width = width + 'px';
                     that.columnWidth[this.index] = width;
-                    for (var i_1 = this.index, length_1 = resizers.childElementCount; i_1 < length_1; i_1++) {
+                    for (var i_1 = this.index, length_2 = resizers.childElementCount; i_1 < length_2; i_1++) {
                         var node = headers.children[i_1];
                         var r = resizers.childNodes[i_1];
                         r.style.left = node.offsetLeft + node.offsetWidth + 'px';
@@ -1809,7 +2064,7 @@ var JSW;
                 order = order == null ? true : order;
                 this.sortVector = order;
                 var headers = this.headers;
-                for (var i = 0, length_2 = headers.childElementCount; i < length_2; i++) {
+                for (var i = 0, length_3 = headers.childElementCount; i < length_3; i++) {
                     var node = headers.childNodes[i];
                     if (index === i)
                         node.dataset.sort = order ? 'asc' : 'desc';
@@ -1825,7 +2080,7 @@ var JSW;
             var items = column.childNodes;
             //ソートリストの作成
             var sortList = [];
-            for (var i = 0, length_3 = items.length; i < length_3; i++) {
+            for (var i = 0, length_4 = items.length; i < length_4; i++) {
                 sortList.push(i);
             }
             sortList.sort(function (a, b) {
@@ -1834,7 +2089,7 @@ var JSW;
                 return (v1 > v2 ? 1 : -1) * (order ? 1 : -1);
             });
             //ソート処理
-            for (var i = 0, length_4 = columns.length; i < length_4; i++) {
+            for (var i = 0, length_5 = columns.length; i < length_5; i++) {
                 var column_2 = columns[i];
                 //子ノードの保存と削除
                 var items_1 = [];
@@ -1843,7 +2098,7 @@ var JSW;
                     column_2.removeChild(column_2.childNodes[0]);
                 }
                 //子ノードの再追加
-                for (var j = 0, length_5 = sortList.length; j < length_5; j++) {
+                for (var j = 0, length_6 = sortList.length; j < length_6; j++) {
                     column_2.appendChild(items_1[sortList[j]]);
                 }
             }
@@ -1865,7 +2120,7 @@ var JSW;
          */
         ListView.prototype.clearSelectItem = function () {
             var columns = this.itemArea.childNodes;
-            for (var i = 0, length_6 = columns.length; i < length_6; i++) {
+            for (var i = 0, length_7 = columns.length; i < length_7; i++) {
                 var column = columns[i];
                 for (var j = 0, l = this.selectIndexes.length; j < l; j++) {
                     var node = column.childNodes[this.selectIndexes[j]];
@@ -1885,7 +2140,7 @@ var JSW;
             var indexes = (index instanceof Array ? index : [index]);
             Array.prototype.push.apply(this.selectIndexes, indexes);
             var columns = this.itemArea.childNodes;
-            for (var i = 0, length_7 = columns.length; i < length_7; i++) {
+            for (var i = 0, length_8 = columns.length; i < length_8; i++) {
                 var column = columns[i];
                 for (var j = 0, l = this.selectIndexes.length; j < l; j++) {
                     var node = column.childNodes[this.selectIndexes[j]];
@@ -1903,7 +2158,7 @@ var JSW;
         ListView.prototype.delSelectItem = function (index) {
             var indexes = (typeof index === 'object' ? index : [index]);
             var columns = this.itemArea.childNodes;
-            for (var i = 0, length_8 = columns.length; i < length_8; i++) {
+            for (var i = 0, length_9 = columns.length; i < length_9; i++) {
                 var column = columns[i];
                 for (var j = 0, l = indexes.length; j < l; j++) {
                     var node = column.childNodes[indexes[j]];
@@ -1951,7 +2206,7 @@ var JSW;
         ListView.prototype.clearItem = function () {
             this.selectIndexes = [];
             var columns = this.itemArea.childNodes;
-            for (var i = 0, length_9 = columns.length; i < length_9; i++) {
+            for (var i = 0, length_10 = columns.length; i < length_10; i++) {
                 var column = columns[i];
                 while (column.childElementCount)
                     column.removeChild(column.childNodes[0]);
@@ -2045,7 +2300,7 @@ var JSW;
         ListView.prototype.getLineCells = function (row) {
             var cells = [];
             var columns = this.itemArea.childNodes;
-            for (var i = 0, length_10 = columns.length; i < length_10; i++) {
+            for (var i = 0, length_11 = columns.length; i < length_11; i++) {
                 var column = columns[i];
                 cells.push(column.childNodes[row]);
             }
@@ -2059,11 +2314,11 @@ var JSW;
          * @returns
          * @memberof ListView
          */
-        ListView.prototype.addItem = function (value) {
+        ListView.prototype.addItem = function (value, itemValue) {
             var vector = { left: 'flex-start', center: 'center', right: 'flex-end' };
             var that = this;
             var columns = this.itemArea.childNodes;
-            for (var i = 0, length_11 = columns.length; i < length_11; i++) {
+            for (var i = 0, length_12 = columns.length; i < length_12; i++) {
                 var column = columns[i];
                 var cell = document.createElement('div');
                 cell.draggable = true;
@@ -2073,7 +2328,7 @@ var JSW;
                 column.appendChild(cell);
                 cell.addEventListener('mouseover', function () {
                     var index = ListView.getIndexOfNode(this);
-                    for (var i_2 = 0, length_12 = columns.length; i_2 < length_12; i_2++) {
+                    for (var i_2 = 0, length_13 = columns.length; i_2 < length_13; i_2++) {
                         var column_3 = columns[i_2];
                         if (that.overIndex != null && that.overIndex < column_3.childElementCount) {
                             var node = column_3.childNodes[that.overIndex];
@@ -2168,6 +2423,8 @@ var JSW;
             }
             else
                 this.setItem(index, 0, value);
+            if (itemValue)
+                this.setItemValue(index, itemValue);
             if (this.areaWidth !== this.itemArea.clientWidth) {
                 this.areaWidth = this.itemArea.clientWidth;
                 this.resize();
@@ -2229,7 +2486,7 @@ var JSW;
                 return false;
             if (!(value instanceof HTMLElement)) {
                 var item = document.createElement('div');
-                item.textContent = value;
+                item.textContent = value.toString();
                 r.appendChild(item);
             }
             else {
@@ -2246,16 +2503,16 @@ var JSW;
             var resizers = this.resizers;
             var itemArea = this.itemArea;
             var lmitWidth = itemArea.clientWidth;
-            for (var i = 0, length_13 = headers.childElementCount; i < length_13; i++) {
+            for (var i = 0, length_14 = headers.childElementCount; i < length_14; i++) {
                 lmitWidth -= this.columnWidth[i];
             }
             var autoIndex = this.columnAutoIndex;
-            for (var i = 0, length_14 = headers.childElementCount; i < length_14; i++) {
+            for (var i = 0, length_15 = headers.childElementCount; i < length_15; i++) {
                 var node = headers.childNodes[i];
                 var resize = resizers.childNodes[i];
                 var column = itemArea.children[i];
                 var width = this.columnWidth[i];
-                if (autoIndex === i || (autoIndex === -1 && i === length_14 - 1))
+                if (autoIndex === i || (autoIndex === -1 && i === length_15 - 1))
                     width += lmitWidth;
                 node.style.width = width + 'px';
                 resize.style.left = node.offsetLeft + width - resize.offsetWidth / 2 + 'px';
@@ -2276,6 +2533,48 @@ var JSW;
 /// <reference path="./Window.ts" />
 var JSW;
 (function (JSW) {
+    var MessageBox = /** @class */ (function (_super) {
+        __extends(MessageBox, _super);
+        function MessageBox(title, msg, buttons) {
+            var _this = _super.call(this) || this;
+            _this.setSize(300, 200);
+            _this.setPos();
+            _this.setTitle(title);
+            _this.active();
+            _this.setPadding(10, 10, 10, 10);
+            var label = new JSW.Label(msg);
+            _this.label = label;
+            _this.addChild(label, 'top');
+            label.setAlign('center');
+            label.setMargin(10, 10, 10, 50);
+            var that = _this;
+            if (!buttons) {
+                buttons = { 'OK': true };
+            }
+            for (var name_1 in buttons) {
+                var b = new JSW.Button(name_1, buttons[name_1]);
+                b.setAlign('center');
+                _this.addChild(b, 'top');
+                b.addEventListener('buttonClick', function () {
+                    that.callEvent('buttonClick', this.getValue());
+                    that.close();
+                }.bind(b));
+            }
+            return _this;
+        }
+        MessageBox.prototype.addEventListener = function (type, listener) {
+            _super.prototype.addEventListener.call(this, type, listener);
+        };
+        MessageBox.prototype.setText = function (text) {
+            this.label.setText(text);
+        };
+        return MessageBox;
+    }(JSW.FrameWindow));
+    JSW.MessageBox = MessageBox;
+})(JSW || (JSW = {}));
+/// <reference path="./Window.ts" />
+var JSW;
+(function (JSW) {
     /**
      *パネル用クラス
      *
@@ -2287,9 +2586,8 @@ var JSW;
         __extends(Panel, _super);
         function Panel() {
             var _this = _super.call(this) || this;
+            _this.setJswStyle('Panel');
             _this.setHeight(32);
-            var node = _this.getNode();
-            node.dataset.jswStyle = 'Panel';
             return _this;
         }
         return Panel;
