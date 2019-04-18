@@ -40,11 +40,11 @@ JavaScript用ウインドウフレームワーク
 　export namespace JSW {
 ```
 
-## ターゲット
+# ターゲット
 - TypeScript+ES5(JavaScript)
 - IE11で動作するレベルのDOM
 
-## ライセンス
+# ライセンス
 - [MIT License](https://opensource.org/licenses/mit-license.php)
 
 ソースの利用に制限はありませんが、無保証です
