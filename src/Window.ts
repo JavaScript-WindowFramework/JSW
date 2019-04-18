@@ -34,6 +34,7 @@ namespace JSW {
 		moveable: boolean
 		reshow:boolean
 		animation:{}
+		animationEnable:boolean
 		noActive:boolean,
 		autoSizeNode:HTMLElement
 	}
@@ -80,6 +81,7 @@ namespace JSW {
 			reshow:true,
 			noActive:false,
 			animation: {},
+			animationEnable:true,
 			autoSizeNode:null
 		}
 		/**
@@ -115,6 +117,10 @@ namespace JSW {
 						this.setOverlap(true)
 					this.JData.animation['show'] = 'JSWFrameShow 0.5s ease 0s 1 normal'
 					this.JData.animation['close'] = 'JSWclose 0.2s ease 0s 1 forwards'
+					this.JData.animation['maximize'] = 'JSWmaximize 0.2s ease 0s 1 forwards'
+					this.JData.animation['minimize'] = 'JSWminimize 0.2s ease 0s 1 forwards'
+					this.JData.animation['maxrestore'] = 'JSWmaxrestore 0.2s ease 0s 1 forwards'
+					this.JData.animation['restore'] = 'JSWrestore 0.2s ease 0s 1 forwards'
 				}
 				if (params.layer) {
 					this.setOrderLayer(params.layer)
@@ -159,7 +165,7 @@ namespace JSW {
 			this.hNode.style.position = flag ? 'fixed' : 'absolute'
 		}
 		setJswStyle(style:string){
-			this.getNode().dataset.jswStyle = style
+			this.getClient().dataset.jswStyle = style
 		}
 		getJswStyle():string{
 			return this.getNode().dataset.jswStyle
@@ -299,8 +305,10 @@ namespace JSW {
 			this.setPos(x, y)
 			this.setSize(width, height)
 			//移動フレーム処理時はイベントを止める
-			if (frameIndex < 9)
-				e.preventDefault()
+			if (frameIndex < 9 || this.JData.moveable){
+				p.event.preventDefault()
+				window.getSelection().removeAllRanges()
+			}
 		}
 		/**
 		 *イベントの受け取り
@@ -595,7 +603,7 @@ namespace JSW {
 
 			if (flag){
 				node.style.display = '';
-				const animation = this.JData.animation['show']
+				const animation = this.JData.animationEnable ? this.JData.animation['show']:''
 				const animationEnd = () => {
 					this.callEvent('visibled', { visible: true })
 					node.removeEventListener("animationend", animationEnd)
@@ -622,7 +630,7 @@ namespace JSW {
 					node.style.animation = ''
 					this.callEvent('visibled', { visible: false })
 				}
-				const animation = this.JData.animation['close']
+				const animation = this.JData.animationEnable ? this.JData.animation['close'] : ''
 				if (animation) {
 					node.addEventListener("animationend", animationEnd)
 					node.style.animation = animation
@@ -714,7 +722,8 @@ namespace JSW {
 			if (this.JData.reshow) {
 				this.JData.reshow = false
 				this.hNode.style.visibility = ''
-				const animation = this.JData.animation['show']
+
+				const animation = this.JData.animationEnable ? this.JData.animation['show'] : ''
 				if (animation)
 					this.hNode.style.animation = animation
 			}
@@ -947,7 +956,7 @@ namespace JSW {
 
 
 			}
-			const animation = this.JData.animation['close']
+			const animation = this.JData.animationEnable ? this.JData.animation['close'] : ''
 			if(animation){
 				this.hNode.addEventListener("animationend", animationEnd)
 				this.hNode.style.animation = animation
@@ -1196,22 +1205,27 @@ namespace JSW {
 				this.hNode.dataset.jswStat = 'maximize'
 				this.hNode.style.minWidth = this.JData.width + "px"
 				this.hNode.style.minHeight = this.JData.height + "px"
-				this.hNode.style.animation = "JSWmaximize 0.2s ease 0s 1 forwards"
-				this.hNode.addEventListener("animationend", animationEnd)
+				const animation = this.JData.animationEnable ? this.JData.animation['maximize'] : ''
+				this.hNode.style.animation = animation
+				if (animation)
+					this.hNode.addEventListener("animationend", animationEnd)
+				else
+					animationEnd.bind(this.hNode)()
 			} else {
 				this.JData.x = this.JData.normalX
 				this.JData.y = this.JData.normalY
 				this.JData.width = this.JData.normalWidth
 				this.JData.height = this.JData.normalHeight
 				this.hNode.dataset.jswStat = 'normal'
-				this.hNode.style.animation = "JSWmaxrestore 0.2s ease 0s 1 forwards"
+				const animation = this.JData.animationEnable ? this.JData.animation['maxrestore'] : ''
+				this.hNode.style.animation = animation
 			}
 			if (flag) {
-				let icon = this.hNode.querySelector("*>[data-jsw-style=title]>[data-jsw-style=icon][data-jsw-kind=max]") as HTMLElement
+				let icon = this.hNode.querySelector("*>[data-jsw-type=title]>[data-jsw-type=icon][data-jsw-kind=max]") as HTMLElement
 				if (icon)
 					icon.dataset.jswKind = "normal"
 			} else {
-				let icon = this.hNode.querySelector("*>[data-jsw-style=title]>[data-jsw-style=icon][data-jsw-kind=normal]") as HTMLElement
+				let icon = this.hNode.querySelector("*>[data-jsw-type=title]>[data-jsw-type=icon][data-jsw-kind=normal]") as HTMLElement
 				if (icon)
 					icon.dataset.jswKind = "max"
 			}
@@ -1231,18 +1245,20 @@ namespace JSW {
 			if (this.hNode.dataset.jswStat != 'minimize') {
 
 				//client.style.animation="Jswminimize 0.2s ease 0s 1 forwards"
-				this.hNode.style.animation = "JSWminimize 0.2s ease 0s 1 forwards"
+				const animation = this.JData.animationEnable ? this.JData.animation['minimize'] : ''
+				this.hNode.style.animation = animation
 				this.hNode.dataset.jswStat = 'minimize'
 			} else {
 				//client.style.animation="Jswrestore 0.2s ease 0s 1 backwards"
-				this.hNode.style.animation = "JSWrestore 0.2s ease 0s 1 forwards"
+				const animation = this.JData.animationEnable ? this.JData.animation['restore'] : ''
+				this.hNode.style.animation = animation
 				this.hNode.dataset.jswStat = 'normal'
 			}
 			if (flag) {
-				let icon = this.hNode.querySelector("*>[data-jsw-style=title]>[data-jsw-style=icon][data-jsw-kind=min]") as HTMLElement
+				let icon = this.hNode.querySelector("*>[data-jsw-type=title]>[data-jsw-type=icon][data-jsw-kind=min]") as HTMLElement
 				icon.dataset.jswKind = "restore"
 			} else {
-				let icon = this.hNode.querySelector("*>[data-jsw-style=title]>[data-jsw-style=icon][data-jsw-kind=restore]") as HTMLElement
+				let icon = this.hNode.querySelector("*>[data-jsw-type=title]>[data-jsw-type=icon][data-jsw-kind=restore]") as HTMLElement
 				icon.dataset.jswKind = "min"
 			}
 			this.JData.minimize = flag

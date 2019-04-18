@@ -81,7 +81,11 @@
   background-image: url("images/normal.svg");
 }
 
-[data-jsw="Window"] > [data-jsw-type="client"] {
+[data-jsw-scale="auto"] {
+  white-space: normal;
+}
+
+[data-jsw-type="client"] {
   position: absolute;
   overflow: hidden;
   background-color: whitesmoke;
@@ -89,10 +93,6 @@
   right: 0px;
   bottom: 0px;
   left: 0px;
-}
-
-[data-jsw="Window"] [data-jsw-scale="auto"] {
-  white-space: normal;
 }
 
 @keyframes JSWminimize {
@@ -232,41 +232,41 @@
 }
 
 /* Splitter用設定  */
-[data-jsw-style="SplitterView"] > [data-jsw-type='client'] {
+[data-jsw-style="SplitterView"] {
   display: flex;
 }
 
-[data-jsw-style="SplitterView"] > [data-jsw-type='client'][data-splitter-type='ew'] {
+[data-jsw-style="SplitterView"][data-splitter-type='ew'] {
   align-items: center;
 }
 
-[data-jsw-style="SplitterView"] > [data-jsw-type='client'][data-splitter-type='ew'] [data-kind="SplitterMenu"] {
+[data-jsw-style="SplitterView"][data-splitter-type='ew'] [data-kind="SplitterMenu"] {
   right: 0;
 }
 
-[data-jsw-style="SplitterView"] > [data-jsw-type='client'][data-splitter-type='we'] {
+[data-jsw-style="SplitterView"][data-splitter-type='we'] {
   align-items: center;
 }
 
-[data-jsw-style="SplitterView"] > [data-jsw-type='client'][data-splitter-type='ns'] {
+[data-jsw-style="SplitterView"][data-splitter-type='ns'] {
   justify-content: center;
 }
 
-[data-jsw-style="SplitterView"] > [data-jsw-type='client'][data-splitter-type='sn'] {
+[data-jsw-style="SplitterView"][data-splitter-type='sn'] {
   justify-content: center;
 }
 
-[data-jsw-style="SplitterView"] > [data-jsw-type='client'][data-splitter-type='sn'] [data-kind="SplitterMenu"] {
+[data-jsw-style="SplitterView"][data-splitter-type='sn'] [data-kind="SplitterMenu"] {
   bottom: 0;
 }
 
-[data-jsw-style="SplitterView"] > [data-jsw-type='client'] [data-jsw-style="Splitter"] > [data-jsw-type='client'] {
+[data-jsw-style="SplitterView"] [data-jsw-style="Splitter"] {
   background-color: #aaaaaa;
   border: outset 2px #b8b7b7;
   user-select: none;
 }
 
-[data-jsw-style="SplitterView"] > [data-jsw-type='client'] [data-kind="SplitterMenu"] {
+[data-jsw-style="SplitterView"] [data-kind="SplitterMenu"] {
   position: absolute;
   background-color: rgba(255, 255, 255, 0.7);
   opacity: 0.7;
@@ -281,13 +281,13 @@
   z-index: 100;
 }
 
-[data-jsw-style="SplitterView"] > [data-jsw-type='client'][data-splitter-type="ns"] > [data-jsw-style="Splitter"] > [data-jsw-type='client'],
-[data-jsw-style="SplitterView"] > [data-jsw-type='client'][data-splitter-type="sn"] > [data-jsw-style="Splitter"] > [data-jsw-type='client'] {
+[data-jsw-style="SplitterView"][data-splitter-type="ns"] [data-jsw-style="Splitter"],
+[data-jsw-style="SplitterView"][data-splitter-type="sn"] [data-jsw-style="Splitter"] {
   cursor: ns-resize;
 }
 
-[data-jsw-style="SplitterView"] > [data-jsw-type='client'][data-splitter-type="we"] > [data-jsw-style="Splitter"] > [data-jsw-type='client'],
-[data-jsw-style="SplitterView"] > [data-jsw-type='client'][data-splitter-type="ew"] > [data-jsw-style="Splitter"] > [data-jsw-type='client'] {
+[data-jsw-style="SplitterView"][data-splitter-type="we"] [data-jsw-style="Splitter"],
+[data-jsw-style="SplitterView"][data-splitter-type="ew"] [data-jsw-style="Splitter"] {
   cursor: ew-resize;
 }
 
@@ -396,7 +396,7 @@
 }
 
 /* Panel用設定 */
-[data-jsw-style="Panel"] > [data-jsw-type="client"] {
+[data-jsw-style="Panel"] {
   box-sizing: border-box;
   user-select: none;
   background-color: darkgrey;
@@ -641,12 +641,14 @@
 }
 
 /* Button用設定 */
-[data-jsw-style="Button"] > [data-jsw-type='client'] {
+[data-jsw-style="Button"] {
   display: flex;
   background-color: transparent;
 }
 
-[data-jsw-style="Button"] > [data-jsw-type='client'] > div {
+[data-jsw-style="Button"] > div {
+  cursor: pointer;
+  white-space: nowrap;
   margin: 2px;
   justify-content: center;
   align-items: center;
@@ -659,43 +661,50 @@
   background-image: linear-gradient(120deg, rgba(156, 159, 161, 0.9) 0%, #74757a 100%);
 }
 
-[data-jsw-style="Button"] > [data-jsw-type='client'] > div:hover, [data-jsw-style="Button"] > [data-jsw-type='client'] > div:focus {
+[data-jsw-style="Button"] > div:hover, [data-jsw-style="Button"] > div:focus {
   background-image: linear-gradient(120deg, rgba(108, 155, 194, 0.9) 0%, #6275df 100%);
   font-weight: bold;
 }
 
-[data-jsw-style="Button"] > [data-jsw-type='client'] > div:active {
+[data-jsw-style="Button"] > div:active {
   border-style: inset;
 }
 
-[data-jsw-style="Button"] > [data-jsw-type='client'] > div > span {
+[data-jsw-style="Button"] > div > span {
   display: block;
   padding: 2px 8px;
   white-space: nowrap;
 }
 
-/* Label用設定 */
-[data-jsw-style="Label"] > [data-jsw-type='client'] {
-  display: flex;
-  overflow: visible;
+[data-jsw-style="Button"] > div > img {
+  height: 100%;
+  width: 100%;
 }
 
-[data-jsw-style="Label"] > [data-jsw-type='client'] > span {
+/* Label用設定 */
+[data-jsw-style="Label"] {
+  display: flex;
+  overflow: visible;
+  background-color: transparent;
+}
+
+[data-jsw-style="Label"] > span {
   white-space: nowrap;
 }
 
 /* TextBox用設定 */
-[data-jsw-style="TextBox"] > [data-jsw-type='client'] {
+[data-jsw-style="TextBox"] {
   border: inset;
   display: flex;
 }
 
-[data-jsw-style="TextBox"] > [data-jsw-type='client'] > div {
+[data-jsw-style="TextBox"] > div {
   flex: 1;
   position: relative;
 }
 
-[data-jsw-style="TextBox"] > [data-jsw-type='client'] > div > input {
+[data-jsw-style="TextBox"] > div > input {
+  user-select: all;
   position: absolute;
   background-color: rgba(255, 255, 255, 0.8);
   min-height: 2em;
@@ -704,22 +713,22 @@
   width: 100%;
 }
 
-[data-jsw-style="TextBox"] > [data-jsw-type='client'] > div > div {
+[data-jsw-style="TextBox"] > div > div {
   white-space: nowrap;
   position: absolute;
   padding: 0.2em;
 }
 
-[data-jsw-style="TextBox"] > [data-jsw-type='client'] > img {
+[data-jsw-style="TextBox"] > img {
   height: 100%;
 }
 
 /* CheckBox用設定 */
-[data-jsw-style="CheckBox"] > [data-jsw-type='client'] {
+[data-jsw-style="CheckBox"] {
   display: flex;
   white-space: nowrap;
 }
 
-[data-jsw-style="CheckBox"] > [data-jsw-type='client'] > label:hover {
+[data-jsw-style="CheckBox"] > label:hover {
   background-color: rgba(186, 190, 245, 0.274);
 }

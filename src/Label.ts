@@ -16,10 +16,6 @@ namespace JSW{
 				this.setText(text)
 
 			this.setAutoSize(true)
-			 this.addEventListener('layout',()=>{
-				 console.log('layout')
-			 })
-
 		}
 		setFontSize(size:number){
 			let nodeText = this.nodeText

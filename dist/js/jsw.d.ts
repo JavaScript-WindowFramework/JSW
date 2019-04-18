@@ -1,3 +1,31 @@
+declare namespace JSW {
+    interface FunctionData {
+        name: string;
+        params: any[];
+    }
+    interface FunctionSet {
+        functions: FunctionData[];
+        promise: {
+            [key: string]: Function;
+        };
+        array: boolean;
+    }
+    class Adapter {
+        handle: number;
+        scriptUrl: string;
+        globalHash: string;
+        keyName: string;
+        functionSet: FunctionSet[];
+        constructor(scriptUrl: string, keyName?: string);
+        exec(functions: any[][]): Promise<any>;
+        exec(funcName: string, ...params: any[]): Promise<any>;
+        callSend(): void;
+        send(): void;
+        sendJson(url: string, data: any, proc: Function, headers?: {
+            [key: string]: string;
+        }): any;
+    }
+}
 /**
  * JavaScriptWindowフレームワーク用名前空間
  * namespaceの前に「export」を入れると、モジュールとして利用可能
@@ -28,6 +56,7 @@ declare namespace JSW {
      * @param {Size} nodeSize ノード初期サイズ
      */
     interface MovePoint {
+        event: MouseEvent;
         basePoint: Point;
         nowPoint: Point;
         nodePoint: Point;
@@ -155,6 +184,7 @@ declare namespace JSW {
         moveable: boolean;
         reshow: boolean;
         animation: {};
+        animationEnable: boolean;
         noActive: boolean;
         autoSizeNode: HTMLElement;
     }
@@ -617,12 +647,48 @@ declare namespace JSW {
      */
     class Button extends Window {
         nodeText: HTMLElement;
+        nodeValue: any;
         /**
          *Creates an instance of Button.
          * @param {string} [text] ボタンに設定するテキスト
          * @memberof Button
          */
-        constructor(text?: string);
+        constructor(text?: string, value?: any);
+        /**
+         *ボタンに対してテキストを設定する
+         *
+         * @param {string} text
+         * @memberof Button
+         */
+        setText(text: string): void;
+        /**
+         *ボタンに設定したテキストを取得する
+         *
+         * @returns {string}
+         * @memberof Button
+         */
+        getText(): string;
+        setAlign(style: string): void;
+        getValue(): any;
+        /**
+         *イベントの設定
+         * 'buttonClick','buttonDblClick'
+         *
+         * @template K
+         * @param {K} type
+         * @param {(ev: ButtonEventMap[K]) => any} listener
+         * @memberof Button
+         */
+        addEventListener<K extends keyof ButtonEventMap>(type: K, listener: (ev: ButtonEventMap[K]) => any): void;
+    }
+    class ImageButton extends Window {
+        nodeImg: HTMLImageElement;
+        /**
+         *Creates an instance of Button.
+         * @param {string} [text] ボタンに設定するテキスト
+         * @memberof Button
+         */
+        constructor(image: string, alt?: string);
         /**
          *ボタンに対してテキストを設定する
          *
@@ -653,10 +719,13 @@ declare namespace JSW {
 declare namespace JSW {
     class CheckBox extends Window {
         nodeText: HTMLSpanElement;
+        nodeCheck: HTMLInputElement;
         constructor(params?: {
             text?: string;
             checked?: boolean;
         });
+        isCheck(): boolean;
+        setCheck(check: boolean): void;
         setText(text: string): void;
         getText(): string;
         getTextNode(): HTMLSpanElement;
@@ -687,6 +756,9 @@ declare namespace JSW {
         getTextNode(): HTMLSpanElement;
         setAlign(style: string): void;
     }
+}
+declare namespace JSW {
+    function Sleep(timeout: number): Promise<void>;
 }
 declare namespace JSW {
     interface LISTVIEW_EVENT_ITEM_CLICK {
@@ -885,7 +957,7 @@ declare namespace JSW {
          * @returns
          * @memberof ListView
          */
-        addItem(value: string | HTMLElement | (string | HTMLElement)[]): number;
+        addItem(value: string | number | HTMLElement | ((string | number | HTMLElement)[]), itemValue?: any): number;
         /**
          *ソート用のキーを設定する
          *
@@ -913,7 +985,7 @@ declare namespace JSW {
          * @returns
          * @memberof ListView
          */
-        setItem(row: number, column: number, value: string | HTMLElement): boolean;
+        setItem(row: number, column: number, value: string | number | HTMLElement): boolean;
         /**
          *ヘッダに合わせてカラムサイズを調整する
          *基本的には直接呼び出さない
@@ -922,6 +994,22 @@ declare namespace JSW {
         resize(): void;
         onLayout(flag: boolean): void;
         addEventListener<K extends keyof ListViewEventMap>(type: K, listener: (ev: ListViewEventMap[K]) => any): void;
+    }
+}
+declare namespace JSW {
+    interface MESSAGEBOX_EVENT_ITEM_CLICK {
+        value: any;
+    }
+    interface MessageBoxEventMap extends WINDOW_EVENT_MAP {
+        "buttonClick": MESSAGEBOX_EVENT_ITEM_CLICK;
+    }
+    class MessageBox extends FrameWindow {
+        label: JSW.Label;
+        constructor(title: string, msg: string, buttons?: {
+            [key: string]: any;
+        });
+        addEventListener<K extends keyof MessageBoxEventMap>(type: K, listener: (ev: MessageBoxEventMap[K]) => any): void;
+        setText(text: string): void;
     }
 }
 declare namespace JSW {

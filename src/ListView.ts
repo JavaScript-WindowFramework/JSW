@@ -485,7 +485,7 @@ namespace JSW{
 		 * @returns
 		 * @memberof ListView
 		 */
-		addItem(value: string | HTMLElement | (string | HTMLElement)[]) {
+		addItem(value: string | number | HTMLElement | ((string | number | HTMLElement)[]),itemValue?:any) {
 			const vector = { left: 'flex-start', center: 'center', right: 'flex-end' }
 			let that = this
 			let columns = this.itemArea.childNodes as any
@@ -592,6 +592,8 @@ namespace JSW{
 			}
 			else
 				this.setItem(index, 0, value)
+			if (itemValue)
+				this.setItemValue(index, itemValue)
 
 			if(this.areaWidth !== this.itemArea.clientWidth){
 				this.areaWidth = this.itemArea.clientWidth
@@ -645,7 +647,7 @@ namespace JSW{
 		 * @returns
 		 * @memberof ListView
 		 */
-		setItem(row: number, column: number, value: string | HTMLElement) {
+		setItem(row: number, column: number, value: string | number | HTMLElement) {
 			let c = this.itemArea.childNodes[column]
 			if (c == null)
 				return false
@@ -654,7 +656,7 @@ namespace JSW{
 				return false
 			if (!(value instanceof HTMLElement)) {
 				var item = document.createElement('div')
-				item.textContent = value
+				item.textContent = value.toString()
 				r.appendChild(item)
 			} else {
 				r.appendChild(value)
