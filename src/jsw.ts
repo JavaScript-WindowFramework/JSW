@@ -29,6 +29,7 @@ namespace JSW {
 	 * @param {Size} nodeSize ノード初期サイズ
 	 */
 	export interface MovePoint {
+		event:MouseEvent
 		basePoint: Point
 		nowPoint: Point
 		nodePoint: Point
@@ -195,7 +196,7 @@ namespace JSW {
 	addEventListener("mousemove", mouseMove, false)
 	addEventListener("touchmove", mouseMove, { passive: false })
 	addEventListener("touchstart", mouseDown, { passive: false })
-	addEventListener("mousedown", mouseDown)
+	addEventListener("mousedown", mouseDown, false)
 
 	function mouseDown(e:MouseEvent|TouchEvent){
 		let node = e.target as HTMLElement
@@ -205,6 +206,7 @@ namespace JSW {
 			}
 		}while(node = node.parentNode as HTMLElement)
 		deactive()
+		return false
 	}
 	function deactive(){
 		let activeWindows = document.querySelectorAll('[data-jsw="Window"][data-jsw-active="true"]')
@@ -221,19 +223,18 @@ namespace JSW {
 		WindowManager.frame = null
 	}
 	//マウス移動時の処理
-	function mouseMove(e) {
+	function mouseMove(e:MouseEvent) {
 		if (WindowManager.moveNode) {
 			let node = WindowManager.moveNode;	//移動中ノード
-			let p = WindowManager.getPos(e);		//座標の取得
+			let p = WindowManager.getPos(e);	//座標の取得
 			let params: MovePoint = {
+				event:e,
 				nodePoint: { x: WindowManager.nodeX, y: WindowManager.nodeY },
 				basePoint: { x: WindowManager.baseX, y: WindowManager.baseY },
 				nowPoint: { x: p.x, y: p.y },
 				nodeSize: { width: node.clientWidth, height: node.clientHeight }
 			}
 			WindowManager.callEvent(node, 'move', params)
-			e.preventDefault()
-			return false
 		}
 	}
 

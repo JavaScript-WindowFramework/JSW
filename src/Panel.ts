@@ -11,9 +11,8 @@ namespace JSW{
 	export class Panel extends Window {
 		constructor() {
 			super()
+			this.setJswStyle('Panel')
 			this.setHeight(32)
-			let node = this.getNode()
-			node.dataset.jswStyle = 'Panel'
 		}
 	}
 }

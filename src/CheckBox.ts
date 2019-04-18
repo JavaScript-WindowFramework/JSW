@@ -3,6 +3,7 @@
 namespace JSW{
 	export class CheckBox extends Window{
 		nodeText: HTMLSpanElement
+		nodeCheck : HTMLInputElement
 		constructor(params?:{text?: string,checked?:boolean}) {
 			super()
 
@@ -14,6 +15,7 @@ namespace JSW{
 			node.appendChild(textArea)
 
 			let nodeCheck = document.createElement('input')
+			this.nodeCheck = nodeCheck
 			nodeCheck.type = 'checkbox'
 			textArea.appendChild(nodeCheck)
 			if(params && params.checked != null)
@@ -27,7 +29,12 @@ namespace JSW{
 				this.setText(params.text)
 
 		}
-
+		isCheck():boolean{
+			return this.nodeCheck.checked
+		}
+		setCheck(check:boolean){
+			this.nodeCheck.checked = check
+		}
 		setText(text: string) {
 			const nodeText = this.nodeText
 			nodeText.textContent = text
