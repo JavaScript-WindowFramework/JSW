@@ -21,9 +21,12 @@ declare namespace JSW {
         exec(funcName: string, ...params: any[]): Promise<any>;
         callSend(): void;
         send(): void;
-        sendJson(url: string, data: any, proc: Function, headers?: {
+        static sendJsonAsync(url: string, data?: any, headers?: {
             [key: string]: string;
-        }): any;
+        }): Promise<{}>;
+        static sendJson(url: string, data: any, proc: Function, headers?: {
+            [key: string]: string;
+        }): Promise<any>;
     }
 }
 /**
@@ -31,6 +34,7 @@ declare namespace JSW {
  * namespaceの前に「export」を入れると、モジュールとして利用可能
 */
 declare namespace JSW {
+    function sprintf(format: string, ...args: any[]): string;
     /**
      * 位置設定用
     */
@@ -195,6 +199,13 @@ declare namespace JSW {
         };
         closed: {};
         layout: {};
+        layouted: {};
+    }
+    interface WINDOW_PARAMS {
+        frame?: boolean;
+        title?: boolean;
+        layer?: number;
+        overlap?: boolean;
     }
     /**
      *ウインドウ基本クラス
@@ -215,12 +226,7 @@ declare namespace JSW {
          * }
          * @memberof Window
          */
-        constructor(params?: {
-            frame?: boolean;
-            title?: boolean;
-            layer?: number;
-            overlap?: boolean;
-        });
+        constructor(params?: WINDOW_PARAMS);
         setOverlap(flag: boolean): void;
         setJswStyle(style: string): void;
         getJswStyle(): string;
@@ -363,7 +369,8 @@ declare namespace JSW {
          * @param {number} y2
          * @memberof Window
          */
-        setPadding(x1: number, y1: number, x2: number, y2: number): void;
+        setPadding(x1: number, y1: number, x2: number, y2: number): any;
+        setPadding(all: number): any;
         /**
          *配置時のマージン設定
          *
@@ -373,7 +380,8 @@ declare namespace JSW {
          * @param {number} y2
          * @memberof Window
          */
-        setMargin(x1: number, y1: number, x2: number, y2: number): void;
+        setMargin(x1: number, y1: number, x2: number, y2: number): any;
+        setMargin(all: number): any;
         /**
          *ウインドウの可視状態の取得
          *
@@ -1025,6 +1033,18 @@ declare namespace JSW {
     }
 }
 declare namespace JSW {
+    class SelectBox extends JSW.Window {
+        select: HTMLSelectElement;
+        constructor(option: {
+            label?: string;
+            options: {
+                name: string;
+                value: string | number;
+            }[];
+        });
+    }
+}
+declare namespace JSW {
     interface JSWSPLITDATA {
         splitterThick: number;
         splitterPos: number;
@@ -1105,6 +1125,37 @@ declare namespace JSW {
     }
 }
 declare namespace JSW {
+    interface ITEM_OPTION {
+        label?: string;
+        type?: string;
+        name?: string;
+        value?: string | number | boolean;
+        link?: string;
+        image?: string;
+        image_width?: string;
+        events?: {
+            [key: string]: object;
+        };
+        options?: {
+            name: string;
+            value: string;
+        }[];
+    }
+    class TableFormView extends Window {
+        table: HTMLDivElement;
+        items: HTMLDivElement;
+        footer: HTMLDivElement;
+        constructor(params?: WINDOW_PARAMS);
+        addItem(params: ITEM_OPTION): HTMLButtonElement | HTMLDivElement | HTMLLabelElement;
+        getParams(): {
+            [key: string]: string | number | boolean;
+        };
+        setParams(params: {
+            [key: string]: string | number | boolean;
+        }): void;
+    }
+}
+declare namespace JSW {
     class TextBox extends Window {
         nodeLabel: HTMLElement;
         nodeText: HTMLInputElement;
@@ -1140,6 +1191,7 @@ declare namespace JSW {
     interface TreeViewEventMap extends WINDOW_EVENT_MAP {
         "itemOpen": TREEVIEW_EVENT_OPEN;
         "itemSelect": TREEVIEW_EVENT_SELECT;
+        "itemDblClick": TREEVIEW_EVENT_SELECT;
         "itemDrop": TREEVIEW_EVENT_DROP;
         "itemDragStart": TREEVIEW_EVENT_DRAG_START;
     }
@@ -1390,4 +1442,23 @@ declare namespace JSW {
          */
         addEventListener<K extends keyof TreeViewEventMap>(type: K, listener: (ev: TreeViewEventMap[K]) => any): void;
     }
+}
+/*!
+ * @overview es6-promise - a tiny implementation of Promises/A+.
+ * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors (Conversion to ES6 API by Jake Archibald)
+ * @license   Licensed under MIT license
+ *            See https://raw.githubusercontent.com/stefanpenner/es6-promise/master/LICENSE
+ * @version   v4.2.6+9869a4bc
+ */
+declare var define: any;
+declare var exports: any;
+declare var module: any;
+declare var process: any;
+declare var require: any;
+declare var global: any;
+declare module "index" {
+    const _default: {
+        JSW: typeof JSW;
+    };
+    export = _default;
 }

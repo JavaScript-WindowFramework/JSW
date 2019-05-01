@@ -1,6 +1,6 @@
 {
 	"name": "js-wf",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "JavaScript WindowFramework",
 	"main": "./dist/js/jsw.js",
 	"type": "./dist/js/jsw.d.ts",

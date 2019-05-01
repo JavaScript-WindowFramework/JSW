@@ -69,7 +69,7 @@ var JSW;
                     params.functions.push({ function: func.name, params: func.params });
                 }
             }
-            this.sendJson(this.scriptUrl + '?cmd=exec', params, function (res) {
+            Adapter.sendJson(this.scriptUrl + '?cmd=exec', params, function (res) {
                 if (res == null) {
                     for (var _i = 0, functionSet_2 = functionSet; _i < functionSet_2.length; _i++) {
                         var funcs = functionSet_2[_i];
@@ -111,7 +111,14 @@ var JSW;
                 }
             });
         };
-        Adapter.prototype.sendJson = function (url, data, proc, headers) {
+        Adapter.sendJsonAsync = function (url, data, headers) {
+            return new Promise(function (resolve) {
+                Adapter.sendJson(url, data, function (value) {
+                    resolve(value);
+                }, headers);
+            });
+        };
+        Adapter.sendJson = function (url, data, proc, headers) {
             var req = new XMLHttpRequest();
             //ネイティブでJSON変換が可能かチェック
             var jsonFlag = false;
@@ -150,7 +157,7 @@ var JSW;
                     req.setRequestHeader(index, sessionStorage.getItem(headers[index]));
                 }
             }
-            req.send(JSON.stringify(data));
+            req.send(data == null ? null : JSON.stringify(data));
         };
         return Adapter;
     }());
@@ -162,6 +169,65 @@ var JSW;
 */
 var JSW;
 (function (JSW) {
+    //---------------------------------------
+    //書式付文字列生成
+    //	引数	format,・・・
+    //	戻り値	生成文字列
+    function sprintf(format) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        if (args[0] == null)
+            return '';
+        var paramIndex = 0;
+        var dest = "";
+        for (var i = 0; format.charAt(i); i++) {
+            if (format.charAt(i) == '%') {
+                var flagZero = false;
+                var num = 0;
+                i++;
+                if (format.charAt(i) == '0') {
+                    flagZero = true;
+                    i++;
+                }
+                for (; format.charAt(i) >= '0' && format.charAt(i) <= '9'; i++) {
+                    num *= 10;
+                    num += parseInt(format.charAt(i));
+                }
+                switch (format.charAt(i)) {
+                    case 's':
+                        var work = String(args[paramIndex++]);
+                        var len = num - work.length;
+                        dest += work;
+                        var len = num - work.length;
+                        if (len > 0) {
+                            for (j = 0; j < len; j++)
+                                dest += ' ';
+                        }
+                        break;
+                    case 'd':
+                        var work = String(args[paramIndex++]);
+                        var len = num - work.length;
+                        if (len > 0) {
+                            var j;
+                            var c;
+                            if (flagZero)
+                                c = '0';
+                            else
+                                c = ' ';
+                            for (j = 0; j < len; j++)
+                                dest += c;
+                        }
+                        dest += work;
+                }
+            }
+            else
+                dest += format.charAt(i);
+        }
+        return dest;
+    }
+    JSW.sprintf = sprintf;
     /**
      * ウインドウ等総合管理クラス
      *
@@ -601,7 +667,10 @@ var JSW;
             //移動フレーム処理時はイベントを止める
             if (frameIndex < 9 || this.JData.moveable) {
                 p.event.preventDefault();
-                window.getSelection().removeAllRanges();
+                try {
+                    window.getSelection().removeAllRanges();
+                }
+                catch (e) { }
             }
         };
         /**
@@ -838,35 +907,33 @@ var JSW;
             if (this.getParent())
                 this.getParent().layout();
         };
-        /**
-         * クライアント領域のpadding設定
-         *
-         * @param {number} x1
-         * @param {number} y1
-         * @param {number} x2
-         * @param {number} y2
-         * @memberof Window
-         */
-        Window.prototype.setPadding = function (x1, y1, x2, y2) {
-            this.JData.padding.x1 = x1;
-            this.JData.padding.y1 = y1;
-            this.JData.padding.x2 = x2;
-            this.JData.padding.y2 = y2;
+        Window.prototype.setPadding = function (p1, p2, p3, p4) {
+            if (typeof p2 === 'undefined') {
+                this.JData.padding.x1 = p1;
+                this.JData.padding.y1 = p1;
+                this.JData.padding.x2 = p1;
+                this.JData.padding.y2 = p1;
+            }
+            else {
+                this.JData.padding.x1 = p1;
+                this.JData.padding.y1 = p2;
+                this.JData.padding.x2 = p3;
+                this.JData.padding.y2 = p4;
+            }
         };
-        /**
-         *配置時のマージン設定
-         *
-         * @param {number} x1
-         * @param {number} y1
-         * @param {number} x2
-         * @param {number} y2
-         * @memberof Window
-         */
-        Window.prototype.setMargin = function (x1, y1, x2, y2) {
-            this.JData.margin.x1 = x1;
-            this.JData.margin.y1 = y1;
-            this.JData.margin.x2 = x2;
-            this.JData.margin.y2 = y2;
+        Window.prototype.setMargin = function (p1, p2, p3, p4) {
+            if (typeof p2 === 'undefined') {
+                this.JData.margin.x1 = p1;
+                this.JData.margin.y1 = p1;
+                this.JData.margin.x2 = p1;
+                this.JData.margin.y2 = p1;
+            }
+            else {
+                this.JData.margin.x1 = p1;
+                this.JData.margin.y1 = p2;
+                this.JData.margin.x2 = p3;
+                this.JData.margin.y2 = p4;
+            }
         };
         /**
          *ウインドウの可視状態の取得
@@ -2594,6 +2661,32 @@ var JSW;
     }(JSW.Window));
     JSW.Panel = Panel;
 })(JSW || (JSW = {}));
+var JSW;
+(function (JSW) {
+    var SelectBox = /** @class */ (function (_super) {
+        __extends(SelectBox, _super);
+        function SelectBox(option) {
+            var _this = _super.call(this) || this;
+            _this.setJswStyle('SelectBox');
+            _this.setAutoSize(true);
+            var node = _this.getClient();
+            var select = document.createElement('select');
+            _this.select = select;
+            var options = option.options;
+            for (var _i = 0, options_1 = options; _i < options_1.length; _i++) {
+                var o = options_1[_i];
+                var opNode = document.createElement('option');
+                opNode.textContent = o.name;
+                opNode.value = o.value;
+                select.appendChild(opNode);
+            }
+            node.appendChild(select);
+            return _this;
+        }
+        return SelectBox;
+    }(JSW.Window));
+    JSW.SelectBox = SelectBox;
+})(JSW || (JSW = {}));
 /// <reference path="./Window.ts" />
 var JSW;
 (function (JSW) {
@@ -2865,6 +2958,132 @@ var JSW;
     }(JSW.Window));
     JSW.Splitter = Splitter;
 })(JSW || (JSW = {}));
+var JSW;
+(function (JSW) {
+    var TableFormView = /** @class */ (function (_super) {
+        __extends(TableFormView, _super);
+        function TableFormView(params) {
+            var _this = _super.call(this, params) || this;
+            _this.setJswStyle('TableFormView');
+            var table = document.createElement('div');
+            _this.table = table;
+            _this.getClient().appendChild(table);
+            var items = document.createElement('div');
+            _this.items = items;
+            table.appendChild(items);
+            var footer = document.createElement('div');
+            _this.footer = footer;
+            _this.getClient().appendChild(footer);
+            return _this;
+        }
+        TableFormView.prototype.addItem = function (params) {
+            if (params.type === 'submit') {
+                var button = document.createElement('button');
+                button.textContent = params.label;
+                this.footer.appendChild(button);
+                if (params.events) {
+                    var events = params.events;
+                    for (var key in events) {
+                        button.addEventListener(key, events[key]);
+                    }
+                }
+                return button;
+            }
+            else {
+                var row = document.createElement(params.type === 'checkbox' ? 'label' : 'div');
+                var label = document.createElement('div');
+                row.appendChild(label);
+                label.innerText = params.label;
+                var data = document.createElement('div');
+                row.appendChild(data);
+                switch (params.type) {
+                    case 'checkbox':
+                        var checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.name = params.name || '';
+                        checkbox.checked = params.value == true;
+                        data.appendChild(checkbox);
+                        break;
+                    case 'select':
+                        var select = document.createElement('select');
+                        select.name = params.name || '';
+                        for (var _i = 0, _a = params.options; _i < _a.length; _i++) {
+                            var o = _a[_i];
+                            var option = document.createElement('option');
+                            option.textContent = o.name;
+                            option.value = o.value;
+                            select.appendChild(option);
+                        }
+                        data.appendChild(select);
+                        break;
+                    default:
+                        var tag = void 0;
+                        if (params.link) {
+                            tag = document.createElement('a');
+                            tag.target = '_blank';
+                            tag.href = params.link;
+                        }
+                        else {
+                            tag = document.createElement('div');
+                        }
+                        if (params.image) {
+                            var image = document.createElement('img');
+                            image.src = params.image;
+                            if (params.image_width)
+                                image.style.width = params.image_width;
+                            tag.appendChild(image);
+                        }
+                        else {
+                            tag.innerText = params.value.toString();
+                        }
+                        data.appendChild(tag);
+                        break;
+                }
+                this.items.appendChild(row);
+                return row;
+            }
+        };
+        TableFormView.prototype.getParams = function () {
+            var values = {};
+            var nodes = this.items.querySelectorAll('select,input');
+            for (var length_16 = nodes.length, i = 0; i < length_16; ++i) {
+                var v = nodes[i];
+                if (v instanceof HTMLSelectElement) {
+                    var name_2 = v.name;
+                    var value = v.value;
+                    values[name_2] = value;
+                }
+                else if (v instanceof HTMLInputElement) {
+                    var name_3 = v.name;
+                    var value = v.type == 'checkbox' ? v.checked : v.value;
+                    values[name_3] = value;
+                }
+            }
+            return values;
+        };
+        TableFormView.prototype.setParams = function (params) {
+            var nodes = this.items.querySelectorAll('select,input');
+            for (var length_17 = nodes.length, i = 0; i < length_17; ++i) {
+                var v = nodes[i];
+                if (v instanceof HTMLSelectElement) {
+                    var value = params[v.name];
+                    if (value != null)
+                        v.value = value.toString();
+                }
+                else if (v instanceof HTMLInputElement) {
+                    var value = params[v.name];
+                    if (value != null)
+                        if (v.type === 'checkbox')
+                            v.checked = value;
+                        else
+                            v.value = value.toString();
+                }
+            }
+        };
+        return TableFormView;
+    }(JSW.Window));
+    JSW.TableFormView = TableFormView;
+})(JSW || (JSW = {}));
 /// <reference path="./Window.ts" />
 var JSW;
 (function (JSW) {
@@ -2933,8 +3152,8 @@ var JSW;
          * @memberof TreeItem
          */
         function TreeItem(label, opened) {
+            var _this = this;
             this.keys = {};
-            var that = this;
             var hNode = document.createElement('div');
             this.hNode = hNode;
             hNode.treeItem = this;
@@ -2943,10 +3162,13 @@ var JSW;
             row1.dataset.kind = 'TreeRow';
             hNode.appendChild(row1);
             row1.addEventListener("click", function () {
-                that.selectItem();
+                _this.selectItem();
+            });
+            row1.addEventListener("dblclick", function () {
+                _this.getTreeView().callEvent('itemDblClick', { item: _this });
             });
             row1.addEventListener('dragstart', function (e) {
-                that.getTreeView().callEvent('itemDragStart', { item: that, event: e });
+                _this.getTreeView().callEvent('itemDragStart', { item: _this, event: e });
             });
             row1.addEventListener('dragleave', function () {
                 row1.dataset.drag = '';
@@ -2960,7 +3182,7 @@ var JSW;
                 event.preventDefault();
             });
             row1.addEventListener('drop', function (e) {
-                that.getTreeView().callEvent('itemDrop', { event: e, item: that });
+                _this.getTreeView().callEvent('itemDrop', { event: e, item: _this });
                 row1.dataset.drag = '';
                 event.preventDefault();
             });
@@ -2968,7 +3190,7 @@ var JSW;
             icon.dataset.kind = 'TreeIcon';
             row1.appendChild(icon);
             icon.addEventListener("click", function (e) {
-                that.openItem(!that.opened);
+                _this.openItem(!_this.opened);
                 e.preventDefault();
                 e.stopPropagation();
             });
@@ -3375,4 +3597,1106 @@ var JSW;
     }(JSW.Window));
     JSW.TreeView = TreeView;
 })(JSW || (JSW = {}));
+/*!
+ * @overview es6-promise - a tiny implementation of Promises/A+.
+ * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors (Conversion to ES6 API by Jake Archibald)
+ * @license   Licensed under MIT license
+ *            See https://raw.githubusercontent.com/stefanpenner/es6-promise/master/LICENSE
+ * @version   v4.2.6+9869a4bc
+ */
+var define;
+var exports;
+var module;
+var process;
+var require;
+var global;
+(function (global, factory) {
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+        typeof define === 'function' && define.amd ? define(factory) :
+            (global.ES6Promise = factory());
+}(this, (function () {
+    'use strict';
+    function objectOrFunction(x) {
+        var type = typeof x;
+        return x !== null && (type === 'object' || type === 'function');
+    }
+    function isFunction(x) {
+        return typeof x === 'function';
+    }
+    var _isArray = void 0;
+    if (Array.isArray) {
+        _isArray = Array.isArray;
+    }
+    else {
+        _isArray = function (x) {
+            return Object.prototype.toString.call(x) === '[object Array]';
+        };
+    }
+    var isArray = _isArray;
+    var len = 0;
+    var vertxNext = void 0;
+    var customSchedulerFn = void 0;
+    var asap = function asap(callback, arg) {
+        queue[len] = callback;
+        queue[len + 1] = arg;
+        len += 2;
+        if (len === 2) {
+            // If len is 2, that means that we need to schedule an async flush.
+            // If additional callbacks are queued before the queue is flushed, they
+            // will be processed by this flush that we are scheduling.
+            if (customSchedulerFn) {
+                customSchedulerFn(flush);
+            }
+            else {
+                scheduleFlush();
+            }
+        }
+    };
+    function setScheduler(scheduleFn) {
+        customSchedulerFn = scheduleFn;
+    }
+    function setAsap(asapFn) {
+        asap = asapFn;
+    }
+    var browserWindow = typeof window !== 'undefined' ? window : undefined;
+    var browserGlobal = browserWindow || {};
+    var BrowserMutationObserver = browserGlobal.MutationObserver || browserGlobal.WebKitMutationObserver;
+    var isNode = typeof self === 'undefined' && typeof process !== 'undefined' && {}.toString.call(process) === '[object process]';
+    var importScripts;
+    // test for web worker but not in IE10
+    var isWorker = typeof Uint8ClampedArray !== 'undefined' && typeof importScripts !== 'undefined' && typeof MessageChannel !== 'undefined';
+    // node
+    function useNextTick() {
+        // node version 0.10.x displays a deprecation warning when nextTick is used recursively
+        // see https://github.com/cujojs/when/issues/410 for details
+        return function () {
+            return process.nextTick(flush);
+        };
+    }
+    // vertx
+    function useVertxTimer() {
+        if (typeof vertxNext !== 'undefined') {
+            return function () {
+                vertxNext(flush);
+            };
+        }
+        return useSetTimeout();
+    }
+    function useMutationObserver() {
+        var iterations = 0;
+        var observer = new BrowserMutationObserver(flush);
+        var node = document.createTextNode('');
+        observer.observe(node, { characterData: true });
+        return function () {
+            node.data = iterations = ++iterations % 2;
+        };
+    }
+    // web worker
+    function useMessageChannel() {
+        var channel = new MessageChannel();
+        channel.port1.onmessage = flush;
+        return function () {
+            return channel.port2.postMessage(0);
+        };
+    }
+    function useSetTimeout() {
+        // Store setTimeout reference so es6-promise will be unaffected by
+        // other code modifying setTimeout (like sinon.useFakeTimers())
+        var globalSetTimeout = setTimeout;
+        return function () {
+            return globalSetTimeout(flush, 1);
+        };
+    }
+    var queue = new Array(1000);
+    function flush() {
+        for (var i = 0; i < len; i += 2) {
+            var callback = queue[i];
+            var arg = queue[i + 1];
+            callback(arg);
+            queue[i] = undefined;
+            queue[i + 1] = undefined;
+        }
+        len = 0;
+    }
+    function attemptVertx() {
+        try {
+            var vertx = Function('return this')().require('vertx');
+            vertxNext = vertx.runOnLoop || vertx.runOnContext;
+            return useVertxTimer();
+        }
+        catch (e) {
+            return useSetTimeout();
+        }
+    }
+    var scheduleFlush = void 0;
+    // Decide what async method to use to triggering processing of queued callbacks:
+    if (isNode) {
+        scheduleFlush = useNextTick();
+    }
+    else if (BrowserMutationObserver) {
+        scheduleFlush = useMutationObserver();
+    }
+    else if (isWorker) {
+        scheduleFlush = useMessageChannel();
+    }
+    else if (browserWindow === undefined && typeof require === 'function') {
+        scheduleFlush = attemptVertx();
+    }
+    else {
+        scheduleFlush = useSetTimeout();
+    }
+    function then(onFulfillment, onRejection) {
+        var parent = this;
+        var child = new this.constructor(noop);
+        if (child[PROMISE_ID] === undefined) {
+            makePromise(child);
+        }
+        var _state = parent._state;
+        if (_state) {
+            var callback = arguments[_state - 1];
+            asap(function (a, b) {
+                return invokeCallback(_state, child, callback, parent._result);
+            });
+        }
+        else {
+            subscribe(parent, child, onFulfillment, onRejection);
+        }
+        return child;
+    }
+    /**
+      `Promise.resolve` returns a promise that will become resolved with the
+      passed `value`. It is shorthand for the following:
+    
+      ```javascript
+      let promise = new Promise(function(resolve, reject){
+        resolve(1);
+      });
+    
+      promise.then(function(value){
+        // value === 1
+      });
+      ```
+    
+      Instead of writing the above, your code now simply becomes the following:
+    
+      ```javascript
+      let promise = Promise.resolve(1);
+    
+      promise.then(function(value){
+        // value === 1
+      });
+      ```
+    
+      @method resolve
+      @static
+      @param {Any} value value that the returned promise will be resolved with
+      Useful for tooling.
+      @return {Promise} a promise that will become fulfilled with the given
+      `value`
+    */
+    function resolve$1(object) {
+        /*jshint validthis:true */
+        var Constructor = this;
+        if (object && typeof object === 'object' && object.constructor === Constructor) {
+            return object;
+        }
+        var promise = new Constructor(noop);
+        resolve(promise, object);
+        return promise;
+    }
+    var PROMISE_ID = Math.random().toString(36).substring(2);
+    function noop() { }
+    var PENDING = void 0;
+    var FULFILLED = 1;
+    var REJECTED = 2;
+    var TRY_CATCH_ERROR = { error: null };
+    function selfFulfillment() {
+        return new TypeError("You cannot resolve a promise with itself");
+    }
+    function cannotReturnOwn() {
+        return new TypeError('A promises callback cannot return that same promise.');
+    }
+    function getThen(promise) {
+        try {
+            return promise.then;
+        }
+        catch (error) {
+            TRY_CATCH_ERROR.error = error;
+            return TRY_CATCH_ERROR;
+        }
+    }
+    function tryThen(then$$1, value, fulfillmentHandler, rejectionHandler, x) {
+        try {
+            then$$1.call(value, fulfillmentHandler, rejectionHandler);
+        }
+        catch (e) {
+            return e;
+        }
+    }
+    function handleForeignThenable(promise, thenable, then$$1) {
+        asap(function (promise) {
+            var sealed = false;
+            var error = tryThen(then$$1, thenable, function (value) {
+                if (sealed) {
+                    return;
+                }
+                sealed = true;
+                if (thenable !== value) {
+                    resolve(promise, value);
+                }
+                else {
+                    fulfill(promise, value);
+                }
+            }, function (reason) {
+                if (sealed) {
+                    return;
+                }
+                sealed = true;
+                reject(promise, reason);
+            }, 'Settle: ' + (promise._label || ' unknown promise'));
+            if (!sealed && error) {
+                sealed = true;
+                reject(promise, error);
+            }
+        }, promise);
+    }
+    function handleOwnThenable(promise, thenable) {
+        if (thenable._state === FULFILLED) {
+            fulfill(promise, thenable._result);
+        }
+        else if (thenable._state === REJECTED) {
+            reject(promise, thenable._result);
+        }
+        else {
+            subscribe(thenable, undefined, function (value) {
+                return resolve(promise, value);
+            }, function (reason) {
+                return reject(promise, reason);
+            });
+        }
+    }
+    function handleMaybeThenable(promise, maybeThenable, then$$1) {
+        if (maybeThenable.constructor === promise.constructor && then$$1 === then && maybeThenable.constructor.resolve === resolve$1) {
+            handleOwnThenable(promise, maybeThenable);
+        }
+        else {
+            if (then$$1 === TRY_CATCH_ERROR) {
+                reject(promise, TRY_CATCH_ERROR.error);
+                TRY_CATCH_ERROR.error = null;
+            }
+            else if (then$$1 === undefined) {
+                fulfill(promise, maybeThenable);
+            }
+            else if (isFunction(then$$1)) {
+                handleForeignThenable(promise, maybeThenable, then$$1);
+            }
+            else {
+                fulfill(promise, maybeThenable);
+            }
+        }
+    }
+    function resolve(promise, value) {
+        if (promise === value) {
+            reject(promise, selfFulfillment());
+        }
+        else if (objectOrFunction(value)) {
+            handleMaybeThenable(promise, value, getThen(value));
+        }
+        else {
+            fulfill(promise, value);
+        }
+    }
+    function publishRejection(promise) {
+        if (promise._onerror) {
+            promise._onerror(promise._result);
+        }
+        publish(promise);
+    }
+    function fulfill(promise, value) {
+        if (promise._state !== PENDING) {
+            return;
+        }
+        promise._result = value;
+        promise._state = FULFILLED;
+        if (promise._subscribers.length !== 0) {
+            asap(publish, promise);
+        }
+    }
+    function reject(promise, reason) {
+        if (promise._state !== PENDING) {
+            return;
+        }
+        promise._state = REJECTED;
+        promise._result = reason;
+        asap(publishRejection, promise);
+    }
+    function subscribe(parent, child, onFulfillment, onRejection) {
+        var _subscribers = parent._subscribers;
+        var length = _subscribers.length;
+        parent._onerror = null;
+        _subscribers[length] = child;
+        _subscribers[length + FULFILLED] = onFulfillment;
+        _subscribers[length + REJECTED] = onRejection;
+        if (length === 0 && parent._state) {
+            asap(publish, parent);
+        }
+    }
+    function publish(promise) {
+        var subscribers = promise._subscribers;
+        var settled = promise._state;
+        if (subscribers.length === 0) {
+            return;
+        }
+        var child = void 0, callback = void 0, detail = promise._result;
+        for (var i = 0; i < subscribers.length; i += 3) {
+            child = subscribers[i];
+            callback = subscribers[i + settled];
+            if (child) {
+                invokeCallback(settled, child, callback, detail);
+            }
+            else {
+                callback(detail);
+            }
+        }
+        promise._subscribers.length = 0;
+    }
+    function tryCatch(callback, detail) {
+        try {
+            return callback(detail);
+        }
+        catch (e) {
+            TRY_CATCH_ERROR.error = e;
+            return TRY_CATCH_ERROR;
+        }
+    }
+    function invokeCallback(settled, promise, callback, detail) {
+        var hasCallback = isFunction(callback), value = void 0, error = void 0, succeeded = void 0, failed = void 0;
+        if (hasCallback) {
+            value = tryCatch(callback, detail);
+            if (value === TRY_CATCH_ERROR) {
+                failed = true;
+                error = value.error;
+                value.error = null;
+            }
+            else {
+                succeeded = true;
+            }
+            if (promise === value) {
+                reject(promise, cannotReturnOwn());
+                return;
+            }
+        }
+        else {
+            value = detail;
+            succeeded = true;
+        }
+        if (promise._state !== PENDING) {
+            // noop
+        }
+        else if (hasCallback && succeeded) {
+            resolve(promise, value);
+        }
+        else if (failed) {
+            reject(promise, error);
+        }
+        else if (settled === FULFILLED) {
+            fulfill(promise, value);
+        }
+        else if (settled === REJECTED) {
+            reject(promise, value);
+        }
+    }
+    function initializePromise(promise, resolver) {
+        try {
+            resolver(function resolvePromise(value) {
+                resolve(promise, value);
+            }, function rejectPromise(reason) {
+                reject(promise, reason);
+            });
+        }
+        catch (e) {
+            reject(promise, e);
+        }
+    }
+    var id = 0;
+    function nextId() {
+        return id++;
+    }
+    function makePromise(promise) {
+        promise[PROMISE_ID] = id++;
+        promise._state = undefined;
+        promise._result = undefined;
+        promise._subscribers = [];
+    }
+    function validationError() {
+        return new Error('Array Methods must be provided an Array');
+    }
+    var Enumerator = function () {
+        function Enumerator(Constructor, input) {
+            this._instanceConstructor = Constructor;
+            this.promise = new Constructor(noop);
+            if (!this.promise[PROMISE_ID]) {
+                makePromise(this.promise);
+            }
+            if (isArray(input)) {
+                this.length = input.length;
+                this._remaining = input.length;
+                this._result = new Array(this.length);
+                if (this.length === 0) {
+                    fulfill(this.promise, this._result);
+                }
+                else {
+                    this.length = this.length || 0;
+                    this._enumerate(input);
+                    if (this._remaining === 0) {
+                        fulfill(this.promise, this._result);
+                    }
+                }
+            }
+            else {
+                reject(this.promise, validationError());
+            }
+        }
+        Enumerator.prototype._enumerate = function _enumerate(input) {
+            for (var i = 0; this._state === PENDING && i < input.length; i++) {
+                this._eachEntry(input[i], i);
+            }
+        };
+        Enumerator.prototype._eachEntry = function _eachEntry(entry, i) {
+            var c = this._instanceConstructor;
+            var resolve$$1 = c.resolve;
+            if (resolve$$1 === resolve$1) {
+                var _then = getThen(entry);
+                if (_then === then && entry._state !== PENDING) {
+                    this._settledAt(entry._state, i, entry._result);
+                }
+                else if (typeof _then !== 'function') {
+                    this._remaining--;
+                    this._result[i] = entry;
+                }
+                else if (c === Promise$2) {
+                    var promise = new c(noop);
+                    handleMaybeThenable(promise, entry, _then);
+                    this._willSettleAt(promise, i);
+                }
+                else {
+                    this._willSettleAt(new c(function (resolve$$1) {
+                        return resolve$$1(entry);
+                    }), i);
+                }
+            }
+            else {
+                this._willSettleAt(resolve$$1(entry), i);
+            }
+        };
+        Enumerator.prototype._settledAt = function _settledAt(state, i, value) {
+            var promise = this.promise;
+            if (promise._state === PENDING) {
+                this._remaining--;
+                if (state === REJECTED) {
+                    reject(promise, value);
+                }
+                else {
+                    this._result[i] = value;
+                }
+            }
+            if (this._remaining === 0) {
+                fulfill(promise, this._result);
+            }
+        };
+        Enumerator.prototype._willSettleAt = function _willSettleAt(promise, i) {
+            var enumerator = this;
+            subscribe(promise, undefined, function (value) {
+                return enumerator._settledAt(FULFILLED, i, value);
+            }, function (reason) {
+                return enumerator._settledAt(REJECTED, i, reason);
+            });
+        };
+        return Enumerator;
+    }();
+    /**
+      `Promise.all` accepts an array of promises, and returns a new promise which
+      is fulfilled with an array of fulfillment values for the passed promises, or
+      rejected with the reason of the first passed promise to be rejected. It casts all
+      elements of the passed iterable to promises as it runs this algorithm.
+    
+      Example:
+    
+      ```javascript
+      let promise1 = resolve(1);
+      let promise2 = resolve(2);
+      let promise3 = resolve(3);
+      let promises = [ promise1, promise2, promise3 ];
+    
+      Promise.all(promises).then(function(array){
+        // The array here would be [ 1, 2, 3 ];
+      });
+      ```
+    
+      If any of the `promises` given to `all` are rejected, the first promise
+      that is rejected will be given as an argument to the returned promises's
+      rejection handler. For example:
+    
+      Example:
+    
+      ```javascript
+      let promise1 = resolve(1);
+      let promise2 = reject(new Error("2"));
+      let promise3 = reject(new Error("3"));
+      let promises = [ promise1, promise2, promise3 ];
+    
+      Promise.all(promises).then(function(array){
+        // Code here never runs because there are rejected promises!
+      }, function(error) {
+        // error.message === "2"
+      });
+      ```
+    
+      @method all
+      @static
+      @param {Array} entries array of promises
+      @param {String} label optional string for labeling the promise.
+      Useful for tooling.
+      @return {Promise} promise that is fulfilled when all `promises` have been
+      fulfilled, or rejected if any of them become rejected.
+      @static
+    */
+    function all(entries) {
+        return new Enumerator(this, entries).promise;
+    }
+    /**
+      `Promise.race` returns a new promise which is settled in the same way as the
+      first passed promise to settle.
+    
+      Example:
+    
+      ```javascript
+      let promise1 = new Promise(function(resolve, reject){
+        setTimeout(function(){
+          resolve('promise 1');
+        }, 200);
+      });
+    
+      let promise2 = new Promise(function(resolve, reject){
+        setTimeout(function(){
+          resolve('promise 2');
+        }, 100);
+      });
+    
+      Promise.race([promise1, promise2]).then(function(result){
+        // result === 'promise 2' because it was resolved before promise1
+        // was resolved.
+      });
+      ```
+    
+      `Promise.race` is deterministic in that only the state of the first
+      settled promise matters. For example, even if other promises given to the
+      `promises` array argument are resolved, but the first settled promise has
+      become rejected before the other promises became fulfilled, the returned
+      promise will become rejected:
+    
+      ```javascript
+      let promise1 = new Promise(function(resolve, reject){
+        setTimeout(function(){
+          resolve('promise 1');
+        }, 200);
+      });
+    
+      let promise2 = new Promise(function(resolve, reject){
+        setTimeout(function(){
+          reject(new Error('promise 2'));
+        }, 100);
+      });
+    
+      Promise.race([promise1, promise2]).then(function(result){
+        // Code here never runs
+      }, function(reason){
+        // reason.message === 'promise 2' because promise 2 became rejected before
+        // promise 1 became fulfilled
+      });
+      ```
+    
+      An example real-world use case is implementing timeouts:
+    
+      ```javascript
+      Promise.race([ajax('foo.json'), timeout(5000)])
+      ```
+    
+      @method race
+      @static
+      @param {Array} promises array of promises to observe
+      Useful for tooling.
+      @return {Promise} a promise which settles in the same way as the first passed
+      promise to settle.
+    */
+    function race(entries) {
+        /*jshint validthis:true */
+        var Constructor = this;
+        if (!isArray(entries)) {
+            return new Constructor(function (_, reject) {
+                return reject(new TypeError('You must pass an array to race.'));
+            });
+        }
+        else {
+            return new Constructor(function (resolve, reject) {
+                var length = entries.length;
+                for (var i = 0; i < length; i++) {
+                    Constructor.resolve(entries[i]).then(resolve, reject);
+                }
+            });
+        }
+    }
+    /**
+      `Promise.reject` returns a promise rejected with the passed `reason`.
+      It is shorthand for the following:
+    
+      ```javascript
+      let promise = new Promise(function(resolve, reject){
+        reject(new Error('WHOOPS'));
+      });
+    
+      promise.then(function(value){
+        // Code here doesn't run because the promise is rejected!
+      }, function(reason){
+        // reason.message === 'WHOOPS'
+      });
+      ```
+    
+      Instead of writing the above, your code now simply becomes the following:
+    
+      ```javascript
+      let promise = Promise.reject(new Error('WHOOPS'));
+    
+      promise.then(function(value){
+        // Code here doesn't run because the promise is rejected!
+      }, function(reason){
+        // reason.message === 'WHOOPS'
+      });
+      ```
+    
+      @method reject
+      @static
+      @param {Any} reason value that the returned promise will be rejected with.
+      Useful for tooling.
+      @return {Promise} a promise rejected with the given `reason`.
+    */
+    function reject$1(reason) {
+        /*jshint validthis:true */
+        var Constructor = this;
+        var promise = new Constructor(noop);
+        reject(promise, reason);
+        return promise;
+    }
+    function needsResolver() {
+        throw new TypeError('You must pass a resolver function as the first argument to the promise constructor');
+    }
+    function needsNew() {
+        throw new TypeError("Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.");
+    }
+    /**
+      Promise objects represent the eventual result of an asynchronous operation. The
+      primary way of interacting with a promise is through its `then` method, which
+      registers callbacks to receive either a promise's eventual value or the reason
+      why the promise cannot be fulfilled.
+    
+      Terminology
+      -----------
+    
+      - `promise` is an object or function with a `then` method whose behavior conforms to this specification.
+      - `thenable` is an object or function that defines a `then` method.
+      - `value` is any legal JavaScript value (including undefined, a thenable, or a promise).
+      - `exception` is a value that is thrown using the throw statement.
+      - `reason` is a value that indicates why a promise was rejected.
+      - `settled` the final resting state of a promise, fulfilled or rejected.
+    
+      A promise can be in one of three states: pending, fulfilled, or rejected.
+    
+      Promises that are fulfilled have a fulfillment value and are in the fulfilled
+      state.  Promises that are rejected have a rejection reason and are in the
+      rejected state.  A fulfillment value is never a thenable.
+    
+      Promises can also be said to *resolve* a value.  If this value is also a
+      promise, then the original promise's settled state will match the value's
+      settled state.  So a promise that *resolves* a promise that rejects will
+      itself reject, and a promise that *resolves* a promise that fulfills will
+      itself fulfill.
+    
+    
+      Basic Usage:
+      ------------
+    
+      ```js
+      let promise = new Promise(function(resolve, reject) {
+        // on success
+        resolve(value);
+    
+        // on failure
+        reject(reason);
+      });
+    
+      promise.then(function(value) {
+        // on fulfillment
+      }, function(reason) {
+        // on rejection
+      });
+      ```
+    
+      Advanced Usage:
+      ---------------
+    
+      Promises shine when abstracting away asynchronous interactions such as
+      `XMLHttpRequest`s.
+    
+      ```js
+      function getJSON(url) {
+        return new Promise(function(resolve, reject){
+          let xhr = new XMLHttpRequest();
+    
+          xhr.open('GET', url);
+          xhr.onreadystatechange = handler;
+          xhr.responseType = 'json';
+          xhr.setRequestHeader('Accept', 'application/json');
+          xhr.send();
+    
+          function handler() {
+            if (this.readyState === this.DONE) {
+              if (this.status === 200) {
+                resolve(this.response);
+              } else {
+                reject(new Error('getJSON: `' + url + '` failed with status: [' + this.status + ']'));
+              }
+            }
+          };
+        });
+      }
+    
+      getJSON('/posts.json').then(function(json) {
+        // on fulfillment
+      }, function(reason) {
+        // on rejection
+      });
+      ```
+    
+      Unlike callbacks, promises are great composable primitives.
+    
+      ```js
+      Promise.all([
+        getJSON('/posts'),
+        getJSON('/comments')
+      ]).then(function(values){
+        values[0] // => postsJSON
+        values[1] // => commentsJSON
+    
+        return values;
+      });
+      ```
+    
+      @class Promise
+      @param {Function} resolver
+      Useful for tooling.
+      @constructor
+    */
+    var Promise$2 = function () {
+        function Promise(resolver) {
+            this[PROMISE_ID] = nextId();
+            this._result = this._state = undefined;
+            this._subscribers = [];
+            if (noop !== resolver) {
+                typeof resolver !== 'function' && needsResolver();
+                this instanceof Promise ? initializePromise(this, resolver) : needsNew();
+            }
+        }
+        /**
+        The primary way of interacting with a promise is through its `then` method,
+        which registers callbacks to receive either a promise's eventual value or the
+        reason why the promise cannot be fulfilled.
+         ```js
+        findUser().then(function(user){
+          // user is available
+        }, function(reason){
+          // user is unavailable, and you are given the reason why
+        });
+        ```
+         Chaining
+        --------
+         The return value of `then` is itself a promise.  This second, 'downstream'
+        promise is resolved with the return value of the first promise's fulfillment
+        or rejection handler, or rejected if the handler throws an exception.
+         ```js
+        findUser().then(function (user) {
+          return user.name;
+        }, function (reason) {
+          return 'default name';
+        }).then(function (userName) {
+          // If `findUser` fulfilled, `userName` will be the user's name, otherwise it
+          // will be `'default name'`
+        });
+         findUser().then(function (user) {
+          throw new Error('Found user, but still unhappy');
+        }, function (reason) {
+          throw new Error('`findUser` rejected and we're unhappy');
+        }).then(function (value) {
+          // never reached
+        }, function (reason) {
+          // if `findUser` fulfilled, `reason` will be 'Found user, but still unhappy'.
+          // If `findUser` rejected, `reason` will be '`findUser` rejected and we're unhappy'.
+        });
+        ```
+        If the downstream promise does not specify a rejection handler, rejection reasons will be propagated further downstream.
+         ```js
+        findUser().then(function (user) {
+          throw new PedagogicalException('Upstream error');
+        }).then(function (value) {
+          // never reached
+        }).then(function (value) {
+          // never reached
+        }, function (reason) {
+          // The `PedgagocialException` is propagated all the way down to here
+        });
+        ```
+         Assimilation
+        ------------
+         Sometimes the value you want to propagate to a downstream promise can only be
+        retrieved asynchronously. This can be achieved by returning a promise in the
+        fulfillment or rejection handler. The downstream promise will then be pending
+        until the returned promise is settled. This is called *assimilation*.
+         ```js
+        findUser().then(function (user) {
+          return findCommentsByAuthor(user);
+        }).then(function (comments) {
+          // The user's comments are now available
+        });
+        ```
+         If the assimliated promise rejects, then the downstream promise will also reject.
+         ```js
+        findUser().then(function (user) {
+          return findCommentsByAuthor(user);
+        }).then(function (comments) {
+          // If `findCommentsByAuthor` fulfills, we'll have the value here
+        }, function (reason) {
+          // If `findCommentsByAuthor` rejects, we'll have the reason here
+        });
+        ```
+         Simple Example
+        --------------
+         Synchronous Example
+         ```javascript
+        let result;
+         try {
+          result = findResult();
+          // success
+        } catch(reason) {
+          // failure
+        }
+        ```
+         Errback Example
+         ```js
+        findResult(function(result, err){
+          if (err) {
+            // failure
+          } else {
+            // success
+          }
+        });
+        ```
+         Promise Example;
+         ```javascript
+        findResult().then(function(result){
+          // success
+        }, function(reason){
+          // failure
+        });
+        ```
+         Advanced Example
+        --------------
+         Synchronous Example
+         ```javascript
+        let author, books;
+         try {
+          author = findAuthor();
+          books  = findBooksByAuthor(author);
+          // success
+        } catch(reason) {
+          // failure
+        }
+        ```
+         Errback Example
+         ```js
+         function foundBooks(books) {
+         }
+         function failure(reason) {
+         }
+         findAuthor(function(author, err){
+          if (err) {
+            failure(err);
+            // failure
+          } else {
+            try {
+              findBoooksByAuthor(author, function(books, err) {
+                if (err) {
+                  failure(err);
+                } else {
+                  try {
+                    foundBooks(books);
+                  } catch(reason) {
+                    failure(reason);
+                  }
+                }
+              });
+            } catch(error) {
+              failure(err);
+            }
+            // success
+          }
+        });
+        ```
+         Promise Example;
+         ```javascript
+        findAuthor().
+          then(findBooksByAuthor).
+          then(function(books){
+            // found books
+        }).catch(function(reason){
+          // something went wrong
+        });
+        ```
+         @method then
+        @param {Function} onFulfilled
+        @param {Function} onRejected
+        Useful for tooling.
+        @return {Promise}
+        */
+        /**
+        `catch` is simply sugar for `then(undefined, onRejection)` which makes it the same
+        as the catch block of a try/catch statement.
+        ```js
+        function findAuthor(){
+        throw new Error('couldn't find that author');
+        }
+        // synchronous
+        try {
+        findAuthor();
+        } catch(reason) {
+        // something went wrong
+        }
+        // async with promises
+        findAuthor().catch(function(reason){
+        // something went wrong
+        });
+        ```
+        @method catch
+        @param {Function} onRejection
+        Useful for tooling.
+        @return {Promise}
+        */
+        Promise.prototype.catch = function _catch(onRejection) {
+            return this.then(null, onRejection);
+        };
+        /**
+          `finally` will be invoked regardless of the promise's fate just as native
+          try/catch/finally behaves
+      
+          Synchronous example:
+      
+          ```js
+          findAuthor() {
+            if (Math.random() > 0.5) {
+              throw new Error();
+            }
+            return new Author();
+          }
+      
+          try {
+            return findAuthor(); // succeed or fail
+          } catch(error) {
+            return findOtherAuther();
+          } finally {
+            // always runs
+            // doesn't affect the return value
+          }
+          ```
+      
+          Asynchronous example:
+      
+          ```js
+          findAuthor().catch(function(reason){
+            return findOtherAuther();
+          }).finally(function(){
+            // author was either found, or not
+          });
+          ```
+      
+          @method finally
+          @param {Function} callback
+          @return {Promise}
+        */
+        Promise.prototype.finally = function _finally(callback) {
+            var promise = this;
+            var constructor = promise.constructor;
+            if (isFunction(callback)) {
+                return promise.then(function (value) {
+                    return constructor.resolve(callback()).then(function () {
+                        return value;
+                    });
+                }, function (reason) {
+                    return constructor.resolve(callback()).then(function () {
+                        throw reason;
+                    });
+                });
+            }
+            return promise.then(callback, callback);
+        };
+        return Promise;
+    }();
+    Promise$2.prototype.then = then;
+    Promise$2.all = all;
+    Promise$2.race = race;
+    Promise$2.resolve = resolve$1;
+    Promise$2.reject = reject$1;
+    Promise$2._setScheduler = setScheduler;
+    Promise$2._setAsap = setAsap;
+    Promise$2._asap = asap;
+    /*global self*/
+    function polyfill() {
+        var local = void 0;
+        if (typeof global !== 'undefined') {
+            local = global;
+        }
+        else if (typeof self !== 'undefined') {
+            local = self;
+        }
+        else {
+            try {
+                local = Function('return this')();
+            }
+            catch (e) {
+                throw new Error('polyfill failed because global object is unavailable in this environment');
+            }
+        }
+        var P = local.Promise;
+        if (P) {
+            var promiseToString = null;
+            try {
+                promiseToString = Object.prototype.toString.call(P.resolve());
+            }
+            catch (e) {
+                // silently ignored
+            }
+            if (promiseToString === '[object Promise]' && !P.cast) {
+                return;
+            }
+        }
+        local.Promise = Promise$2;
+    }
+    // Strange compat..
+    Promise$2.polyfill = polyfill;
+    Promise$2.Promise = Promise$2;
+    Promise$2.polyfill();
+    return Promise$2;
+})));
+//# sourceMappingURL=es6-promise.auto.map
+define("index", ["require", "exports"], function (require, exports) {
+    "use strict";
+    return { JSW: JSW };
+});
 //# sourceMappingURL=jsw.js.map

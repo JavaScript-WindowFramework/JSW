@@ -8,6 +8,10 @@ JavaScript用ウインドウフレームワーク
 - 可動式のフレームウインドウ、ListView、TreeView、分割バーなどの機能をサポート
 - 素のJavaScriptからでも使用可能
 
+# 更新履歴
+- 1.01 通信用Adapterの実装、es6-promiseをライブラリ内に設置
+- 1.00 公開版
+
 # アプリケーションの例
 - [GoogleDrive操作サンプル](https://gdriveexplorer.github.croud.jp/) ([ソース](https://github.com/JavaScript-WindowFramework/GDriveExplorer))
 - [TypeDocViewerサンプル](https://javascript-windowframework.github.io/TypeDocViewer/) ([ソース](https://github.com/JavaScript-WindowFramework/TypeDocViewer))
@@ -45,6 +49,5 @@ JavaScript用ウインドウフレームワーク
 - IE11で動作するレベルのDOM
 
 # ライセンス
-- [MIT License](https://opensource.org/licenses/mit-license.php)
-
+- [MIT License](https://opensource.org/licenses/mit-license.php)  
 ソースの利用に制限はありませんが、無保証です

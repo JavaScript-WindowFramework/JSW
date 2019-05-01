@@ -65,7 +65,7 @@ namespace JSW {
 				for (let func of funcs.functions)
 					params.functions.push({ function: func.name, params: func.params })
 			}
-			this.sendJson(this.scriptUrl + '?cmd=exec', params, (res) => {
+			Adapter.sendJson(this.scriptUrl + '?cmd=exec', params, (res) => {
 				if (res == null) {
 					for (let funcs of functionSet) {
 						console.error('通信エラー')
@@ -103,7 +103,14 @@ namespace JSW {
 				}
 			})
 		}
-		sendJson(url: string, data: any, proc: Function, headers?: { [key: string]: string }) {
+		static sendJsonAsync(url: string, data?: any, headers?: { [key: string]: string }){
+			return new Promise((resolve)=>{
+				Adapter.sendJson(url,data,(value)=>{
+					resolve(value)
+				}, headers)
+			})
+		}
+		static sendJson(url: string, data: any, proc: Function, headers?: { [key: string]: string }) : Promise<any>{
 			const req = new XMLHttpRequest()
 
 			//ネイティブでJSON変換が可能かチェック
@@ -140,7 +147,7 @@ namespace JSW {
 					req.setRequestHeader(index, sessionStorage.getItem(headers[index]));
 				}
 			}
-			req.send(JSON.stringify(data));
+			req.send(data==null?null:JSON.stringify(data));
 		}
 	}
 

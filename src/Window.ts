@@ -32,19 +32,26 @@ namespace JSW {
 		margin: { x1: number, y1: number, x2: number, y2: number }
 		padding: { x1: number, y1: number, x2: number, y2: number }
 		moveable: boolean
-		reshow:boolean
-		animation:{}
-		animationEnable:boolean
-		noActive:boolean,
-		autoSizeNode:HTMLElement
+		reshow: boolean
+		animation: {}
+		animationEnable: boolean
+		noActive: boolean,
+		autoSizeNode: HTMLElement
 	}
 
 
 	export interface WINDOW_EVENT_MAP {
-		any:any
-		active:{active:boolean}
-		closed:{}
-		layout:{}
+		any: any
+		active: { active: boolean }
+		closed: {}
+		layout: {}
+		layouted: {}
+	}
+	export interface WINDOW_PARAMS {
+		frame?: boolean,
+		title?: boolean,
+		layer?: number,
+		overlap?: boolean
 	}
 	/**
 	 *ウインドウ基本クラス
@@ -53,7 +60,7 @@ namespace JSW {
 	 * @class Window
 	 */
 	export class Window {
-		private Events = new Map<string,any[]>()
+		private Events = new Map<string, any[]>()
 		private hNode: JNode
 		private JData: JDATA = {
 			x: 0,
@@ -78,11 +85,11 @@ namespace JSW {
 			margin: { x1: 0, y1: 0, x2: 0, y2: 0 },
 			padding: { x1: 0, y1: 0, x2: 0, y2: 0 },
 			moveable: false,
-			reshow:true,
-			noActive:false,
+			reshow: true,
+			noActive: false,
 			animation: {},
-			animationEnable:true,
-			autoSizeNode:null
+			animationEnable: true,
+			autoSizeNode: null
 		}
 		/**
 		 * Creates an instance of Window.
@@ -93,7 +100,7 @@ namespace JSW {
 		 * }
 		 * @memberof Window
 		 */
-		constructor(params?: { frame?: boolean, title?: boolean, layer?: number, overlap?: boolean }) {
+		constructor(params?: WINDOW_PARAMS) {
 			//ウインドウ用ノードの作成
 			let hNode = document.createElement('DIV') as JNode
 			hNode.Jsw = this
@@ -131,7 +138,7 @@ namespace JSW {
 			}
 
 
-			hNode.addEventListener("animationend", ()=> {
+			hNode.addEventListener("animationend", () => {
 				this.layout()
 			});
 			// hNode.addEventListener("animationiteration", () => {
@@ -164,10 +171,10 @@ namespace JSW {
 		setOverlap(flag: boolean) {
 			this.hNode.style.position = flag ? 'fixed' : 'absolute'
 		}
-		setJswStyle(style:string){
+		setJswStyle(style: string) {
 			this.getClient().dataset.jswStyle = style
 		}
-		getJswStyle():string{
+		getJswStyle(): string {
 			return this.getNode().dataset.jswStyle
 		}
 		//フレーム追加処理
@@ -213,7 +220,7 @@ namespace JSW {
 				frame.addEventListener("mouseup", function () { WindowManager.frame = null; }, false)
 			}
 			this.JData.frameSize = 1
-			this.getClient().style.top = this.JData.titleSize+'px'
+			this.getClient().style.top = this.JData.titleSize + 'px'
 			let node = this.hNode
 			//タイトルバーの作成
 			let title = node.childNodes[9]
@@ -244,7 +251,7 @@ namespace JSW {
 				WindowManager.nodeHeight = this.getHeight()
 				e.stopPropagation()
 				return false
-			}else{
+			} else {
 				e.preventDefault()
 			}
 		}
@@ -305,9 +312,11 @@ namespace JSW {
 			this.setPos(x, y)
 			this.setSize(width, height)
 			//移動フレーム処理時はイベントを止める
-			if (frameIndex < 9 || this.JData.moveable){
+			if (frameIndex < 9 || this.JData.moveable) {
 				p.event.preventDefault()
-				window.getSelection().removeAllRanges()
+				try{
+					window.getSelection().removeAllRanges()
+				}catch(e){}
 			}
 		}
 		/**
@@ -317,13 +326,13 @@ namespace JSW {
 		 * @param {*} listener コールバックリスナー
 		 * @memberof Window
 		 */
-	    addEventListener<K extends keyof WINDOW_EVENT_MAP>(type: K|string, listener: (this: Window,ev: WINDOW_EVENT_MAP[K]) => any): void{
+		addEventListener<K extends keyof WINDOW_EVENT_MAP>(type: K | string, listener: (this: Window, ev: WINDOW_EVENT_MAP[K]) => any): void {
 			let eventData = this.Events.get(type)
-			if(!eventData){
+			if (!eventData) {
 				eventData = []
-				this.Events.set(type,eventData)
+				this.Events.set(type, eventData)
 			}
-			for(let ev of eventData){
+			for (let ev of eventData) {
 				if (String(ev) === String(listener))
 					return
 			}
@@ -338,7 +347,7 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		removeEventListener<K extends keyof WINDOW_EVENT_MAP>(type: K | string, listener?: (this: Window, ev: WINDOW_EVENT_MAP[K]) => any): void {
-			if (listener == null){
+			if (listener == null) {
 				this.Events.delete(type)
 				return
 			}
@@ -349,7 +358,7 @@ namespace JSW {
 				this.Events.set(type, eventData)
 			}
 			for (let index in eventData) {
-				if (String(eventData[index]) === String(listener)){
+				if (String(eventData[index]) === String(listener)) {
 					eventData.splice(parseInt(index), 1)
 				}
 			}
@@ -363,8 +372,8 @@ namespace JSW {
 		 */
 		callEvent(type: string, params) {
 			const eventData = this.Events.get(type)
-			if(eventData){
-				for(let ev of eventData){
+			if (eventData) {
+				for (let ev of eventData) {
 					ev(params)
 				}
 			}
@@ -390,7 +399,7 @@ namespace JSW {
 			this.JData.y = this.JData.y + parseInt(y as any)
 			this.layout()
 		}
-		setNoActive(flag:boolean) : void{
+		setNoActive(flag: boolean): void {
 			this.JData.noActive = flag
 		}
 		/**
@@ -555,11 +564,21 @@ namespace JSW {
 		 * @param {number} y2
 		 * @memberof Window
 		 */
-		setPadding(x1: number, y1: number, x2: number, y2: number) {
-			this.JData.padding.x1 = x1;
-			this.JData.padding.y1 = y1;
-			this.JData.padding.x2 = x2;
-			this.JData.padding.y2 = y2;
+
+		setPadding(x1: number, y1: number, x2: number, y2: number)
+		setPadding(all: number)
+		setPadding(p1, p2?, p3?, p4?) {
+			if (typeof p2 === 'undefined') {
+				this.JData.padding.x1 = p1;
+				this.JData.padding.y1 = p1;
+				this.JData.padding.x2 = p1;
+				this.JData.padding.y2 = p1;
+			} else {
+				this.JData.padding.x1 = p1;
+				this.JData.padding.y1 = p2;
+				this.JData.padding.x2 = p3;
+				this.JData.padding.y2 = p4;
+			}
 		}
 		/**
 		 *配置時のマージン設定
@@ -570,11 +589,20 @@ namespace JSW {
 		 * @param {number} y2
 		 * @memberof Window
 		 */
-		setMargin(x1: number, y1: number, x2: number, y2: number) {
-			this.JData.margin.x1 = x1;
-			this.JData.margin.y1 = y1;
-			this.JData.margin.x2 = x2;
-			this.JData.margin.y2 = y2;
+		setMargin(x1: number, y1: number, x2: number, y2: number)
+		setMargin(all: number)
+		setMargin(p1, p2?, p3?, p4?) {
+			if (typeof p2 === 'undefined') {
+				this.JData.margin.x1 = p1;
+				this.JData.margin.y1 = p1;
+				this.JData.margin.x2 = p1;
+				this.JData.margin.y2 = p1;
+			} else {
+				this.JData.margin.x1 = p1;
+				this.JData.margin.y1 = p2;
+				this.JData.margin.x2 = p3;
+				this.JData.margin.y2 = p4;
+			}
 		}
 		/**
 		 *ウインドウの可視状態の取得
@@ -601,9 +629,9 @@ namespace JSW {
 			this.JData.visible = flag;
 
 
-			if (flag){
+			if (flag) {
 				node.style.display = '';
-				const animation = this.JData.animationEnable ? this.JData.animation['show']:''
+				const animation = this.JData.animationEnable ? this.JData.animation['show'] : ''
 				const animationEnd = () => {
 					this.callEvent('visibled', { visible: true })
 					node.removeEventListener("animationend", animationEnd)
@@ -613,12 +641,12 @@ namespace JSW {
 				if (animation) {
 					node.addEventListener("animationend", animationEnd)
 					node.style.animation = animation
-				}else{
+				} else {
 					node.style.animation = ''
 					animationEnd.bind(node)()
 				}
 			}
-			else{
+			else {
 				const animationEnd = () => {
 					let nodes = node.querySelectorAll('[data-jsw="Window"]') as any as JNode[]
 					let count = nodes.length
@@ -675,9 +703,9 @@ namespace JSW {
 			WindowManager.layout(false)
 			this.JData.layoutFlag = false
 		}
-		active(flag?:boolean){
+		active(flag?: boolean) {
 			if (!this.JData.noActive)
-				this.getNode().dataset.jswActive = (flag||flag==null)?'true':'false'
+				this.getNode().dataset.jswActive = (flag || flag == null) ? 'true' : 'false'
 		}
 
 		/**
@@ -743,7 +771,7 @@ namespace JSW {
 			this.callEvent('measure', {})
 			const width = this.getClient().scrollWidth
 			const height = this.getClient().scrollHeight
-			if(width === this.getClientWidth() && height === this.getClientHeight())
+			if (width === this.getClientWidth() && height === this.getClientHeight())
 				return false
 			this.setClientSize(width, height)
 
@@ -772,7 +800,7 @@ namespace JSW {
 				this.hNode.style.width = this.JData.width + 'px'
 				this.hNode.style.height = this.JData.height + 'px'
 				flag = true
-				this.callEvent('layout',{})
+				this.callEvent('layout', {})
 			}
 
 			let client = this.getClient()
@@ -842,10 +870,8 @@ namespace JSW {
 
 			this.orderSort(client)
 			this.callEvent('layouted', {})
-
-
 		}
-		private orderSort(client:HTMLElement){
+		private orderSort(client: HTMLElement) {
 			let nodes = []
 			for (let i = 0; i < client.childNodes.length; i++) {
 				let node = client.childNodes[i] as HTMLElement
@@ -871,10 +897,10 @@ namespace JSW {
 				nodes[i].style.zIndex = i
 			}
 		}
-		show(flag:boolean):void{
-			if(flag==null || flag){
+		show(flag: boolean): void {
+			if (flag == null || flag) {
 				this.JData.reshow = true
-			}else{
+			} else {
 				//this.hNode.style.visibility = 'hidden'
 			}
 		}
@@ -907,14 +933,14 @@ namespace JSW {
 				var activeWindows = document.querySelectorAll('[data-jsw="Window"][data-jsw-active="true"]')
 				for (let i = 0, l = activeWindows.length; i < l; i++) {
 					let w = activeWindows[i] as JNode
-					if (!activeNodes.has(w)){
+					if (!activeNodes.has(w)) {
 						w.dataset.jswActive = 'false'
-						w.Jsw.callEvent('active',{active:false})
+						w.Jsw.callEvent('active', { active: false })
 					}
 				}
 			}
 			const parent = this.getParent();
-			if(parent)
+			if (parent)
 				parent.layout()
 		}
 
@@ -952,15 +978,15 @@ namespace JSW {
 				if (this.parentNode)
 					this.parentNode.removeChild(this)
 				this.removeEventListener("animationend", animationEnd)
-				that.callEvent('closed',{})
+				that.callEvent('closed', {})
 
 
 			}
 			const animation = this.JData.animationEnable ? this.JData.animation['close'] : ''
-			if(animation){
+			if (animation) {
 				this.hNode.addEventListener("animationend", animationEnd)
 				this.hNode.style.animation = animation
-			}else{
+			} else {
 				animationEnd.bind(this.hNode)()
 			}
 		}
@@ -971,7 +997,7 @@ namespace JSW {
 		 * @param {string} value アニメーションパラメータ
 		 * @memberof Window
 		 */
-		setAnimation(name:string,value:string):void{
+		setAnimation(name: string, value: string): void {
 			this.JData.animation[name] = value
 		}
 		/**
@@ -1042,8 +1068,8 @@ namespace JSW {
 		 */
 		setClientSize(width: number, height: number) {
 			this.setSize(
-				width + this.JData.frameSize*2 + this.JData.padding.x1 + this.JData.padding.x2,
-				height + this.JData.frameSize  + this.JData.padding.y1 + this.JData.padding.y2 * 2 + this.JData.titleSize)
+				width + this.JData.frameSize * 2 + this.JData.padding.x1 + this.JData.padding.x2,
+				height + this.JData.frameSize + this.JData.padding.y1 + this.JData.padding.y2 * 2 + this.JData.titleSize)
 		}
 
 		/**
@@ -1053,7 +1079,7 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setClientWidth(width: number) {
-			this.setWidth(width + this.JData.frameSize*2 + this.JData.padding.x1 + this.JData.padding.x2)
+			this.setWidth(width + this.JData.frameSize * 2 + this.JData.padding.x1 + this.JData.padding.x2)
 		}
 		/**
 		 *クライアントサイズを元にウインドウサイズを設定
@@ -1062,7 +1088,7 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		setClientHeight(height: number) {
-			this.setWidth(height + this.JData.frameSize  + this.JData.padding.y1 + this.JData.padding.y2 * 2 + this.JData.titleSize)
+			this.setWidth(height + this.JData.frameSize + this.JData.padding.y1 + this.JData.padding.y2 * 2 + this.JData.titleSize)
 		}
 		/**
 		 *クライアントサイズを取得
@@ -1071,7 +1097,7 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		getClientWidth(): number {
-			return this.getWidth() - this.JData.frameSize*2 - this.JData.padding.x1 - this.JData.padding.x2
+			return this.getWidth() - this.JData.frameSize * 2 - this.JData.padding.x1 - this.JData.padding.x2
 
 		}
 		/**
@@ -1081,7 +1107,7 @@ namespace JSW {
 		 * @memberof Window
 		 */
 		getClientHeight(): number {
-			return this.getHeight() - this.JData.frameSize*2 - this.JData.padding.y1 - this.JData.padding.y2 - this.JData.titleSize
+			return this.getHeight() - this.JData.frameSize * 2 - this.JData.padding.y1 - this.JData.padding.y2 - this.JData.titleSize
 		}
 
 		/**

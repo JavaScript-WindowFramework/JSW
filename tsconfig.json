@@ -1,23 +1,7 @@
 {
-	"compilerOptions": {
-		"sourceMap": true,
-		"target": "es5",
-		"module": "commonjs",
-		"outDir": "./dist/js",
-		"declaration": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"lib": [
-			"es2015",
-			"dom"
-		]
-	},
-	"typedocOptions":{
-		"name": "JSW",
-		"srcdir":"./src",
-		"json": "doc/document.json",
-		"mode": "file",
-		"includeDeclarations": false,
-		"hideGenerator": false
-	}
+	"references": [{
+			"path": "./src"
+		}
+	],
+	"exclude": ["."]
 }

@@ -19,6 +19,7 @@ namespace JSW{
 	export interface TreeViewEventMap extends WINDOW_EVENT_MAP{
 		"itemOpen": TREEVIEW_EVENT_OPEN
 		"itemSelect": TREEVIEW_EVENT_SELECT
+		"itemDblClick": TREEVIEW_EVENT_SELECT
 		"itemDrop": TREEVIEW_EVENT_DROP
 		"itemDragStart": TREEVIEW_EVENT_DRAG_START
 	}
@@ -42,7 +43,6 @@ namespace JSW{
 		 * @memberof TreeItem
 		 */
 		constructor(label?: |string, opened?: boolean) {
-			let that = this
 			let hNode = document.createElement('div') as any
 			this.hNode = hNode
 			hNode.treeItem = this
@@ -50,33 +50,36 @@ namespace JSW{
 			let row1 = document.createElement('div')
 			row1.dataset.kind = 'TreeRow'
 			hNode.appendChild(row1)
-			row1.addEventListener("click", function () {
-				that.selectItem();
-			});
-			row1.addEventListener('dragstart', function (e) {
-				that.getTreeView().callEvent('itemDragStart', { item: that, event: e })
+			row1.addEventListener("click", ()=> {
+				this.selectItem();
 			})
-			row1.addEventListener('dragleave', function () {
+			row1.addEventListener("dblclick", () => {
+				this.getTreeView().callEvent('itemDblClick', { item: this })
+			})
+			row1.addEventListener('dragstart', (e) => {
+				this.getTreeView().callEvent('itemDragStart', { item: this, event: e })
+			})
+			row1.addEventListener('dragleave', () => {
 				row1.dataset.drag = ''
 			})
-			row1.addEventListener('dragenter', function () {
+			row1.addEventListener('dragenter', () => {
 				row1.dataset.drag = 'over'
 				event.preventDefault()
 			})
-			row1.addEventListener('dragover', function () {
+			row1.addEventListener('dragover', () => {
 				//row1.dataset.drag = 'over'
 				event.preventDefault()
 			})
-			row1.addEventListener('drop', function (e) {
-				that.getTreeView().callEvent('itemDrop', { event: e, item: that })
+			row1.addEventListener('drop', (e) =>  {
+				this.getTreeView().callEvent('itemDrop', { event: e, item: this })
 				row1.dataset.drag = ''
 				event.preventDefault()
 			})
 			let icon = document.createElement('div')
 			icon.dataset.kind = 'TreeIcon'
 			row1.appendChild(icon)
-			icon.addEventListener("click", function (e) {
-				that.openItem(!that.opened);
+			icon.addEventListener("click", (e) => {
+				this.openItem(!this.opened);
 				e.preventDefault();
 				e.stopPropagation()
 			});

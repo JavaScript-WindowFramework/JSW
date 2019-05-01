@@ -3,16 +3,17 @@
 		"sourceMap": true,
 		"target": "es5",
 		"module": "amd",
-		"outFile":"../dist/js/jsw.js",
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
+		"composite": true,
 		"declaration": true,
+		"outFile": "../dist/js/jsw.js",
+		"rootDir": ".",
+		"moduleResolution": "node",
 		"lib": [
-			"es2015",
+			"es2017",
 			"dom"
 		]
 	},
-	"typedocOptions":{
+	"typedocOptions": {
 		"name": "JSW",
 		"json": "../doc/document.json",
 		"mode": "file",
