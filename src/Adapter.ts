@@ -9,6 +9,16 @@ namespace JSW {
 		array: boolean
 	}
 
+	interface AdapterFormat {
+		globalHash: string		//ブラウザ共通セッションキー
+		sessionHash: string		//タブ用セッションキー
+		functions: 				//命令格納用
+		{
+			function: string	//命令
+			params: any[]		//パラメータ
+		}[]
+	}
+
 	export class Adapter {
 		handle: number
 		scriptUrl: string
@@ -56,7 +66,7 @@ namespace JSW {
 			const sessionHash = sessionStorage.getItem(this.keyName)
 			const functionSet = this.functionSet
 			this.functionSet = []
-			const params = {
+			const params: AdapterFormat = {
 				globalHash: globalHash,
 				sessionHash: sessionHash,
 				functions: []
